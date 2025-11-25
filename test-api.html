@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Create Project</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .button:hover { background: #0056b3; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        .project-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .project-card img { max-width: 100%; height: 200px; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Test - Project Creation & Display</h1>
+    
+    <div>
+        <button class="button" onclick="createProject()">🚀 Create Test Project</button>
+        <button class="button" onclick="getProjects()">📋 Get All Projects</button>
+        <button class="button" onclick="clearLog()">🗑️ Clear Log</button>
+    </div>
+
+    <div id="result"></div>
+    <div id="projects"></div>
+    <div id="log" class="log">📝 Ready to test API...\n</div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '📝 Log cleared...\n';
+        }
+
+        async function createProject() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            
+            log('🚀 Creating test project...');
+            
+            const testProject = {
+                bannerPhotoUrl: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800",
+                contents: [
+                    {
+                        language_code: "en",
+                        name: "Test Project - " + new Date().toLocaleTimeString(),
+                        description: "A test project created via API",
+                        content: "This project was created through the API to test functionality.",
+                        images: [],
+                        videos: [],
+                        documents: []
+                    },
+                    {
+                        language_code: "ar",
+                        name: "مشروع اختبار - " + new Date().toLocaleTimeString(),
+                        description: "مشروع اختبار تم إنشاؤه عبر API",
+                        content: "تم إنشاء هذا المشروع عبر API لاختبار الوظائف.",
+                        images: [],
+                        videos: [],
+                        documents: []
+                    }
+                ]
+            };
+
+            try {
+                log('📤 Sending POST to /api/test-projects...');
+                
+                const response = await fetch(`${API_BASE}/api/test-projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testProject)
+                });
+
+                log(`📡 Response status: ${response.status}`);
+                
+                const data = await response.json();
+                log('📄 Response: ' + JSON.stringify(data, null, 2));
+
+                if (response.status === 201 && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ SUCCESS! Project created with 201 status<br>
+                            🆔 Project ID: ${data.data.id}<br>
+                            📝 Name: ${data.data.contents[0].name}
+                        </div>
+                    `;
+                    log('✅ Project created successfully!');
+                    
+                    // Auto-refresh projects list
+                    setTimeout(getProjects, 1000);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Failed to create project<br>
+                            Status: ${response.status}<br>
+                            Error: ${data.error}<br>
+                            ${data.details ? `Details: ${data.details}` : ''}
+                        </div>
+                    `;
+                    log('❌ Project creation failed');
+                }
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Request failed: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function getProjects() {
+            const projectsDiv = document.getElementById('projects');
+            projectsDiv.innerHTML = '<h2>📋 Projects from MongoDB</h2>';
+            
+            log('📋 Getting all projects...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/projects`);
+                const data = await response.json();
+                
+                log(`📊 Retrieved ${data.data?.length || 0} projects`);
+                
+                if (data.success && data.data) {
+                    if (data.data.length === 0) {
+                        projectsDiv.innerHTML += '<p>No projects found in database</p>';
+                    } else {
+                        data.data.forEach((project, index) => {
+                            const englishContent = project.contents.find(c => c.language_code === 'en') || project.contents[0];
+                            const projectCard = `
+                                <div class="project-card">
+                                    <h3>${englishContent.name || 'No Name'}</h3>
+                                    <p><strong>ID:</strong> ${project.id}</p>
+                                    <p><strong>Description:</strong> ${englishContent.description || 'No Description'}</p>
+                                    ${project.bannerPhotoUrl ? `<img src="${project.bannerPhotoUrl}" alt="${englishContent.name}">` : '<p>No Image</p>'}
+                                    <p><strong>Contents:</strong> ${project.contents.length} (${project.contents.map(c => c.language_code).join(', ')})</p>
+                                </div>
+                            `;
+                            projectsDiv.innerHTML += projectCard;
+                        });
+                    }
+                } else {
+                    projectsDiv.innerHTML += `<p class="error">Error: ${data.error}</p>`;
+                }
+                
+            } catch (error) {
+                log('❌ Error getting projects: ' + error.message);
+                projectsDiv.innerHTML += `<p class="error">Failed to load projects: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-load projects on page load
+        window.addEventListener('load', getProjects);
+    </script>
+</body>
+</html>

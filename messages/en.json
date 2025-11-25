@@ -1,0 +1,208 @@
+{
+
+  "header": {
+    "home": "Home",
+    "about": "About Us",
+    "news": "News",
+    "contact": "Contact",
+    "stories": "Stories",
+     "projects": "Projects",
+    "donate": "Donate Now",
+       "dashboard" : "Your Dashboard"
+  }
+  ,
+    "HomePage": {
+  "uppertext": "A Journey of Hope and Giving",
+  "maintext": "Together, We Build a Legacy of Humanity",
+  "subtext": "Our foundation was established to be a bridge between compassionate hearts and families in need. For years, we have been providing humanitarian and developmental aid, offering those in need a chance for a dignified life filled with ",
+   "donate": "Donate",
+   "about": "About Us",
+    "hopetitle" : "You Are Their Hope",
+   "hopesubtitle": "Every child deserves a chance to dream, to learn, and to grow. Your support creates a brighter future, transforming lives and building communities. Join us in making a lasting difference for those who need it most"
+  }
+  ,
+  "projects" :{
+    "title": "OUR PROJECTS",
+    "subtitle":"Choose a cause and make a difference today",
+      "singleproject": {
+        "title": "Water Project",
+         "subtitle":"Lorem ipsum dolor sit amet consectetur. Sapien ut purus amet aenean lacus ante tempor",
+         "campaign" : "August campaign",
+         "currency" :"EG",
+          "donate" : "Donate"
+      }
+    
+  }
+  ,
+  "Stories" :{
+    "title": "Stories",
+    "subtitle":"Discover how your support has transformed lives and brought hope to people in need"
+    ,
+      "singlestory" :{
+        "name" :"Ahmad Khattab",
+        "desc" :"With your support, Ahmed received vital medical treatment and is now thriving"
+      }
+    
+  },
+  "News" :{
+    "title": "News",
+    "desc": "Explore the latest updates and charity activities",
+    "cardtitle" : "Distributing winter clothes",
+    "cardesc" : "Providing clean and safe drinking water to families in Gaza, ensuring their basic right to health and dignity. winter clothes"
+  }
+  
+  ,
+  "statics": {
+    "project" : "Project Completed",
+     "medical" : "Medical Aid",
+     "food" : "Food Parcels",
+     "orphans" : "Orphans Sponsored"
+  }
+  ,
+  "Footer": {
+    "company": {
+      "name": "HopeBridge",
+      "description": "Bringing hope and life-saving support to communities in need. Your generosity fuels change, one act of kindness at a time"
+    },
+    "sections": {
+      "pages": "Pages",
+      "projects": "Projects",
+      "helpfulLinks": "Helpful Links",
+      "contactUs": "Contact Us"
+    },
+    "links": {
+      "aboutUs": "About Us",
+      "news": "News",
+      "stories": "Stories",
+      "waterProject": "Water Project",
+      "winterProject": "Winter Project",
+      "foodProject": "Food Project",
+      "faqs": "FAQs",
+      "support": "Support"
+    },
+    "contact": {
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address"
+    },
+    "social": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "dribbble": "Dribbble"
+    },
+    "copyright": "All rights reserved"
+  } ,
+
+  "readmore" : { 
+    "Readmore":"Read More"
+  }
+  ,
+
+  "about": {
+    "hero": {
+      "title": "Hope Bridge Association (HBA)",
+      "subtitle": "Since 2015, HBA has been changing lives — building hope, dignity, and resilience",
+      "cta": "Join Us"
+    },
+    "whoWeAre": {
+      "title": "Who We Are",
+      "text1": "Hope Bridge Association (HBA) is a Palestinian non-profit, non-governmental, and charitable organization licensed by the Ministry of Interior – Ramallah under registration number GA-1123-C",
+      "text2": "Since 2015, HBA has been dedicated to providing humanitarian aid and development programs to vulnerable communities in the Gaza Strip, with a particular focus on marginalized and rural areas",
+      "text3": "We work tirelessly to support families living below the poverty line and facing severe humanitarian conditions, helping them restore dignity and build resilience",
+      "text4": "HBA is committed to empowering Palestinian society through planned, sustainable, and impactful programs, aiming to create a future where communities are self-reliant, productive, and resilient"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "text": "To deliver timely relief and sustainable development programs that support vulnerable and marginalized communities in Gaza, enabling them to live with dignity and hope"
+    },
+    "vision": {
+      "title": "Our Vision",
+      "text": "A resilient Palestinian society empowered with opportunities for sustainable growth, dignity, and prosperity"
+    },
+      "values": {
+    "title": "Our Core Values",
+    "integrity":
+    {
+      "title":"Integrity",
+      "text": "We uphold transparency, honesty, and accountability in everything we do"
+    },
+    "collaboration":
+    {
+      "title": "Collaboration",
+      "text": "We partner with local and international stakeholders to maximize impact"
+    },
+
+    "impact":
+    {
+      "title": "Impact",
+      "text": "We focus on creating measurable and life-changing results"
+    },
+    "innovation": {
+      "title": "Innovation",
+      "text": "We find creative solutions to address urgent humanitarian challenges"
+    }
+  },
+  "work": {
+    "title": "Our Work",
+    "intro":"HBA’s programs are designed to address urgent humanitarian needs while fostering long-term community development. We focus on:",
+    "humanitarian":
+    {
+      "title":"Humanitarian Assistance" ,
+      "text" : "Providing emergency relief such as food parcels, clean water, shelter, and winterization aid for displaced and vulnerable families" 
+    },
+    "health": {
+      "title": "Health & Medical Support" ,
+      "text" :"Offering essential medicines, medical equipment, and mobile clinics to ensure access to healthcare services, especially during crises"
+    },
+    "education": {
+      "title": "Education & Child Protection" ,
+      "text" :"Supporting schools, learning centers, and psychosocial activities to protect children and empower youth affected by war and displacement"
+    },
+    "livelihood":
+    {
+      "title":"Livelihood & Economic Development" ,
+      "text" :"Implementing vocational training and income-generating projects to help families achieve financial independence"
+    },
+    "psychosocial": {
+      "title": " Psychosocial Support" ,
+      "text" :"Providing safe spaces and trauma-healing activities for children and families, promoting mental well-being and community resilience"
+    }
+  },
+  "whyChoose": {
+    "title":"Why Choose HBA",
+    "trusted": 
+    {
+      "title" :"Trusted Charity",
+      "text":"Recognized for transparency and accountability"
+    },
+    "efficiency":  {
+      "title" :"Financial Efficiency",
+      "text":"We ensure every donation is used effectively"
+    },
+    "effectiveness":   {
+      "title" :"Program Effectiveness",
+      "text":"Our interventions deliver measurable impact"
+    },
+    "community":   {
+      "title" :"Community-Centered Approach",
+      "text":"We work closely with local communities to identify real needs"
+    }
+  },
+  "joinUs": {
+    "title":"Join Us – Plant Hope, Change Lives",
+    "text": "Your support can save lives and restore dignity for families in Gaza ,Every contribution matters. With your help, we can provide food, medicine, clean water, education, and emergency shelter to those who need it most",
+    "cta": "Donate Now"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "address": "📍 Address: Hope Bridge Charitable Association – Gaza Strip",
+    "email":"📧 Email: contact@hopebridgecharity.com",
+    "phone": "📱 Phone: +20 1022409148",
+    "whatsapp": "💬 WhatsApp:+20 1022409148"
+,
+    "follow": "[Facebook] | [Instagram] | [TikTok] | [LinkedIn] | [YouTube] | [X]",
+    "slogan": "Hope Bridge Association (HBA) :Planting Seeds of Hope, Building a Future of Dignity"
+  }
+  }
+}
+
