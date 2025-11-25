@@ -121,10 +121,7 @@ const postSchema = new Schema<PostDoc>(
 postSchema.index({ category: 1, created_at: -1 });
 postSchema.index({ slug: 1 }, { sparse: true });
 postSchema.index({ status: 1, created_at: -1 });
-
-// Performance indexes
 postSchema.index({ created_at: -1, _id: -1 });
-postSchema.index({ category: 1, created_at: -1 });
 
 export const PostModel =
   (mongoose.models.Post as any) || mongoose.model<PostDoc>("Post", postSchema);
@@ -270,9 +267,6 @@ projectSchema.index({ created_at: -1, _id: -1 });
 projectSchema.index({ slug: 1 }, { sparse: true });
 projectSchema.index({ status: 1, created_at: -1 });
 
-// Performance indexes
-projectSchema.index({ created_at: -1, _id: -1 });
-
 export const ProjectModel =
   (mongoose.models.Project as any) ||
   mongoose.model<ProjectDoc>("Project", projectSchema);
@@ -404,11 +398,6 @@ visitSchema.index({ created_at: -1, _id: -1 });
 visitSchema.index({ projectId: 1, created_at: -1 });
 visitSchema.index({ path: 1, created_at: -1 });
 visitSchema.index({ ipHash: 1 }, { sparse: true });
-
-// Performance indexes
-visitSchema.index({ created_at: -1, _id: -1 });
-visitSchema.index({ projectId: 1, created_at: -1 });
-visitSchema.index({ path: 1, created_at: -1 });
 
 export const VisitModel =
   (mongoose.models.VisitLog as any) ||
