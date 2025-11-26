@@ -4,20 +4,41 @@ import { Logger, ValidationPipe } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
+import helmet from "helmet";
+import compression from "compression";
+import { Request, Response, NextFunction } from "express";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix("api");
 
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:3000"],
+    credentials: true,
+  });
+
+  app.use(helmet());
+  app.use(compression());
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.removeHeader('X-Powered-By');
+    res.removeHeader('Server');
+    next();
+  });
+
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new ResponseInterceptor(), new LoggingInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
       forbidUnknownValues: false,
-    }) as any,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
   );
 
   const config = new DocumentBuilder()

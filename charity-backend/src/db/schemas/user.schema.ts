@@ -21,10 +21,10 @@ export class User {
   @Prop({ required: true })
   passwordHash!: string;
 
-  @Prop({ type: String, enum: Role, default: Role.USER })
+  @Prop({ type: String, enum: Role, default: Role.USER, index: 1 })
   role!: Role;
 
-  @Prop({ default: true })
+  @Prop({ default: true, index: 1 })
   isActive!: boolean;
 
   @Prop({ default: false })
