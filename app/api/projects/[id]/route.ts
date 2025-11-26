@@ -42,7 +42,7 @@ export async function GET(
     const actualId = extractIdFromSlug(slugOrId);
     console.log(`🔍 Looking for project with slug/ID: ${slugOrId} -> extracted ID: ${actualId}`);
     
-    const project = await projectService.getProjectById(actualId);
+    const project = await projectService.getProjectWithMedia(actualId);
     
     if (!project) {
       console.log(`❌ Project not found with ID: ${actualId}`);

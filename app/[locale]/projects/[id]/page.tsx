@@ -1,3 +1,4 @@
+// projects/[id]/page.tsx
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import GradientText from "@/components/GradientText";
@@ -6,51 +7,38 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
+import MediaGallery from "@/components/MediaGallery";
 import { Button } from "@/components/ui/button";
 import SuggestProj from "@/components/SuggestProj";
 import DonationModalWrapper from "@/components/DonationModalWrapper";
 import Image from "next/image";
-import { ProjectService } from "@/lib/services/ProjectService";
-import MediaGallery from "@/components/MediaGallery";
 
 type LocalizedContent = {
   id: string;
+  post_id: string;
   language_code: string;
   name: string;
   description: string;
   content: string;
-  images: string[];
-  videos: string[];
-  documents: string[];
 };
-import { extractDriveFileId, getDriveImageUrl, getDriveVideoUrl } from "@/lib/driveUtils";
-
+const extractDriveId = (url: string) => {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : url; // if it’s already an ID, return as is
+};
 const extractIdFromSlug = (slug: string): string => {
-  // UUID format: 8-4-4-4-12 characters (with hyphens)
-  // Match UUID pattern at the end of the slug
-  const uuidRegex =
-    /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
-  const match = slug.match(uuidRegex);
+  const match = slug.match(/([a-f0-9]{24})$/i);
+  return match ? match[1] : slug;
+};
 
-  if (match) {
-    return match[1];
-  }
+const getImageUrl = (url: string) => {
+  const id = extractDriveId(url);
+  return `https://drive.google.com/uc?export=view&id=${id}`;
+};
 
-  // Fallback: if no UUID found, try to match ObjectId format (24 hex chars)
-  const objectIdRegex = /([a-f0-9]{24})$/i;
-  const objectIdMatch = slug.match(objectIdRegex);
-  
-  if (objectIdMatch) {
-    return objectIdMatch[1];
-  }
-
-  // Final fallback: if the entire slug is a valid ObjectId
-  if (/^[a-f0-9]{24}$/i.test(slug)) {
-    return slug;
-  }
-
-  console.warn("Could not extract valid ID from slug:", slug);
-  return slug;
+const getVideoEmbedUrl = (url: string) => {
+  const id = extractDriveId(url);
+  return `https://drive.google.com/file/d/${id}/preview`;
 };
 
 // const getImageUrl = (url: string): string => {
@@ -63,81 +51,47 @@ const extractIdFromSlug = (slug: string): string => {
 export default async function ProjectPage({
   params,
 }: PageProps<{ id: string; locale: string }>) {
-  const { id: slugOrId, locale } = await params;
+  const { id, locale } = await params;
+  console.log(id);
   const t = await getTranslations({ locale, namespace: "projects" });
   const session = await getServerSession(authOptions);
 
-  // Extract actual ID from slug or use direct ID (same logic as API)
-  const extractIdFromSlug = (slug: string): string => {
-    // UUID format: 8-4-4-4-12 characters (with hyphens)
-    const uuidRegex = /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
-    const match = slug.match(uuidRegex);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const projectId = extractIdFromSlug(id);
+  const res = await fetch(`${baseUrl}/api/project/${id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    console.error("Failed to fetch project:", res.status);
+    return notFound();
+  }
 
-    if (match) {
-      return match[1];
-    }
+  const { details } = await res.json();
 
-    // Fallback: if no UUID found, try to match ObjectId format (24 hex chars)
-    const objectIdRegex = /([a-f0-9]{24})$/i;
-    const objectIdMatch = slug.match(objectIdRegex);
-    
-    if (objectIdMatch) {
-      return objectIdMatch[1];
-    }
+  console.log(details);
 
-    // Final fallback: if the entire slug is a valid ObjectId
-    if (/^[a-f0-9]{24}$/i.test(slug)) {
-      return slug;
-    }
-
-    return slug; // Return as-is if no pattern matches
-  };
-  
-  const actualId = extractIdFromSlug(slugOrId);
-  console.log(`🔍 ProjectPage looking for: ${slugOrId} -> extracted ID: ${actualId}`);
-
-  const projectService = new ProjectService();
-  const projectWithMedia = await projectService.getProjectWithMedia(actualId);
-
-  if (!projectWithMedia) return notFound();
+  if (!details) return notFound();
 
   const localized =
-    projectWithMedia.contents?.find(
-      (c: any) => c.language_code === locale
+    details.contents?.find(
+      (c: LocalizedContent) => c.language_code === locale
     ) ||
-    projectWithMedia.contents?.find((c: any) => c.language_code === "en");
+    details.contents?.find((c: LocalizedContent) => c.language_code === "en");
 
   if (!localized) return notFound();
 
   const isArabic = locale === "ar";
+  const imageIds = (details.images || [])
+    .map((url: string) => getImageUrl(extractDriveId(url)))
+    .filter(Boolean) as string[];
 
-  // Prepare media for gallery - convert URLs to MediaFile format
-  const imageUrls = [
-    ...(projectWithMedia.gallery || []),
-    ...(localized.images || [])
-  ];
-  
-  const videoUrls = localized.videos || [];
-  
-  // Create MediaFile objects from URLs
-  const mediaFiles = imageUrls.map((url, index) => ({
-    id: `img-${index}`,
-    filename: `image-${index}`,
-    originalName: `Image ${index + 1}`,
-    mimeType: 'image/jpeg',
-    size: 0,
-    url: url,
-    uploaded_at: new Date().toISOString()
-  }));
+  const videoIds = (details.videos || [])
+    .map((url: string) => getVideoEmbedUrl(extractDriveId(url)))
+    .filter(Boolean) as string[];
 
-  console.log(`🖼️ Media for ${localized.name}:`, {
-    gallery: projectWithMedia.gallery?.length || 0,
-    images: localized.images?.length || 0,
-    videos: localized.videos?.length || 0,
-    totalImages: imageUrls.length,
-    totalVideos: videoUrls.length,
-    totalMedia: mediaFiles.length + videoUrls.length
-  });
+  console.log("before pass to media Gallery ", imageIds, videoIds);
 
   return (
     <main
@@ -147,38 +101,12 @@ export default async function ProjectPage({
       <div className="max-w-4xl mx-auto py-0 space-y-12">
         {/* Hero Section with Media */}
         <section className="relative">
-          <div className="relative h-64 md:h-96 rounded-xl overflow-hidden">
-            {projectWithMedia.bannerPhotoUrl ? (
-              <Image
-                src={getDriveImageUrl(projectWithMedia.bannerPhotoUrl, "w1200")}
-                alt={localized.name}
-                fill
-                className="object-cover"
-                unoptimized={projectWithMedia.bannerPhotoUrl.includes("drive.google.com")}
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <span className="text-gray-500 dark:text-gray-400">No Image</span>
-              </div>
-            )}
-          </div>
+          <MediaGallery
+            imageUrls={imageIds}
+            videoUrls={videoIds}
+            className="my-10"
+          />
         </section>
-
-        {/* Media Gallery */}
-        {(mediaFiles.length > 0 || videoUrls.length > 0) && (
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {isArabic ? "معرض الصور والفيديو" : "Media Gallery"}
-            </h2>
-            <MediaGallery 
-              mediaFiles={mediaFiles} 
-              imageUrls={imageUrls}
-              videoUrls={videoUrls}
-              className="w-full" 
-            />
-          </section>
-        )}
 
         {/* Project Header */}
         <section dir={isArabic ? "rtl" : "ltr"} className="  space-y-6">
@@ -228,9 +156,10 @@ export default async function ProjectPage({
           </div>
           {!(!session || session.user.role !== "manager") && (
             <div className="flex gap-3 px-5 items-center">
-              <Link href={`/${locale}/dashboard/projects/edit/${projectWithMedia.id}`}>
+              <Link href={`/${locale}/dashboard/edit/${id}`}>
                 <PencilIcon className="w-5 h-5" />
               </Link>
+              <DeleteProjectButton id={id} locale={locale} />
             </div>
           )}
         </section>

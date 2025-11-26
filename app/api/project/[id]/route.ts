@@ -1,3 +1,4 @@
+//api/project/[id]/route.ts
 import { DrizzlePGUOW } from "@/backend/database";
 import { AppError } from "@/backend/errorHandler";
 import { APIResBuilder } from "@/backend/resManager";
@@ -12,7 +13,6 @@ async function getOneProjectById(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  await ensureManagerAccess();
 
   const project = await withTransaction(async (tx) => {
     const uow = new DrizzlePGUOW(tx);

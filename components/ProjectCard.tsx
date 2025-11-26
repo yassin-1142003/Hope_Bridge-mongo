@@ -43,7 +43,7 @@ type ProjectCardProps = {
   showFullGallery?: boolean;
 };
 
-export default function ProjectCard({ project, locale, showFullGallery = false }: ProjectCardProps) {
+export default function ProjectCard({ project, locale, showFullGallery = true }: ProjectCardProps) {
   const [projectWithMedia, setProjectWithMedia] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -129,28 +129,52 @@ export default function ProjectCard({ project, locale, showFullGallery = false }
   const bannerUrl = getDisplayUrl(currentProject.bannerPhoto?.url || currentProject.bannerPhotoUrl);
   const galleryFiles = currentProject.galleryFiles || [];
 
-  // Combine all media for gallery
+  const galleryFileUrls = galleryFiles
+    .map((file) => file.url)
+    .filter((url): url is string => typeof url === "string" && url.length > 0);
+
+  const legacyGalleryUrls =
+    (currentProject.gallery || []).filter(
+      (entry): entry is string => typeof entry === "string" && entry.length > 0
+    ) || [];
+
+  const localizedImages = (localized?.images || []).filter(
+    (url): url is string => typeof url === "string" && url.length > 0
+  );
+
+  const localizedVideos = (localized?.videos || []).filter(
+    (url): url is string => typeof url === "string" && url.length > 0
+  );
+
+  const imageUrls = Array.from(new Set([...galleryFileUrls, ...legacyGalleryUrls, ...localizedImages]));
+  const videoUrls = Array.from(new Set(localizedVideos));
+  const hasMedia = imageUrls.length > 0 || videoUrls.length > 0;
+
+  const galleryFileUrlSet = new Set(galleryFileUrls);
+
+  // Combine all media for gallery previews
   const allMedia = [
     ...galleryFiles,
-    // Handle direct URLs (our imported data) vs media IDs
-    ...(localized?.images?.map((urlOrId: string) => ({ 
-      id: urlOrId, 
-      filename: "", 
-      originalName: "", 
-      mimeType: "image/jpeg", 
-      size: 0, 
-      url: urlOrId.startsWith('http') ? getDisplayUrl(urlOrId) : `/api/media/${urlOrId}`,
-      uploaded_at: "" 
-    })) || []),
-    ...(localized?.videos?.map((urlOrId: string) => ({ 
-      id: urlOrId, 
-      filename: "", 
-      originalName: "", 
-      mimeType: "video/mp4", 
-      size: 0, 
-      url: urlOrId.startsWith('http') ? urlOrId : `/api/media/${urlOrId}`,
-      uploaded_at: "" 
-    })) || [])
+    ...imageUrls
+      .filter((url) => !galleryFileUrlSet.has(url))
+      .map((url) => ({
+        id: url,
+        filename: "",
+        originalName: "",
+        mimeType: "image/jpeg",
+        size: 0,
+        url: url.startsWith("http") ? getDisplayUrl(url) : `/api/media/${url}`,
+        uploaded_at: "",
+      })),
+    ...videoUrls.map((url) => ({
+      id: url,
+      filename: "",
+      originalName: "",
+      mimeType: "video/mp4",
+      size: 0,
+      url: url.startsWith("http") ? url : `/api/media/${url}`,
+      uploaded_at: "",
+    })),
   ];
 
   const formatDate = (dateString: string) => {
@@ -266,9 +290,9 @@ export default function ProjectCard({ project, locale, showFullGallery = false }
       </div>
 
       {/* Full Gallery Modal */}
-      {showFullGallery && allMedia.length > 0 && (
+      {showFullGallery && hasMedia && (
         <div className="mt-4">
-          <MediaGallery mediaFiles={allMedia} className="w-full" />
+          <MediaGallery imageUrls={imageUrls} videoUrls={videoUrls} className="w-full" />
         </div>
       )}
     </div>

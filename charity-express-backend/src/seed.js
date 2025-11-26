@@ -34,8 +34,9 @@ async function run() {
       image: "/mnt/data/9d6267be-4dc7-400a-8ee3-c952a7db1931.png",
       status: "active",
       createdAt: new Date(),
+      id: -1,
     });
-    project = { _id: insertResult.insertedId, title: seedProjectTitle };
+    project = { _id: insertResult.insertedId, title: seedProjectTitle, id: -1 };
     console.log("Inserted seed project", project._id.toString());
   } else {
     console.log("Seed project already exists", project._id.toString());

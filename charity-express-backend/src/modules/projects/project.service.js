@@ -19,9 +19,10 @@ export async function createProject(body) {
   const insertResult = await projects.insertOne({
     ...data,
     createdAt: new Date(),
+    id: -1,
   });
 
-  const project = { _id: insertResult.insertedId, ...data };
+  const project = { _id: insertResult.insertedId, ...data, id: -1 };
 
   // Fetch all subscribers and build email list
   const cursor = subscribers.find({}, { projection: { email: 1 } });
