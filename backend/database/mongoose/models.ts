@@ -269,7 +269,10 @@ const projectSchema = new Schema<ProjectDoc>(
 projectSchema.index({ created_at: -1, _id: -1 });
 projectSchema.index({ slug: 1 }, { sparse: true });
 projectSchema.index({ status: 1, created_at: -1 });
+<<<<<<< HEAD
 projectSchema.index({ customId: 1 });
+=======
+>>>>>>> cc08bee409927117f60202f2dfdfcb8ab1e917e1
 
 export const ProjectModel =
   (mongoose.models.Project as any) ||
