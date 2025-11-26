@@ -4,6 +4,7 @@ import {
   FolderKanban,
   Home,
   Info,
+  LogIn,
   Menu,
   Newspaper,
   Speech,
@@ -134,6 +135,27 @@ export default function Header({ session }: HeaderProps) {
           >
             {theme === "dark" ? "🌙 " : "☀️ "}
           </Button>
+          <Link href={`/${locale}/signin`}>
+            <Button
+              className="
+        group flex items-center gap-2 
+        px-4 py-2 rounded-md
+        bg-primary cursor-pointer
+        hover:bg-primary/90 transition-all
+        shadow-sm hover:shadow-md
+      "
+            >
+              <LogIn
+                className="
+          w-5 h-5 transition-transform 
+          group-hover:-translate-x-1
+        "
+              />
+              <span className="font-medium">
+                {isArabic ? "تسجيل الدخول" : "Login"}
+              </span>
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu */}
@@ -215,7 +237,19 @@ export default function Header({ session }: HeaderProps) {
                     {t("donate")}
                   </Button>
                 </Link>
-
+                <Link href={`/${locale}/signin`}>
+                  <Button className="w-full bg-gradient-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                    <LogIn
+                      className="
+          w-5 h-5 transition-transform 
+          group-hover:-translate-x-1
+        "
+                    />
+                    <span className="font-medium">
+                      {isArabic ? "تسجيل الدخول" : "Login"}
+                    </span>
+                  </Button>
+                </Link>
                 {pwa && !pwa.isStandalone && (
                   <Button
                     onClick={pwa.triggerInstall}
