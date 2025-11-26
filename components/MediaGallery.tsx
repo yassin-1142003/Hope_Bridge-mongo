@@ -1,16 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, X, Play, Fullscreen } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, X, Play, Fullscreen, Film } from "lucide-react";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
-import { 
-  extractDriveFileId, 
-  getDriveImageUrl, 
-  getDriveVideoUrl,
-  getOptimizedMediaUrl 
-} from "@/lib/driveUtils";
+import { getDriveImageUrl, getDriveVideoUrl } from "@/lib/driveUtils";
 
 type MediaFile = {
   id: string;
@@ -28,7 +22,14 @@ type MediaGalleryProps = {
   videoUrls?: string[];
   className?: string;
 };
-import { Film } from "lucide-react";
+
+type GalleryItem = {
+  type: "img" | "video";
+  displayUrl: string;
+  thumbnailUrl: string;
+  originalUrl: string;
+  originalName?: string;
+};
 
 function CreativeVideoLoader() {
   const locale = useLocale();
@@ -86,36 +87,56 @@ export default function MediaGallery({
   videoUrls = [],
   className = "",
 }: MediaGalleryProps) {
-  // Convert Google Drive URLs to proper display URLs using utility
-  const getDisplayUrl = (url: string) => {
-    return getDriveImageUrl(url, "w800");
+  const normalizeUrl = (url: string) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `/api/media/${url}`;
   };
 
-  // Convert Google Drive URLs to proper embed URLs for videos
-  const getVideoEmbedUrl = (url: string) => {
-    return getDriveVideoUrl(url);
+  const buildImageItem = (url: string, originalName?: string): GalleryItem => {
+    const normalized = normalizeUrl(url);
+    return {
+      type: "img",
+      displayUrl: getDriveImageUrl(normalized, "w1200"),
+      thumbnailUrl: getDriveImageUrl(normalized, "w400"),
+      originalUrl: normalized,
+      originalName,
+    };
   };
 
-  // Combine all media into one list but keep track of type
-  const media = [
-    // New media files from MongoDB
-    ...mediaFiles.map((file) => ({ 
-      type: file.mimeType.startsWith('video/') ? "video" as const : "img" as const, 
-      url: getDisplayUrl(file.url),
-      originalName: file.originalName
-    })),
-    // Legacy URL-based media
-    ...videoUrls.map((url) => ({ 
-      type: "video" as const, 
-      url: getVideoEmbedUrl(url), // Convert to embed URL
-      originalName: "" 
-    })),
-    ...imageUrls.map((url) => ({ 
-      type: "img" as const, 
-      url: getDisplayUrl(url), // Convert to display URL
-      originalName: "" 
-    })),
-  ];
+  const buildVideoItem = (url: string, originalName?: string): GalleryItem => {
+    const normalized = normalizeUrl(url);
+    return {
+      type: "video",
+      displayUrl: getDriveVideoUrl(normalized),
+      thumbnailUrl: getDriveImageUrl(normalized, "w400"),
+      originalUrl: normalized,
+      originalName,
+    };
+  };
+
+  const media = useMemo(() => {
+    const items = new Map<string, GalleryItem>();
+
+    const addItem = (item: GalleryItem) => {
+      if (!item.originalUrl) return;
+      const key = `${item.type}-${item.originalUrl}`;
+      if (items.has(key)) return;
+      items.set(key, item);
+    };
+
+    mediaFiles.forEach((file) => {
+      const isVideo = file.mimeType?.startsWith("video/");
+      const entry = isVideo
+        ? buildVideoItem(file.url, file.originalName)
+        : buildImageItem(file.url, file.originalName);
+      addItem(entry);
+    });
+
+    videoUrls.forEach((url) => addItem(buildVideoItem(url)));
+    imageUrls.forEach((url) => addItem(buildImageItem(url)));
+
+    return Array.from(items.values());
+  }, [imageUrls, mediaFiles, videoUrls]);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const locale = useLocale();
@@ -147,7 +168,7 @@ export default function MediaGallery({
   const closeModal = () => setIsModalOpen(false);
 
   return (
-    <>
+    <div className={className}>
       {/* Main Display */}
       <div className="relative aspect-video bg-black rounded-xl overflow-hidden group">
         {/* Loader Overlay for both images & videos */}
@@ -157,14 +178,14 @@ export default function MediaGallery({
           <Image
             fill
             alt={`Media ${selectedIndex + 1}`}
-            src={selectedMedia.url}
+            src={selectedMedia.displayUrl}
             className="object-cover w-full h-full transition-opacity duration-500"
             loading="lazy"
             referrerPolicy="no-referrer"
             unoptimized={true} // Important for Google Drive images
             onLoad={() => setIsLoading(false)} // ✅ hide loader when image finishes loading
             onError={(e) => {
-              console.warn("Failed to load image:", selectedMedia.url);
+              console.warn("Failed to load image:", selectedMedia.displayUrl);
               setIsLoading(false);
               // Try to load with a different format
               const img = e.target as HTMLImageElement;
@@ -181,18 +202,18 @@ export default function MediaGallery({
           <div className="relative w-full overflow-hidden aspect-video bg-black rounded-lg group cursor-pointer">
             <iframe
               className="absolute top-0 left-0 w-full h-full border-0 rounded-lg shadow-xl"
-              src={selectedMedia.url}
+              src={selectedMedia.displayUrl}
               title={`Video ${selectedIndex + 1}`}
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
               allowFullScreen
               loading="lazy"
               onLoad={() => {
                 setIsLoading(false);
-                console.log("Video iframe loaded:", selectedMedia.url);
+                console.log("Video iframe loaded:", selectedMedia.displayUrl);
               }}
               onError={() => {
                 setIsLoading(false);
-                console.error("Video failed to load:", selectedMedia.url);
+                console.error("Video failed to load:", selectedMedia.displayUrl);
               }}
             />
             {/* Video play indicator overlay - shows on hover */}
@@ -263,14 +284,14 @@ export default function MediaGallery({
                 <Image
                   width={200}
                   height={200}
-                  src={imageUrls[index - videoUrls.length]} // ✅ use plain <img> (no optimization issues)
+                  src={item.thumbnailUrl}
                   alt={`Thumbnail ${index + 1}`}
                   className="object-cover w-full h-full"
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   unoptimized={true} // Important for Google Drive images
                   onError={(e) => {
-                    console.warn("Failed to load thumbnail:", item.url);
+                    console.warn("Failed to load thumbnail:", item.thumbnailUrl);
                     const img = e.target as HTMLImageElement;
                     if (img.src.includes('export=view')) {
                       // Fallback to direct link
@@ -285,9 +306,9 @@ export default function MediaGallery({
                 <div className="w-full h-full bg-gray-800 flex items-center justify-center relative group">
                   <Play className="w-8 h-8 text-white z-10" fill="white" />
                   {/* Try to show video thumbnail if available */}
-                  {item.url && (
+                  {item.thumbnailUrl && (
                     <img
-                      src={getDriveImageUrl(item.url, "w200")}
+                      src={item.thumbnailUrl}
                       alt="Video thumbnail"
                       className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-opacity"
                       onError={(e) => {
@@ -319,11 +340,11 @@ export default function MediaGallery({
                 <Image
                   fill
                   alt={`Fullscreen ${selectedIndex + 1}`}
-                  src={selectedMedia.url}
+                      src={selectedMedia.displayUrl}
                   className="object-contain max-h-full"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    console.error("Image failed to load:", selectedMedia.url);
+                    console.error("Image failed to load:", selectedMedia.displayUrl);
                   }}
                   onLoad={() => console.log("Image loaded successfully")}
                 />
@@ -333,7 +354,7 @@ export default function MediaGallery({
                 <div className="relative w-full max-w-7xl aspect-video">
                   <iframe
                     className="absolute top-0 left-0 w-full h-full border-0 rounded-lg shadow-xl"
-                    src={selectedMedia.url}
+                    src={selectedMedia.displayUrl}
                     title={`Video ${selectedIndex + 1}`}
                     allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                     allowFullScreen
@@ -373,6 +394,6 @@ export default function MediaGallery({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

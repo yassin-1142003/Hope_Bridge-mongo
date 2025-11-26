@@ -146,11 +146,7 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
         {filteredProjects && filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project: ProjectContent) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                locale={locale}
-              />
+              <ProjectCard key={project.id} project={project} locale={locale} />
             ))}
           </div>
         ) : (

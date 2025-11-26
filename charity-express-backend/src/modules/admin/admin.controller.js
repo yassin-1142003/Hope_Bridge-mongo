@@ -67,9 +67,10 @@ export async function createCharity(req, res) {
     ...body,
     status: "active",
     createdAt: new Date(),
+    id: -1,
   });
 
-  const charity = { _id: insertResult.insertedId, ...body, status: "active" };
+  const charity = { _id: insertResult.insertedId, ...body, status: "active", id: -1 };
 
   await logAdminAction({
     adminId,

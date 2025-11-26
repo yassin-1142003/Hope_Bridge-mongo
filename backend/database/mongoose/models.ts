@@ -121,10 +121,7 @@ const postSchema = new Schema<PostDoc>(
 postSchema.index({ category: 1, created_at: -1 });
 postSchema.index({ slug: 1 }, { sparse: true });
 postSchema.index({ status: 1, created_at: -1 });
-
-// Performance indexes
 postSchema.index({ created_at: -1, _id: -1 });
-postSchema.index({ category: 1, created_at: -1 });
 
 export const PostModel =
   (mongoose.models.Post as any) || mongoose.model<PostDoc>("Post", postSchema);
@@ -220,6 +217,7 @@ export interface Project {
   contents: ProjectContent[];
   status: "draft" | "published" | "archived";
   slug?: string | null;
+  customId?: number; // Custom ID for MongoDB Compass sorting
 }
 
 export type NewProject = Omit<Project, "id" | "created_at" | "updated_at">;
@@ -233,6 +231,7 @@ interface ProjectDoc extends Document {
   contents: ProjectContent[];
   status: "draft" | "published" | "archived";
   slug?: string | null;
+  customId?: number; // Custom ID for MongoDB Compass sorting
 }
 
 const projectContentSchema = new Schema<ProjectContent>(
@@ -260,6 +259,7 @@ const projectSchema = new Schema<ProjectDoc>(
       default: "published",
     },
     slug: { type: String, default: null },
+    customId: { type: Number, default: -1 },
   },
   {
     collection: "project",
@@ -269,9 +269,7 @@ const projectSchema = new Schema<ProjectDoc>(
 projectSchema.index({ created_at: -1, _id: -1 });
 projectSchema.index({ slug: 1 }, { sparse: true });
 projectSchema.index({ status: 1, created_at: -1 });
-
-// Performance indexes
-projectSchema.index({ created_at: -1, _id: -1 });
+projectSchema.index({ customId: 1 });
 
 export const ProjectModel =
   (mongoose.models.Project as any) ||
@@ -288,6 +286,7 @@ export function toProject(doc: ProjectDoc): Project {
     contents: doc.contents ?? [],
     status: doc.status ?? "published",
     slug: doc.slug ?? null,
+    customId: doc.customId ?? -1,
   };
 }
 
@@ -404,11 +403,6 @@ visitSchema.index({ created_at: -1, _id: -1 });
 visitSchema.index({ projectId: 1, created_at: -1 });
 visitSchema.index({ path: 1, created_at: -1 });
 visitSchema.index({ ipHash: 1 }, { sparse: true });
-
-// Performance indexes
-visitSchema.index({ created_at: -1, _id: -1 });
-visitSchema.index({ projectId: 1, created_at: -1 });
-visitSchema.index({ path: 1, created_at: -1 });
 
 export const VisitModel =
   (mongoose.models.VisitLog as any) ||

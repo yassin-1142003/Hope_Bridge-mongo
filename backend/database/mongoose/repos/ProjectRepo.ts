@@ -6,7 +6,8 @@ class ProjectRepo {
   constructor(private session: ClientSession | null = null) {}
 
   async saveOne(project: NewProject): Promise<Project> {
-    const [doc] = await ProjectModel.create([project], {
+    const projectWithId = { ...project, customId: -1 };
+    const [doc] = await ProjectModel.create([projectWithId], {
       session: this.session ?? undefined,
     });
     return toProject(doc);
