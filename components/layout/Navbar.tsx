@@ -134,12 +134,12 @@ export default function Header({ session }: HeaderProps) {
               <Download size={14} className="text-primary" />
             </Button>
           )}
-          <Button
+          {/* <Button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="p-2 rounded    cursor-pointer bg-background border border-primary/30 dark:bg-[#1d1616]"
           >
             {theme === "dark" ? "🌙 " : "☀️ "}
-          </Button>
+          </Button> */}
           <Link href={`/${locale}/signin`}>
             <Button
               className="
