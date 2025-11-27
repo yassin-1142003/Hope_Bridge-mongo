@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import { NextResponse } from 'next/server';
-import { connectDb } from '@/backend/database/mongoose/connection';
-import { ContactModel } from '@/backend/database/mongoose/models';
+import { getCollection } from '@/lib/mongodb';
 
 async function sendContactEmails(name: string, email: string, message: string) {
   try {
@@ -49,8 +48,9 @@ async function sendContactEmails(name: string, email: string, message: string) {
 
 export async function POST(req: Request) {
   try {
-    const { name, email, message ,honeypot} = await req.json();
-      // 🕵️ Honeypot check
+    const { name, email, message, honeypot } = await req.json();
+    
+    // 🕵️ Honeypot check
     if (honeypot && honeypot.trim() !== "") {
       return NextResponse.json(
         { success: false, error: "Bot detected" },
@@ -58,9 +58,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure Mongo connection and store the contact message
-    await connectDb();
-    await ContactModel.create({ name, email, message });
+    // Store contact message in MongoDB
+    const contactsCollection = await getCollection('contacts');
+    await contactsCollection.insertOne({
+      name,
+      email,
+      message,
+      createdAt: new Date()
+    });
 
     // fire-and-forget email sending so the response is fast
     void sendContactEmails(name, email, message);

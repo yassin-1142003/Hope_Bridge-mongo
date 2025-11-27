@@ -1,9 +1,6 @@
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
-import { PostProjectSchema } from "./backend/api/zodSchemas/Project.zod.schema";
-import { validateBodyMiddleware } from "./middlewares";
-import { handleError } from "./withErrorHandler";
 import { getToken } from "next-auth/jwt";
 
 const intlMiddleware = createMiddleware({
@@ -57,6 +54,17 @@ export async function middleware(req: NextRequest) {
     // any signed-in user can access, no role restriction
   }
 
+  // --- CASE B2: Admin access protection ---
+  if (pathWithoutLang.startsWith("/admin")) {
+    if (!token) {
+      // guest → redirect to admin sign-in
+      return NextResponse.redirect(new URL("/auth/admin-signin", req.url));
+    }
+    
+    // Note: Additional role verification happens at the API level
+    // This middleware just ensures authentication
+  }
+
   // --- CASE C: Geo-based locale redirect ---
   if (!/^\/(ar|en)(\/|$)/.test(pathname)) {
     const country =
@@ -74,15 +82,6 @@ export async function middleware(req: NextRequest) {
   // --- CASE D: intl ---
   const intlResponse = intlMiddleware(req);
   if (intlResponse) return intlResponse;
-
-  // --- CASE E: API validation ---
-  try {
-    if (pathname === "/api/project" && method === "POST") {
-      await validateBodyMiddleware(req, PostProjectSchema);
-    }
-  } catch (error) {
-    return handleError(error);
-  }
 
   return NextResponse.next();
 }

@@ -2,7 +2,7 @@
 import LogoutButton from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
 import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import Link from "next/link";
 import React from "react";
 

@@ -1,54 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/ProjectService";
 
 const projectService = new ProjectService();
 
+// Helper function to set CORS headers
+const setCorsHeaders = (response: NextResponse) => {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+};
+
+// Handle OPTIONS method for CORS preflight
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  return setCorsHeaders(response);
+}
+
 // GET - Get all projects (public)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('🔄 Fetching fresh projects from MongoDB...');
-    const projects = await projectService.getAllProjects();
+    const projects = await projectService.getAll();
     console.log(`✅ Retrieved ${projects.length} projects from MongoDB`);
     
     // Debug: Log first project structure
     if (projects.length > 0) {
       console.log('🔍 First project in API:', {
-        id: projects[0].id,
-        idType: typeof projects[0].id,
+        _id: projects[0]._id,
+        idType: typeof projects[0]._id,
         bannerPhotoUrl: projects[0].bannerPhotoUrl?.substring(0, 50),
         galleryCount: projects[0].gallery?.length,
         contentsCount: projects[0].contents?.length
       });
     }
     
-    // Add cache busting headers
-    return NextResponse.json({
+    // Create response with CORS headers
+    const response = NextResponse.json({
       success: true,
       message: "Projects retrieved successfully",
       data: projects,
       timestamp: new Date().toISOString()
     }, {
       headers: {
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
-      }
+      },
+      status: 200
     });
+
+    return setCorsHeaders(response);
   } catch (error) {
     console.error("Error fetching projects:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch projects" },
+    const response = NextResponse.json(
+      { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Failed to fetch projects" 
+      },
       { status: 500 }
     );
+    return setCorsHeaders(response);
   }
 }
 
 // POST - Create new project with media (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session || !session.user) {
       return NextResponse.json(
@@ -57,7 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (session.user.role === "user") {
+    if (session.user.role === "USER") {
       return NextResponse.json(
         { success: false, error: "Forbidden - Admin access required" },
         { status: 403 }
@@ -107,14 +129,14 @@ export async function POST(request: NextRequest) {
 
       if (bannerFile || (galleryFiles && galleryFiles.length > 0)) {
         // Create project with media
-        project = await projectService.createProjectWithMedia(
+        project = await projectService.createWithMedia(
           projectData,
           bannerFile,
           galleryFiles
         );
       } else {
         // Create project without media
-        project = await projectService.createProject(projectData);
+        project = await projectService.create(projectData);
       }
     } else {
       // Handle JSON (no files)
@@ -132,10 +154,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      project = await projectService.createProject(data);
+      project = await projectService.create(data);
     }
 
-    console.log('✅ Project created successfully:', project.id);
+    console.log('✅ Project created successfully:', project._id);
     
     return NextResponse.json({
       success: true,

@@ -67,4 +67,14 @@ export class UsersService {
     await this.ensureExists(id);
     return this.usersRepo.updateById(id, { isActive } as any);
   }
+
+  async setEmailVerified(id: string, emailVerified: boolean) {
+    await this.ensureExists(id);
+    return this.usersRepo.updateById(id, { emailVerified } as any);
+  }
+
+  async updatePassword(id: string, passwordHash: string) {
+    await this.ensureExists(id);
+    return this.usersRepo.updateById(id, { passwordHash } as any);
+  }
 }

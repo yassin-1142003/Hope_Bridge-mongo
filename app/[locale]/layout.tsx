@@ -9,7 +9,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer4Col from "@/components/layout/Footer";
 import AOSWrapper from "@/components/AOSWrapper";
 import { Toaster } from "sonner";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
 import { ThemeProvider } from "next-themes";
 import ClientWrapper from "@/components/ClientWrapper";
@@ -136,6 +136,7 @@ export default async function LocaleLayout({
         {/* Additional PWA meta tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#d23e3e" />
+        <meta name="msapplication-TileColor" content="#d23e3e" />
         <link rel="preconnect" href="https://donorbox.org" />
         <link rel="dns-prefetch" href="https://donorbox.org" />
         <script

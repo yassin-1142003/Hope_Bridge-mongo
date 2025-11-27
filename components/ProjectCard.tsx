@@ -60,7 +60,7 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
       
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/projects/${project.id}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002')}/api/projects/${project.id}`);
         if (response.ok) {
           const data = await response.json();
           setProjectWithMedia(data.data);

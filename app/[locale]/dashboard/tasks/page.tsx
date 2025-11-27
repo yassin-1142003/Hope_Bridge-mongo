@@ -1,5 +1,5 @@
 import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import React from "react";
 
 // Static data for employees

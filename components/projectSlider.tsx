@@ -13,19 +13,23 @@ import Image from "next/image";
 //import DonationModalWrapper from "./DonationModalWrapper";
 
 interface ProjectContent {
-  id: number;
-  project_id: number;
   language_code: string;
   name: string;
   description: string;
   content: string;
+  images: string[];
+  videos: string[];
+  documents: string[];
 }
 
 interface Project {
-  id: number;
-  images: string;
-  created_at: string;
+  _id: string;
   contents: ProjectContent[];
+  bannerPhotoUrl: string;
+  bannerPhotoId?: string;
+  gallery: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 const getGoogleDriveId = (url: string): string | null => {
   const match = url?.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -63,13 +67,13 @@ export default function ProjectSliderClient({
         }}
       >
         {projects.map((proj) => {
-          const localized = proj.contents.find(
+          const localized = proj.contents?.find(
             (c) => c?.language_code === locale
           );
 
           return (
-            <SwiperSlide className="flex flex-col px-4" key={proj.id}>
-              <Link key={proj.id} href={`/${locale}/projects/${proj.id}`}>
+            <SwiperSlide className="flex flex-col px-4" key={proj._id}>
+              <Link key={proj._id} href={`/${locale}/projects/${proj._id}`}>
                 <div
                   data-aos="fade-up"
                   className="flex group flex-col w-[355px] overflow-hidden mx-auto mb-10 transition-all duration-500"
@@ -80,7 +84,7 @@ export default function ProjectSliderClient({
                       width={200}
                       height={200}
                       alt={localized?.name ?? "Project Image"}
-                      src={getImageUrl(proj.images[0])}
+                      src={getImageUrl(proj.bannerPhotoUrl)}
                       className="object-cover group-hover:scale-110 ease-in-out duration-700 w-full h-[200px]"
                       loading="lazy"
                       referrerPolicy="no-referrer"

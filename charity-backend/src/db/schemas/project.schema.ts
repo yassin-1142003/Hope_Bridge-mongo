@@ -1,40 +1,44 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose, { HydratedDocument } from "mongoose";
-import { User } from "./user.schema";
-
-export enum ProjectStatus {
-  ACTIVE = "ACTIVE",
-  COMPLETED = "COMPLETED",
-  ARCHIVED = "ARCHIVED",
-}
+import { HydratedDocument } from "mongoose";
 
 export type ProjectDocument = HydratedDocument<Project>;
 
-@Schema({ timestamps: true })
-export class Project {
-  @Prop({ required: true, trim: true })
-  title!: string;
+@Schema({ _id: false })
+export class ProjectContent {
+  @Prop({ required: true, trim: true, maxlength: 2 })
+  language_code!: string;
+
+  @Prop({ required: true, trim: true, maxlength: 100 })
+  name!: string;
+
+  @Prop({ required: true, trim: true, maxlength: 300 })
+  description!: string;
 
   @Prop({ required: true, trim: true })
-  description!: string;
+  content!: string;
 
   @Prop({ type: [String], default: [] })
   images!: string[];
 
+  @Prop({ type: [String], default: [] })
+  videos!: string[];
+
+  @Prop({ type: [String], default: [] })
+  documents!: string[];
+}
+
+export const ProjectContentSchema = SchemaFactory.createForClass(ProjectContent);
+
+@Schema({
+  timestamps: true,
+  collection: "project",
+})
+export class Project {
   @Prop({ required: true, trim: true })
-  category!: string;
+  bannerPhotoUrl!: string;
 
-  @Prop({ required: true, min: 0 })
-  goalAmount!: number;
-
-  @Prop({ default: 0, min: 0 })
-  currentAmount!: number;
-
-  @Prop({ type: String, enum: ProjectStatus, default: ProjectStatus.ACTIVE })
-  status!: ProjectStatus;
-
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name, required: false })
-  createdBy?: mongoose.Types.ObjectId;
+  @Prop({ type: [ProjectContentSchema], default: [] })
+  contents!: ProjectContent[];
 }
 
 export const ProjectSchema = SchemaFactory.createForClass(Project);

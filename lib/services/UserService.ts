@@ -1,77 +1,149 @@
-import { UserModel, UsrData, NewUsrData, toUsrData } from "@/backend/database/mongoose/models";
-import { connectDb } from "@/backend/database/mongoose/connection";
+import { getCollection } from "@/lib/mongodb";
 import bcrypt from "bcrypt";
+import { ObjectId } from "mongodb";
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: 'USER' | 'ADMIN';
+  isActive: boolean;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewUserData {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'USER' | 'ADMIN';
+  isActive?: boolean;
+  emailVerified?: boolean;
+}
 
 export class UserService {
-  async createUser(data: NewUsrData): Promise<UsrData> {
-    await connectDb();
+  async createUser(data: NewUserData): Promise<User> {
+    const usersCollection = await getCollection('users');
     
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ email: data.email });
+    const existingUser = await usersCollection.findOne({ email: data.email });
     if (existingUser) {
-      throw new Error("This email is already registered");
+      throw new Error('User with this email already exists');
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(data.hash, 10);
-    const userData = {
-      ...data,
-      hash: hashedPassword
+    const passwordHash = await bcrypt.hash(data.password, 12);
+
+    const user = {
+      name: data.name,
+      email: data.email,
+      passwordHash,
+      role: data.role || 'USER',
+      isActive: data.isActive ?? true,
+      emailVerified: data.emailVerified ?? false,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-    const user = new UserModel(userData);
-    const savedUser = await user.save();
-    return toUsrData(savedUser);
-  }
-
-  async getAllUsers(): Promise<UsrData[]> {
-    await connectDb();
-    const users = await UserModel.find().sort({ created_at: -1 });
-    return users.map(toUsrData);
-  }
-
-  async getUserById(id: string): Promise<UsrData | null> {
-    await connectDb();
-    const user = await UserModel.findById(id);
-    return user ? toUsrData(user) : null;
-  }
-
-  async getUserByEmail(email: string): Promise<UsrData | null> {
-    await connectDb();
-    const user = await UserModel.findOne({ email });
-    return user ? toUsrData(user) : null;
-  }
-
-  async updateUser(id: string, data: Partial<NewUsrData>): Promise<UsrData | null> {
-    await connectDb();
+    const result = await usersCollection.insertOne(user);
     
-    // If password is being updated, hash it
-    if (data.hash) {
-      data.hash = await bcrypt.hash(data.hash, 10);
-    }
-
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true, runValidators: true }
-    );
-    return updatedUser ? toUsrData(updatedUser) : null;
+    return {
+      _id: result.insertedId.toString(),
+      ...user
+    };
   }
 
-  async deleteUser(id: string): Promise<boolean> {
-    await connectDb();
-    const result = await UserModel.findByIdAndDelete(id);
-    return !!result;
+  async getAll(): Promise<User[]> {
+    const usersCollection = await getCollection('users');
+    const users = await usersCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return users.map(user => ({
+      _id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      isActive: user.isActive,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }));
   }
 
-  async verifyPassword(email: string, password: string): Promise<UsrData | null> {
-    await connectDb();
-    const user = await UserModel.findOne({ email });
+  async getById(id: string): Promise<User | null> {
+    const usersCollection = await getCollection('users');
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+    
     if (!user) return null;
+    
+    return {
+      _id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      isActive: user.isActive,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+  }
 
-    const isValidPassword = await bcrypt.compare(password, user.hash);
+  async getByEmail(email: string): Promise<User | null> {
+    const usersCollection = await getCollection('users');
+    const user = await usersCollection.findOne({ email });
+    
+    if (!user) return null;
+    
+    return {
+      _id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      isActive: user.isActive,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
+  }
+
+  async update(id: string, updateData: Partial<Omit<User, '_id' | 'createdAt' | 'updatedAt'>>): Promise<User | null> {
+    const usersCollection = await getCollection('users');
+    
+    const updateDoc = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+    
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateDoc }
+    );
+    
+    if (result.matchedCount === 0) return null;
+    
+    return this.getById(id);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const usersCollection = await getCollection('users');
+    const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+
+  async verifyPassword(email: string, password: string): Promise<User | null> {
+    const user = await this.getByEmail(email);
+    if (!user || !user.isActive) return null;
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) return null;
 
-    return toUsrData(user);
+    return user;
   }
 }

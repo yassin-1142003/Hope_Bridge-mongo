@@ -72,7 +72,10 @@ export default function Header({ session }: HeaderProps) {
     <header className="fixed top-0 z-50 w-full bg-background/80 dark:bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-border/50">
       <div className="mx-auto flex max-w-screen-xl items-center px-4 h-16 justify-between">
         {/* Logo */}
-        <Link href={`/${locale}/`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link
+          href={`/${locale}/`}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <Image
             className="w-15 h-15 object-contain"
             src="/logo.webp"
@@ -84,7 +87,9 @@ export default function Header({ session }: HeaderProps) {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className={`hidden lg:flex items-center gap-1 ${isArabic ? "flex-row-reverse" : "flex-row"}`}>
+        <nav
+          className={`hidden lg:flex items-center gap-1 ${isArabic ? "flex-row-reverse" : "flex-row"}`}
+        >
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -112,8 +117,8 @@ export default function Header({ session }: HeaderProps) {
             <span className="text-base">{theme === "dark" ? "🌙" : "☀️"}</span>
           </Button>
           <Link href={`/${locale}/donate`}>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="h-9 px-4 rounded-lg font-medium bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
             >
               <span className="font-semibold">{t("donate")}</span>
@@ -129,14 +134,31 @@ export default function Header({ session }: HeaderProps) {
               <Download size={14} className="text-primary" />
             </Button>
           )}
+          <Button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded    cursor-pointer bg-background border border-primary/30 dark:bg-[#1d1616]"
+          >
+            {theme === "dark" ? "🌙 " : "☀️ "}
+          </Button>
           <Link href={`/${locale}/signin`}>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9 px-4 rounded-lg font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-105"
+            <Button
+              className="
+        group flex items-center gap-2 
+        px-4 py-2 rounded-md
+        bg-primary cursor-pointer
+        hover:bg-primary/90 transition-all
+        shadow-sm hover:shadow-md
+      "
             >
-              <LogIn size={14} className="mr-2 text-primary" />
-              <span className="font-medium">{isArabic ? "دخول" : "Login"}</span>
+              <LogIn
+                className="
+          w-5 h-5 transition-transform 
+          group-hover:-translate-x-1
+        "
+              />
+              <span className="font-medium">
+                {isArabic ? "تسجيل الدخول" : "Login"}
+              </span>
             </Button>
           </Link>
         </div>
@@ -152,8 +174,8 @@ export default function Header({ session }: HeaderProps) {
             <span className="text-sm">{theme === "dark" ? "🌙" : "☀️"}</span>
           </Button>
           <Link href={`/${locale}/donate`}>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="h-8 px-3 rounded-lg text-xs font-semibold bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
             >
               {t("donate")}
@@ -161,9 +183,9 @@ export default function Header({ session }: HeaderProps) {
           </Link>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 rounded-lg hover:bg-accent/50 transition-all duration-200"
               >
                 <Menu className="h-4 w-4" />
@@ -193,94 +215,129 @@ export default function Header({ session }: HeaderProps) {
                     <div className="absolute -inset-1 bg-primary/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-bold text-primary text-lg">Hope Bridge</span>
-                    <span className="text-xs text-muted-foreground">{isArabic ? "جسر الأمل" : "Bridge of Hope"}</span>
+                    <span className="font-bold text-primary text-lg">
+                      Hope Bridge
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {isArabic ? "جسر الأمل" : "Bridge of Hope"}
+                    </span>
                   </div>
                 </Link>
-                <div className="flex items-center gap-1">
-                  <LanguageSwitcher />
-                  <Button
-                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-lg hover:bg-accent/50 transition-all duration-200"
-                  >
-                    <span className="text-base">{theme === "dark" ? "🌙" : "☀️"}</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Navigation Links */}
-              <div className="flex-1 py-2">
-                <div className="px-3 mb-3">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {isArabic ? "القائمة" : "Navigation"}
-                  </p>
-                </div>
-                <nav className="space-y-1 px-2">
-                  {navLinks.map(({ href, label, icon: Icon }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setOpen(false)}
-                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-200 ${
-                        pathname === href
-                          ? "bg-primary/10 text-primary shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      }`}
-                    >
-                      <div className={`relative p-1.5 rounded-lg transition-all duration-200 ${
-                        pathname === href 
-                          ? "bg-primary/20 text-primary" 
-                          : "bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
-                      }`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <span className="text-sm font-medium">{label}</span>
-                      {pathname === href && (
-                        <div className="ml-auto w-2 h-2 bg-primary rounded-full" />
-                      )}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="p-4 space-y-3 border-t border-border/10 bg-gradient-to-b from-background/30 to-background/50">
-                <div className="px-3 mb-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {isArabic ? "إجراءات" : "Actions"}
-                  </p>
-                </div>
-                <Link href={`/${locale}/donate`} onClick={() => setOpen(false)}>
-                  <Button 
-                    className="w-full h-11 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl border border-primary/20"
-                  >
-                    <span className="text-sm font-bold">{t("donate")}</span>
-                  </Button>
-                </Link>
-                <Link href={`/${locale}/signin`} onClick={() => setOpen(false)}>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] group"
-                  >
-                    <LogIn size={16} className="mr-2 text-primary group-hover:scale-110 transition-transform duration-200" />
-                    <span className="font-medium">{isArabic ? "دخول" : "Login"}</span>
+                <Link href={`/${locale}/signin`}>
+                  <Button className="w-full bg-gradient-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                    <LogIn
+                      className="
+          w-5 h-5 transition-transform 
+          group-hover:-translate-x-1
+        "
+                    />
+                    <span className="font-medium">
+                      {isArabic ? "تسجيل الدخول" : "Login"}
+                    </span>
                   </Button>
                 </Link>
                 {pwa && !pwa.isStandalone && (
                   <Button
-                    onClick={() => {
-                      pwa.triggerInstall();
-                      setOpen(false);
-                    }}
-                    variant="outline"
-                    className="w-full h-11 rounded-xl font-medium border-amber-400/50 hover:border-amber-400 hover:bg-amber-400/5 transition-all duration-200 hover:scale-[1.02] group"
+                    onClick={() =>
+                      setTheme(theme === "dark" ? "light" : "dark")
+                    }
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg hover:bg-accent/50 transition-all duration-200"
                   >
-                    <Download size={16} className="mr-2 text-amber-500 group-hover:scale-110 transition-transform duration-200" />
-                    <span className="font-medium">{isArabic ? "تثبيت" : "Install App"}</span>
+                    <span className="text-base">
+                      {theme === "dark" ? "🌙" : "☀️"}
+                    </span>
                   </Button>
                 )}
+                {/* Navigation Links */}
+                <div className="flex-1 py-2">
+                  <div className="px-3 mb-3">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {isArabic ? "القائمة" : "Navigation"}
+                    </p>
+                  </div>
+                  <nav className="space-y-1 px-2">
+                    {navLinks.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={() => setOpen(false)}
+                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                          pathname === href
+                            ? "bg-primary/10 text-primary shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                        }`}
+                      >
+                        <div
+                          className={`relative p-1.5 rounded-lg transition-all duration-200 ${
+                            pathname === href
+                              ? "bg-primary/20 text-primary"
+                              : "bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <span className="text-sm font-medium">{label}</span>
+                        {pathname === href && (
+                          <div className="ml-auto w-2 h-2 bg-primary rounded-full" />
+                        )}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="p-4 space-y-3 border-t border-border/10 bg-gradient-to-b from-background/30 to-background/50">
+                  <div className="px-3 mb-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {isArabic ? "إجراءات" : "Actions"}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/${locale}/donate`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <Button className="w-full h-11 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl border border-primary/20">
+                      <span className="text-sm font-bold">{t("donate")}</span>
+                    </Button>
+                  </Link>
+                  <Link
+                    href={`/${locale}/signin`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] group"
+                    >
+                      <LogIn
+                        size={16}
+                        className="mr-2 text-primary group-hover:scale-110 transition-transform duration-200"
+                      />
+                      <span className="font-medium">
+                        {isArabic ? "دخول" : "Login"}
+                      </span>
+                    </Button>
+                  </Link>
+                  {pwa && !pwa.isStandalone && (
+                    <Button
+                      onClick={() => {
+                        pwa.triggerInstall();
+                        setOpen(false);
+                      }}
+                      variant="outline"
+                      className="w-full h-11 rounded-xl font-medium border-amber-400/50 hover:border-amber-400 hover:bg-amber-400/5 transition-all duration-200 hover:scale-[1.02] group"
+                    >
+                      <Download
+                        size={16}
+                        className="mr-2 text-amber-500 group-hover:scale-110 transition-transform duration-200"
+                      />
+                      <span className="font-medium">
+                        {isArabic ? "تثبيت" : "Install App"}
+                      </span>
+                    </Button>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>

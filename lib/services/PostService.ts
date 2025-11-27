@@ -1,69 +1,120 @@
-import {
-  PostModel,
-  Post,
-  NewPost,
-  toPost,
-} from "@/backend/database/mongoose/models";
-import { connectDb } from "@/backend/database/mongoose/connection";
-import { PostCategoryName } from "@/backend/database/mongoose/enums";
+import { getCollection } from "@/lib/mongodb";
 import slugify from "slugify";
+import { ObjectId } from "mongodb";
+
+export interface PostContent {
+  language_code: string;
+  name: string;
+  description: string;
+  content: string;
+  images: string[];
+  videos: string[];
+}
+
+export interface Post {
+  _id: string;
+  contents: PostContent[];
+  category: string;
+  status: 'draft' | 'published';
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewPost {
+  contents: PostContent[];
+  category: string;
+  status?: 'draft' | 'published';
+  slug?: string;
+}
 
 export class PostService {
-  async createPost(data: NewPost): Promise<Post> {
-    await connectDb();
-    if (!data.slug && data.contents?.length) {
-      const base = data.contents[0]?.name ?? "post";
-      data.slug = slugify(base, { lower: true, strict: true });
-    }
-    const post = new PostModel(data);
-    const savedPost = await post.save();
-    return toPost(savedPost);
-  }
-
-  async getAllPosts(category?: PostCategoryName): Promise<Post[]> {
-    await connectDb();
-    const filter: Record<string, unknown> = {};
-    if (category) {
-      filter.category = category;
-    }
-    const posts = await PostModel.find(filter).sort({ created_at: -1 });
-    return posts.map(toPost);
-  }
-
-  async getPostById(id: string): Promise<Post | null> {
-    await connectDb();
-    const post = await PostModel.findById(id);
-    return post ? toPost(post) : null;
-  }
-
-  async updatePost(id: string, data: Partial<NewPost>): Promise<Post | null> {
-    await connectDb();
-    const updatedPost = await PostModel.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true, runValidators: true }
-    );
-    return updatedPost ? toPost(updatedPost) : null;
-  }
-
-  async deletePost(id: string): Promise<boolean> {
-    await connectDb();
-    const result = await PostModel.findByIdAndDelete(id);
-    return !!result;
-  }
-
-  async getPostsByLanguage(
-    languageCode: string,
-    category?: PostCategoryName
-  ): Promise<Post[]> {
-    await connectDb();
-    const query: Record<string, unknown> = {
-      "contents.language_code": languageCode,
+  async create(postData: NewPost): Promise<Post> {
+    const postsCollection = await getCollection('posts');
+    
+    // Generate slug if not provided
+    const slug = postData.slug || this.generateSlug(postData.contents);
+    
+    const post = {
+      ...postData,
+      slug,
+      status: postData.status || 'draft',
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
-    if (category) {
-      query.category = category;
-    }
-    const posts = await PostModel.find(query).sort({ created_at: -1 });
-    return posts.map(toPost);
+
+    const result = await postsCollection.insertOne(post);
+    
+    return {
+      _id: result.insertedId.toString(),
+      ...post
+    };
+  }
+
+  async getAll(category?: string): Promise<Post[]> {
+    const postsCollection = await getCollection('posts');
+    const filter = category ? { category } : {};
+    
+    const posts = await postsCollection
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return posts.map(post => ({
+      _id: post._id.toString(),
+      contents: post.contents,
+      category: post.category,
+      status: post.status,
+      slug: post.slug,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt
+    }));
+  }
+
+  async getById(id: string): Promise<Post | null> {
+    const postsCollection = await getCollection('posts');
+    const post = await postsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!post) return null;
+    
+    return {
+      _id: post._id.toString(),
+      contents: post.contents,
+      category: post.category,
+      status: post.status,
+      slug: post.slug,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt
+    };
+  }
+
+  async update(id: string, updateData: Partial<NewPost>): Promise<Post | null> {
+    const postsCollection = await getCollection('posts');
+    
+    const updateDoc = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+    
+    const result = await postsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateDoc }
+    );
+    
+    if (result.matchedCount === 0) return null;
+    
+    return this.getById(id);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const postsCollection = await getCollection('posts');
+    const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+
+  private generateSlug(contents: PostContent[]): string {
+    const englishContent = contents.find(c => c.language_code === 'en');
+    const name = englishContent?.name || contents[0]?.name || 'untitled';
+    return slugify(name, { lower: true, strict: true });
   }
 }
