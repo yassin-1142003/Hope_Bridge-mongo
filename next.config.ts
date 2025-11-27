@@ -115,7 +115,6 @@ const nextConfig: NextConfig = {
         hostname: "cdn.hopebridgecharity.com",
       },
        { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
-    { protocol: 'https', hostname: 'drive.google.com' },
     { protocol: 'https', hostname: 'drive.usercontent.google.com' },
     { protocol: 'https', hostname: 'googleusercontent.com' },
       { protocol: 'https', hostname: 'placehold.net' },
@@ -130,27 +129,17 @@ const nextConfig: NextConfig = {
         hostname: 'drive.google.com',
         pathname: '/uc/**',
       },
-         {
-        protocol: 'https',
-        hostname: 'drive.google.com',
-       
-      },
       {
         protocol: 'https',
         hostname: 'placehold.net',
-       
       },
     ],
 
   },
-  intl: {
-    locales: ['en', 'ar'],
-    defaultLocale: 'en',
-  },
+
   reactStrictMode:false,
   output: 'standalone',
   compress: true,
-  darkMode: 'class',
   async rewrites() {
     return [
       {

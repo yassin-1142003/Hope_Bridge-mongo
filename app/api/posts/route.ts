@@ -1,18 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { PostService } from "@/lib/services/PostService";
-import { PostCategoryName } from "@/backend/database/mongoose/enums";
+import jwt from 'jsonwebtoken';
+import { getCollection } from '@/lib/mongodb';
 
-const postService = new PostService();
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+
+// Helper function to verify admin token
+async function verifyAdminToken(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7);
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    if (decoded.role !== 'ADMIN') {
+      return null;
+    }
+    return decoded;
+  } catch {
+    return null;
+  }
+}
 
 // GET - Get all posts (public)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category") as PostCategoryName | undefined;
+    const category = searchParams.get("category");
+    const status = searchParams.get("status");
     
-    const posts = await postService.getAllPosts(category);
+    const postsCollection = await getCollection('posts');
+    
+    // Build query
+    let query: any = {};
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    const posts = await postsCollection
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
     
     return NextResponse.json({
       success: true,
@@ -31,38 +64,47 @@ export async function GET(request: NextRequest) {
 // POST - Create new post (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user) {
+    // Verify admin token
+    const adminUser = await verifyAdminToken(request);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (session.user.role === "user") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
+        { success: false, error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    const data = await request.json();
+    const postData = await request.json();
     
     // Validate required fields
-    if (!data.category || !data.contents || !Array.isArray(data.contents)) {
+    if (!postData.contents || !Array.isArray(postData.contents) || postData.contents.length === 0) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields: category, contents" },
+        { success: false, error: "Contents array is required" },
         { status: 400 }
       );
     }
 
-    const post = await postService.createPost(data);
+    const postsCollection = await getCollection('posts');
+    
+    // Create post
+    const post = {
+      ...postData,
+      status: postData.status || 'draft',
+      category: postData.category || 'general',
+      images: postData.images || [],
+      videos: postData.videos || [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await postsCollection.insertOne(post);
     
     return NextResponse.json({
       success: true,
       message: "Post created successfully",
-      data: post
+      data: {
+        ...post,
+        _id: result.insertedId
+      }
     }, { status: 201 });
     
   } catch (error) {

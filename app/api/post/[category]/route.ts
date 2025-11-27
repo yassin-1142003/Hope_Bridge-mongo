@@ -1,10 +1,7 @@
-import { DrizzlePGUOW, PostCategoryNameArr } from "@/backend/database";
-import type { PostCategoryName } from "@/backend/database";
-import { APIResBuilder } from "@/backend/resManager";
-import { PostService, withTransaction } from "@/backend/service";
-import { AppError } from "@/backend/errorHandler";
-import { withErrorHandler } from "@/withErrorHandler";
 import { NextRequest, NextResponse } from "next/server";
+import { getCollection } from "@/lib/mongodb";
+import { withErrorHandler } from "@/withErrorHandler";
+import { AppError } from "@/lib/errors";
 
 async function getPostsByCategory(
   req: NextRequest,
@@ -12,27 +9,26 @@ async function getPostsByCategory(
 ) {
   const { category } = await params;
 
-  if (!PostCategoryNameArr.includes(category as PostCategoryName)) {
+  // Validate category
+  const validCategories = ['milestone', 'announcement', 'event', 'emergency', 'fundraising', 'project'];
+  if (!validCategories.includes(category)) {
     throw new AppError("ERR_MISSING_PARAMETER", "Unknown post category supplied.", {
       category,
     });
   }
 
-  const posts = await withTransaction(async (tx) => {
-    const uow = new DrizzlePGUOW(tx);
-    const postService = new PostService(uow);
-    return postService.getAll(category as PostCategoryName);
+  // Get posts from MongoDB
+  const postsCollection = await getCollection('posts');
+  const posts = await postsCollection
+    .find({ category, status: 'published' })
+    .sort({ createdAt: -1 })
+    .toArray();
+
+  return NextResponse.json({
+    message: "Posts retrieved successfully.",
+    success: true,
+    details: posts
   });
-
-  const resBuilder = new APIResBuilder();
-
-  return NextResponse.json(
-    resBuilder
-      .setMessage("Posts retrieved successfully.")
-      .setSuccess(true)
-      .setDetails(posts)
-      .build(),
-  );
 }
 
 export const GET = withErrorHandler(getPostsByCategory);

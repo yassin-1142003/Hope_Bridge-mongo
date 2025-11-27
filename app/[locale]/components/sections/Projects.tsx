@@ -4,19 +4,23 @@ import ProjectSliderClient from "@/components/projectSlider";
 import { getTranslations } from "next-intl/server";
 
 interface ProjectContent {
-  id: number;
-  project_id: number;
   language_code: string;
   name: string;
   description: string;
   content: string;
+  images: string[];
+  videos: string[];
+  documents: string[];
 }
 
 interface Project {
-  id: number;
-  images: string;
-  created_at: string;
+  _id: string;
   contents: ProjectContent[];
+  bannerPhotoUrl: string;
+  bannerPhotoId?: string;
+  gallery: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default async function ProjectSlider({
@@ -24,10 +28,9 @@ export default async function ProjectSlider({
 }: {
   params: { locale: string };
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
   // ✅ fetch server-side
-  const res = await fetch(`${baseUrl}/api/post/project`, {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3002";
+  const res = await fetch(`${baseUrl}/api/projects`, {
     method: "GET",
     cache: "no-store",
     headers: { "Content-Type": "application/json" },
@@ -38,7 +41,7 @@ export default async function ProjectSlider({
     return <p className="text-red-500">Failed to load projects.</p>;
   }
 
-  const { details }: { details: Project[] } = await res.json();
+  const { data: details }: { data: Project[] } = await res.json();
 
   // ✅ Pass only first 10 projects to client
   const projects = details.slice(0, 10);

@@ -1,17 +1,38 @@
-import { MediaModel, MediaFile, NewMediaFile, toMedia } from "@/backend/database/mongoose/models";
-import { connectDb } from "@/backend/database/mongoose/connection";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import * as fs from "fs";
+import { getCollection } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+
+export interface MediaFile {
+  _id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  path: string;
+  url: string;
+  createdAt: Date;
+}
+
+export interface NewMediaFile {
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  path: string;
+  url: string;
+}
 
 export class MediaService {
   private uploadDir: string;
 
   constructor() {
-    this.uploadDir = path.join(process.cwd(), "public", "uploads");
+    this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    this.ensureUploadDir();
   }
 
-  async ensureUploadDir() {
+  private async ensureUploadDir() {
     try {
       await mkdir(this.uploadDir, { recursive: true });
     } catch (error) {
@@ -20,33 +41,40 @@ export class MediaService {
   }
 
   async uploadFile(file: File): Promise<MediaFile> {
-    await connectDb();
     await this.ensureUploadDir();
 
     // Generate unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const fileExtension = path.extname(file.name);
-    const filename = `${timestamp}_${randomString}${fileExtension}`;
+    const extension = file.name.split('.').pop();
+    const filename = `${timestamp}_${randomString}.${extension}`;
+    
+    const filePath = path.join(this.uploadDir, filename);
+    const relativePath = `/uploads/${filename}`;
 
-    // Save file to filesystem
+    // Write file to disk
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filePath = path.join(this.uploadDir, filename);
     await writeFile(filePath, buffer);
 
-    // Create media record in database
-    const mediaData: NewMediaFile = {
+    // Save to database
+    const mediaCollection = await getCollection('media');
+    const mediaFile: NewMediaFile = {
       filename,
       originalName: file.name,
       mimeType: file.type,
       size: file.size,
-      url: `/uploads/${filename}`,
+      path: filePath,
+      url: relativePath
     };
 
-    const media = new MediaModel(mediaData);
-    const savedMedia = await media.save();
-    return toMedia(savedMedia);
+    const result = await mediaCollection.insertOne(mediaFile);
+    
+    return {
+      _id: result.insertedId.toString(),
+      ...mediaFile,
+      createdAt: new Date()
+    };
   }
 
   async uploadMultipleFiles(files: File[]): Promise<MediaFile[]> {
@@ -55,43 +83,74 @@ export class MediaService {
   }
 
   async getMediaById(id: string): Promise<MediaFile | null> {
-    await connectDb();
-    const media = await MediaModel.findById(id);
-    return media ? toMedia(media) : null;
+    const mediaCollection = await getCollection('media');
+    const file = await mediaCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!file) return null;
+    
+    return {
+      _id: file._id.toString(),
+      filename: file.filename,
+      originalName: file.originalName,
+      mimeType: file.mimeType,
+      size: file.size,
+      path: file.path,
+      url: file.url,
+      createdAt: file.createdAt
+    };
   }
 
   async getAllMedia(): Promise<MediaFile[]> {
-    await connectDb();
-    const mediaFiles = await MediaModel.find().sort({ uploaded_at: -1 });
-    return mediaFiles.map(toMedia);
+    const mediaCollection = await getCollection('media');
+    const files = await mediaCollection.find({}).sort({ createdAt: -1 }).toArray();
+    
+    return files.map(file => ({
+      _id: file._id.toString(),
+      filename: file.filename,
+      originalName: file.originalName,
+      mimeType: file.mimeType,
+      size: file.size,
+      path: file.path,
+      url: file.url,
+      createdAt: file.createdAt
+    }));
   }
 
   async deleteMedia(id: string): Promise<boolean> {
-    await connectDb();
-    const media = await MediaModel.findByIdAndDelete(id);
+    const mediaCollection = await getCollection('media');
+    const file = await mediaCollection.findOne({ _id: new ObjectId(id) });
     
-    if (media) {
-      // Optionally delete file from filesystem
-      try {
-        const filePath = path.join(this.uploadDir, media.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      } catch (error) {
-        console.error("Failed to delete file from filesystem:", error);
-      }
-      return true;
+    if (!file) return false;
+
+    // Delete from disk
+    try {
+      await fs.promises.unlink(file.path);
+    } catch (error) {
+      console.error('Failed to delete file from disk:', error);
     }
+
+    // Delete from database
+    const result = await mediaCollection.deleteOne({ _id: new ObjectId(id) });
     
-    return false;
+    return result.deletedCount > 0;
   }
 
   async getMediaByType(mimeType: string): Promise<MediaFile[]> {
-    await connectDb();
-    const mediaFiles = await MediaModel.find({ 
+    const mediaCollection = await getCollection('media');
+    const files = await mediaCollection.find({ 
       mimeType: { $regex: new RegExp(mimeType, 'i') }
-    }).sort({ uploaded_at: -1 });
-    return mediaFiles.map(toMedia);
+    }).sort({ createdAt: -1 }).toArray();
+    
+    return files.map(file => ({
+      _id: file._id.toString(),
+      filename: file.filename,
+      originalName: file.originalName,
+      mimeType: file.mimeType,
+      size: file.size,
+      path: file.path,
+      url: file.url,
+      createdAt: file.createdAt
+    }));
   }
 
   // Helper method to validate file types

@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { PostService } from "@/lib/services/PostService";
+import jwt from 'jsonwebtoken';
+import { getCollection } from '@/lib/mongodb';
 
-const postService = new PostService();
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+
+// Helper function to verify admin token
+async function verifyAdminToken(request: NextRequest) {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7);
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    if (decoded.role !== 'ADMIN') {
+      return null;
+    }
+    return decoded;
+  } catch {
+    return null;
+  }
+}
 
 // GET - Get single post by ID (public)
 export async function GET(
@@ -12,7 +31,16 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const post = await postService.getPostById(id);
+    const postsCollection = await getCollection('posts');
+    
+    // Try to find by ObjectId first, then by slug
+    let post;
+    try {
+      post = await postsCollection.findOne({ _id: id });
+    } catch {
+      // If ObjectId fails, try by slug
+      post = await postsCollection.findOne({ slug: id });
+    }
     
     if (!post) {
       return NextResponse.json(
@@ -42,36 +70,59 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
     
-    if (!session || !session.user) {
+    // Verify admin token
+    const adminUser = await verifyAdminToken(request);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (session.user.role === "user") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
+        { success: false, error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    const data = await request.json();
-    const updatedPost = await postService.updatePost(id, data);
+    const updateData = await request.json();
+    const postsCollection = await getCollection('posts');
     
-    if (!updatedPost) {
+    // Try to find by ObjectId first, then by slug
+    let existingPost;
+    try {
+      existingPost = await postsCollection.findOne({ _id: id });
+    } catch {
+      existingPost = await postsCollection.findOne({ slug: id });
+    }
+    
+    if (!existingPost) {
       return NextResponse.json(
         { success: false, error: "Post not found" },
         { status: 404 }
       );
     }
 
+    // Update post
+    const updatedPost = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+
+    const result = await postsCollection.updateOne(
+      { _id: existingPost._id },
+      { $set: updatedPost }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: "Post not found" },
+        { status: 404 }
+      );
+    }
+
+    // Return updated post
+    const returnedPost = await postsCollection.findOne({ _id: existingPost._id });
+
     return NextResponse.json({
       success: true,
       message: "Post updated successfully",
-      data: updatedPost
+      data: returnedPost
     });
   } catch (error) {
     console.error("Error updating post:", error);
@@ -89,25 +140,36 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
     
-    if (!session || !session.user) {
+    // Verify admin token
+    const adminUser = await verifyAdminToken(request);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (session.user.role === "user") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
+        { success: false, error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    const deleted = await postService.deletePost(id);
+    const postsCollection = await getCollection('posts');
     
-    if (!deleted) {
+    // Try to find by ObjectId first, then by slug
+    let existingPost;
+    try {
+      existingPost = await postsCollection.findOne({ _id: id });
+    } catch {
+      existingPost = await postsCollection.findOne({ slug: id });
+    }
+    
+    if (!existingPost) {
+      return NextResponse.json(
+        { success: false, error: "Post not found" },
+        { status: 404 }
+      );
+    }
+
+    const result = await postsCollection.deleteOne({ _id: existingPost._id });
+
+    if (result.deletedCount === 0) {
       return NextResponse.json(
         { success: false, error: "Post not found" },
         { status: 404 }
@@ -117,7 +179,7 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
       message: "Post deleted successfully",
-      data: { id }
+      data: { id: existingPost._id }
     });
   } catch (error) {
     console.error("Error deleting post:", error);

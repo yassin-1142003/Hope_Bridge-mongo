@@ -1,12 +1,34 @@
-import {
-  ProjectModel,
-  Project,
-  NewProject,
-  toProject,
-} from "@/backend/database/mongoose/models";
-import { connectDb } from "@/backend/database/mongoose/connection";
+import { getCollection } from "@/lib/mongodb";
 import { MediaService } from "./MediaService";
 import slugify from "slugify";
+import { ObjectId } from "mongodb";
+
+export interface ProjectContent {
+  language_code: string;
+  name: string;
+  description: string;
+  content: string;
+  images: string[];
+  videos: string[];
+  documents: string[];
+}
+
+export interface Project {
+  _id: string;
+  contents: ProjectContent[];
+  bannerPhotoUrl: string;
+  bannerPhotoId?: string;
+  gallery: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewProject {
+  contents: ProjectContent[];
+  bannerPhotoUrl?: string;
+  bannerPhotoId?: string;
+  gallery?: string[];
+}
 
 export class ProjectService {
   private mediaService: MediaService;
@@ -15,161 +37,160 @@ export class ProjectService {
     this.mediaService = new MediaService();
   }
 
-  async createProject(data: NewProject): Promise<Project> {
-    await connectDb();
-    if (!data.slug && data.contents?.length) {
-      const base = data.contents[0]?.name ?? "project";
-      data.slug = slugify(base, { lower: true, strict: true });
-    }
-    const project = new ProjectModel(data);
-    const savedProject = await project.save();
-    return toProject(savedProject);
+  async create(data: NewProject): Promise<Project> {
+    const projectsCollection = await getCollection('projects');
+    
+    const project = {
+      ...data,
+      gallery: data.gallery || [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await projectsCollection.insertOne(project);
+    
+    return {
+      _id: result.insertedId.toString(),
+      ...project
+    };
   }
 
-  async createProjectWithMedia(
+  async getAll(): Promise<Project[]> {
+    const projectsCollection = await getCollection('projects');
+    const projects = await projectsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return projects.map(project => ({
+      _id: project._id.toString(),
+      contents: project.contents,
+      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoId: project.bannerPhotoId,
+      gallery: project.gallery || [],
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
+    }));
+  }
+
+  async getById(id: string): Promise<Project | null> {
+    const projectsCollection = await getCollection('projects');
+    const project = await projectsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!project) return null;
+    
+    return {
+      _id: project._id.toString(),
+      contents: project.contents,
+      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoId: project.bannerPhotoId,
+      gallery: project.gallery || [],
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
+    };
+  }
+
+  async update(id: string, updateData: Partial<NewProject>): Promise<Project | null> {
+    const projectsCollection = await getCollection('projects');
+    
+    const updateDoc = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+    
+    const result = await projectsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateDoc }
+    );
+    
+    if (result.matchedCount === 0) return null;
+    
+    return this.getById(id);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const projectsCollection = await getCollection('projects');
+    const result = await projectsCollection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+
+  async createWithMedia(
     projectData: NewProject,
     bannerFile?: File,
     galleryFiles?: File[]
   ): Promise<Project> {
-    await connectDb();
-
     // Handle banner photo upload
     if (bannerFile) {
       const bannerMedia = await this.mediaService.uploadFile(bannerFile);
       projectData.bannerPhotoUrl = bannerMedia.url;
-      projectData.bannerPhotoId = bannerMedia.id;
+      projectData.bannerPhotoId = bannerMedia._id;
     }
 
     // Handle gallery uploads
     if (galleryFiles && galleryFiles.length > 0) {
-      const galleryMedia =
-        await this.mediaService.uploadMultipleFiles(galleryFiles);
-      projectData.gallery = galleryMedia.map((media) => media.id);
+      const galleryMedia = await this.mediaService.uploadMultipleFiles(galleryFiles);
+      projectData.gallery = galleryMedia.map((media) => media._id);
     }
 
-    return this.createProject(projectData);
+    return this.create(projectData);
   }
 
-  async getAllProjects(): Promise<Project[]> {
-    await connectDb();
-    const projects = await ProjectModel.find().sort({ created_at: -1 });
-    return projects.map(toProject);
-  }
-
-  async getProjectById(id: string): Promise<Project | null> {
-    await connectDb();
-    const project = await ProjectModel.findById(id);
-    return project ? toProject(project) : null;
-  }
-
-  async getProjectWithMedia(
-    id: string
-  ): Promise<(Project & { bannerPhoto: string; gallery: string[] }) | null> {
-    await connectDb();
-    const project = await ProjectModel.findById(id);
-    if (!project) return null;
-
-    const projectData = toProject(project);
-
-    // For our imported data, images and videos are already URLs
-    // No need to fetch from separate media collection
-    return {
-      ...projectData,
-      bannerPhoto: projectData.bannerPhotoUrl, // Direct URL
-      gallery: projectData.gallery || [], // Direct URLs
-      contents: projectData.contents.map((content) => ({
-        ...content,
-        images: content.images || [], // Direct URLs
-        videos: content.videos || [], // Direct URLs
-        documents: content.documents || [], // Direct URLs
-      })),
-    };
-  }
-
-  async updateProject(
-    id: string,
-    data: Partial<NewProject>
-  ): Promise<Project | null> {
-    await connectDb();
-    const updatedProject = await ProjectModel.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true, runValidators: true }
-    );
-    return updatedProject ? toProject(updatedProject) : null;
-  }
-
-  async updateProjectMedia(
+  async updateMedia(
     id: string,
     bannerFile?: File,
     galleryFiles?: File[],
     removeGalleryIds?: string[]
   ): Promise<Project | null> {
-    await connectDb();
-    const project = await ProjectModel.findById(id);
+    const project = await this.getById(id);
     if (!project) return null;
+
+    const updateData: Partial<NewProject> = {};
 
     // Handle banner photo update
     if (bannerFile) {
       const bannerMedia = await this.mediaService.uploadFile(bannerFile);
-      project.bannerPhotoUrl = bannerMedia.url;
-      project.bannerPhotoId = bannerMedia.id;
+      updateData.bannerPhotoUrl = bannerMedia.url;
+      updateData.bannerPhotoId = bannerMedia._id;
     }
 
     // Handle gallery updates
+    let currentGallery = project.gallery || [];
+    
     if (galleryFiles && galleryFiles.length > 0) {
-      const newGalleryMedia =
-        await this.mediaService.uploadMultipleFiles(galleryFiles);
-      project.gallery.push(...newGalleryMedia.map((media) => media.id));
+      const newGalleryMedia = await this.mediaService.uploadMultipleFiles(galleryFiles);
+      currentGallery.push(...newGalleryMedia.map((media) => media._id));
     }
 
     // Remove specified gallery items
     if (removeGalleryIds && removeGalleryIds.length > 0) {
-      project.gallery = project.gallery.filter(
-        (id: string) => !removeGalleryIds.includes(id)
+      currentGallery = currentGallery.filter(
+        (galleryId) => !removeGalleryIds.includes(galleryId)
       );
-      // Optionally delete the media files
+      // Delete the media files
       for (const mediaId of removeGalleryIds) {
-        await this.mediaService.deleteMedia(mediaId as string);
-      }
-    }
-
-    await project.save();
-    return toProject(project);
-  }
-
-  async deleteProject(id: string): Promise<boolean> {
-    await connectDb();
-    const projectDoc = await ProjectModel.findById(id);
-
-    if (projectDoc) {
-      const projectData = toProject(projectDoc);
-      const allMediaIds = [
-        projectData.bannerPhotoId ?? null,
-        ...projectData.gallery,
-        ...projectData.contents.flatMap((c) => [
-          ...c.images,
-          ...c.videos,
-          ...c.documents,
-        ]),
-      ].filter((v): v is string => typeof v === "string" && v.length > 0);
-
-      for (const mediaId of allMediaIds) {
         await this.mediaService.deleteMedia(mediaId);
       }
-
-      await ProjectModel.findByIdAndDelete(id);
-      return true;
     }
 
-    return false;
+    updateData.gallery = currentGallery;
+
+    return this.update(id, updateData);
   }
 
-  async getProjectsByLanguage(languageCode: string): Promise<Project[]> {
-    await connectDb();
-    const projects = await ProjectModel.find({
-      "contents.language_code": languageCode,
-    }).sort({ created_at: -1 });
-    return projects.map(toProject);
+  async deleteWithMedia(id: string): Promise<boolean> {
+    const project = await this.getById(id);
+    if (!project) return false;
+
+    // Delete all associated media
+    const allMediaIds = [
+      project.bannerPhotoId,
+      ...project.gallery
+    ].filter((id): id is string => !!id);
+
+    for (const mediaId of allMediaIds) {
+      await this.mediaService.deleteMedia(mediaId);
+    }
+
+    return this.delete(id);
   }
 }

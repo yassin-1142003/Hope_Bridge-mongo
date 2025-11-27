@@ -4,7 +4,7 @@ import GradientText from "@/components/GradientText";
 import type { PageProps } from "@/types/next";
 import Image from "next/image";
 import { PencilIcon } from "lucide-react";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import DeleteProjectButton from "@/components/DeleteProjectButton";

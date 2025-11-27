@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import GradientText from "@/components/GradientText";
 import type { PageProps } from "@/types/next";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";

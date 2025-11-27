@@ -1,10 +1,8 @@
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { DrizzlePGUOW } from "@/backend/database";
-import { APIResBuilder } from "@/backend/resManager";
-import { VisitorService, withTransaction } from "@/backend/service";
-import { authorizeRole } from "@/utils/authorizeRole";
+import { getCollection } from "@/lib/mongodb";
 import { withErrorHandler } from "@/withErrorHandler";
+import { verifyAdminToken } from "@/lib/auth";
 
 async function postVisit(req: NextRequest) {
   // Parse body - handle both JSON and text/plain (for sendBeacon)
@@ -30,21 +28,23 @@ async function postVisit(req: NextRequest) {
   const ipHash = hashValue(ip);
 
   // Fire and forget - don't wait for database write
-  void withTransaction(async (tx) => {
-    const uow = new DrizzlePGUOW(tx);
-    const visitorService = new VisitorService(uow);
-    return visitorService.trackVisit({
-      path,
-      locale,
-      projectId,
-      referrer,
-      userAgent,
-      ipHash,
-      country,
-    });
-  }).catch((err) => {
-    console.error("Visitor tracking error:", err);
-  });
+  (async () => {
+    try {
+      const visitsCollection = await getCollection('visits');
+      await visitsCollection.insertOne({
+        path,
+        locale,
+        projectId,
+        referrer,
+        userAgent,
+        ipHash,
+        country,
+        createdAt: new Date()
+      });
+    } catch (err) {
+      console.error("Visitor tracking error:", err);
+    }
+  })();
 
   // Return immediately with 202 Accepted
   return NextResponse.json(
@@ -59,29 +59,55 @@ async function postVisit(req: NextRequest) {
 }
 
 async function getVisitSummary(req: NextRequest) {
-  await authorizeRole(req);
+  // Verify admin token
+  const token = req.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return NextResponse.json(
+      { error: "Authorization token required" },
+      { status: 401 }
+    );
+  }
+
+  const adminUser = await verifyAdminToken(token);
+  if (!adminUser) {
+    return NextResponse.json(
+      { error: "Admin access required" },
+      { status: 403 }
+    );
+  }
 
   const recent = clampNumber(req.nextUrl.searchParams.get("recent"), 1, 500, 100);
   const days = clampNumber(req.nextUrl.searchParams.get("days"), 1, 30, 7);
 
-  const summary = await withTransaction(async (tx) => {
-    const uow = new DrizzlePGUOW(tx);
-    const visitorService = new VisitorService(uow);
-    return visitorService.getSummary({
-      recentLimit: recent,
-      dailyWindow: days,
-    });
+  // Get visit summary from MongoDB
+  const visitsCollection = await getCollection('visits');
+  const now = new Date();
+  const daysAgo = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+
+  const [totalVisits, recentVisits, dailyStats] = await Promise.all([
+    visitsCollection.countDocuments(),
+    visitsCollection.find().sort({ createdAt: -1 }).limit(recent).toArray(),
+    visitsCollection.aggregate([
+      { $match: { createdAt: { $gte: daysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).toArray()
+  ]);
+
+  return NextResponse.json({
+    message: "Visit summary retrieved successfully.",
+    success: true,
+    details: {
+      totalVisits,
+      recentVisits: recentVisits.length,
+      dailyStats
+    }
   });
-
-  const resBuilder = new APIResBuilder();
-
-  return NextResponse.json(
-    resBuilder
-      .setMessage("Visit summary retrieved successfully.")
-      .setSuccess(true)
-      .setDetails(summary)
-      .build(),
-  );
 }
 
 export const POST = withErrorHandler(postVisit);

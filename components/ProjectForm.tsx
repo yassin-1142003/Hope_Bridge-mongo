@@ -68,7 +68,8 @@ export default function ProjectForm({ initialData, projectId, onSuccess }: Proje
     setSuccess("");
 
     try {
-      const url = projectId ? `/api/projects/${projectId}` : "/api/projects";
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002');
+      const url = projectId ? `${baseUrl}/api/projects/${projectId}` : `${baseUrl}/api/projects`;
       const method = projectId ? "PATCH" : "POST";
       
       const response = await fetch(url, {

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Edit, Trash2, Plus, Eye, Calendar } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { fetchWithErrorHandling, getApiUrl } from "@/lib/api";
 
 interface ProjectContent {
   language_code: string;
@@ -33,16 +34,23 @@ export default function ProjectsList() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/projects");
-      const result = await response.json();
+      setLoading(true);
+      setError("");
       
-      if (result.success) {
+      const result = await fetchWithErrorHandling<{
+        success: boolean;
+        data?: Project[];
+        error?: string;
+      }>(getApiUrl('/api/projects'));
+      
+      if (result.success && result.data) {
         setProjects(result.data);
       } else {
-        setError("Failed to fetch projects");
+        throw new Error(result.error || 'Failed to fetch projects');
       }
     } catch (err) {
-      setError("Network error");
+      console.error('Error in fetchProjects:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -53,7 +61,8 @@ export default function ProjectsList() {
 
     setDeleteLoading(projectId);
     try {
-      const response = await fetch(`/api/projects/${projectId}`, {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002');
+      const response = await fetch(`${baseUrl}/api/projects/${projectId}`, {
         method: "DELETE",
       });
 

@@ -1,7 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { AppError } from "@/backend/errorHandler";
+import { getServerSession } from "@/lib/auth";
+import { AppError } from "@/lib/errors";
 
 export async function authorizeRole(req: NextRequest) {
   const session = await getServerSession(authOptions);
