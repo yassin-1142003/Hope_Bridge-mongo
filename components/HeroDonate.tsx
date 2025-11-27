@@ -17,7 +17,7 @@ const HeroDonate = () => {
       <Link href={`/${locale}/donate`}>
         <Button
           // onClick={() => setdonationopen(!donationopen)}
-          className=" w-28 md:w-40  lg:w-52 bg-primary cursor-pointer  text-md py-4 px-3 md:px-6 md:py-7 md:text-2xl  border md:border-2 border-primary text-background duration-300 transition ease-in-out hover:text-primary hover:bg-background font-bold self-center rounded-xs"
+          className="w-24 md:w-32 lg:w-40 h-12 md:h-14 bg-background cursor-pointer text-sm md:text-base lg:text-lg px-4 md:px-6 border-2 border-primary text-primary duration-300 transition ease-in-out hover:text-background hover:bg-primary font-bold rounded-lg shadow-sm hover:shadow-md"
         >
           {t("donate")}
         </Button>

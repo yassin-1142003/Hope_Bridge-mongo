@@ -39,10 +39,10 @@ export default function RollingGallery({
   speed = 60, // Default = 60 sec per full rotation (slower spin)
   images = [],
 
-  // Default card configuration
-  cardWidth = { small: 900, large: 400 },
-  cardHeight = { small: 900, large: 500 },
-  cardGap = 0.9, // Default gap (0.3 = 30% spacing between cards)
+  // Default card configuration - much taller images
+  cardWidth = { small: 260, large: 340 },
+  cardHeight = { small: 200, large: 280 },
+  cardGap = 0.85, // Default gap (0.85 = 85% spacing between cards)
 }: RollingGalleryProps) {
   // Use provided images or default list
   const galleryImages = images.length > 0 ? images : IMGS;
@@ -65,7 +65,7 @@ export default function RollingGallery({
   }, []);
   /** ===== LAYOUT VARIABLES ===== **/
 
-  const cylinderWidth = isSmall ? 2500 : 2500;
+  const cylinderWidth = isSmall ? 1400 : 2000;
   // Width of the entire "circle" — larger value = more spread-out cards
 
   const radius = isSmall
@@ -163,16 +163,16 @@ export default function RollingGallery({
   if (!mounted) {
     // Skeleton or hidden state
     return (
-      <div className="relative overflow-hidden py-5 md:py-36">
-        <div className="h-[300px] w-full bg-gray-600 animate-pulse rounded-lg" />
+      <div className="relative w-full overflow-hidden">
+        <div className="h-[240px] md:h-[280px] w-full bg-gray-600 animate-pulse rounded-lg" />
       </div>
     );
   }
   return (
-    <div className="relative  overflow-hidden   md:py-36 ">
+    <div className="relative w-full overflow-hidden">
       <div
-        className="flex h-full w-fit items-center justify-center [transform-style:preserve-3d ]"
-        style={{ perspective: isSmall ? 300 : 2000 }} // Depth of 3D perspective
+        className="flex h-[240px] md:h-[400px] w-full items-center justify-center [transform-style:preserve-3d]"
+        style={{ perspective: isSmall ? 400 : 1200 }} // Better perspective for taller images
       >
         <motion.div
           drag="x"
@@ -187,7 +187,7 @@ export default function RollingGallery({
             width: cylinderWidth, // Controls total width of the 3D carousel
             transformStyle: "preserve-3d",
           }}
-          className="flex min-h-[300px] cursor-grab items-center justify-center [transform-style:preserve-3d]"
+          className="flex h-[240px] md:h-[280px] cursor-grab items-center justify-center [transform-style:preserve-3d]"
         >
           {galleryImages.map((url, i) => (
             <div
@@ -213,7 +213,7 @@ export default function RollingGallery({
                   width: `${currentCardWidth}px`,
                   height: `${currentCardHeight}px`,
                 }}
-                className="pointer-events-none rounded-xl  bg-white shadow-lg object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                className="pointer-events-none rounded-lg bg-white shadow-md object-cover transition-transform duration-300 ease-out group-hover:scale-105"
               />
             </div>
           ))}

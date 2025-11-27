@@ -159,29 +159,24 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider>
           {/* <TurnstileWrapper> */}
-            <ThemeProvider attribute="class" defaultTheme="light">
-              <ClientWrapper>
-                <VisitorTracker locale={locale} />
-                <PWAProvider>
-                  <Navbar session={session} />
-                  <AOSWrapper>
-                    <main
-                      className="main-pattern pt-27"
-                    >
-                      {children}
-                    </main>
-                    <AddToHomeIOS />
-                    {/* <AddToHomePrompt /> */}
-                    <Toaster richColors position="bottom-right" />
-                  </AOSWrapper>
-                  <Footer4Col />
-                </PWAProvider>
-              </ClientWrapper>
-            </ThemeProvider>
+          <ThemeProvider attribute="class" defaultTheme="light">
+            {/* <ClientWrapper> */}
+            <VisitorTracker locale={locale} />
+            <PWAProvider>
+              <Navbar session={session} />
+              <AOSWrapper>
+                <main className="main-pattern pt-18">{children}</main>
+                <AddToHomeIOS />
+                {/* <AddToHomePrompt /> */}
+                <Toaster richColors position="bottom-right" />
+              </AOSWrapper>
+              <Footer4Col />
+            </PWAProvider>
+            {/* </ClientWrapper> */}
+          </ThemeProvider>
           {/* </TurnstileWrapper> */}
         </NextIntlClientProvider>
       </body>
     </html>
   );
 }
-

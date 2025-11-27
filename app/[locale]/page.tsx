@@ -1,5 +1,6 @@
 import Newsteller from "@/app/[locale]/components/sections/Newsteller";
 import Overview from "@/app/[locale]/components/sections/Overview";
+import StatsSection from "@/app/[locale]/components/sections/StatsSection";
 import type { PageProps } from "@/types/next";
 import { lazy } from "react";
 export default async function HomePage({
@@ -29,11 +30,12 @@ export default async function HomePage({
   return (
     <>
       <Hero params={{ locale }} />
+      <StatsSection params={{ locale }} />
       <Overview params={{ locale }} />
       <Projects params={{ locale }} />
       {/* <Stories params={{ locale }} /> */}
       {/* <News params={{ locale }} /> */}
-      <Map14 params={{ locale }} />
+      {/* <Map14 params={{ locale }} /> */}
 
       <Newsteller params={{ locale }} />
     </>
