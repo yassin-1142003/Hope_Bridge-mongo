@@ -24,39 +24,12 @@ interface ProjectContent {
 
 interface Project {
   _id: string;
-  title: string;
-  description: string;
-  shortDescription?: string;
-  status: string;
-  category: string;
-  featured?: boolean;
-  bannerPhotoUrl?: string;
-  images?: string[];
-  gallery?: Array<{
-    id: string;
-    url: string;
-    alt: string;
-    caption: string;
-  }>;
-  videos?: Array<{
-    id: string;
-    url: string;
-    thumbnail?: string;
-    title: string;
-    duration?: string;
-    description?: string;
-  }>;
-  allMedia?: any[];
-  mediaCount?: {
-    images: number;
-    videos: number;
-    total: number;
-  };
+  contents: ProjectContent[];
+  bannerPhotoUrl: string;
+  bannerPhotoId?: string;
+  gallery: string[];
   createdAt: Date;
   updatedAt: Date;
-  // Legacy compatibility
-  contents?: ProjectContent[];
-  legacyGallery?: string[];
 }
 const getGoogleDriveId = (url: string): string | null => {
   const match = url?.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -64,16 +37,10 @@ const getGoogleDriveId = (url: string): string | null => {
 };
 
 const getImageUrl = (url: string): string => {
-  // If it's a local path (starts with /), return as-is
-  if (url && url.startsWith('/')) {
-    return url;
-  }
-  
-  // If it's a Google Drive URL, process it
   const fileId = getGoogleDriveId(url);
   return fileId
     ? `https://drive.google.com/uc?export=view&id=${fileId}`
-    : url || "/homepage/01.webp"; // Use local fallback instead of external placeholder
+    : url || "https://placehold.net/600x400.png?text=No+Image";
 };
 export default function ProjectSliderClient({
   projects,
@@ -100,21 +67,9 @@ export default function ProjectSliderClient({
         }}
       >
         {projects.map((proj) => {
-          // Handle both new and legacy structures
           const localized = proj.contents?.find(
             (c) => c?.language_code === locale
           );
-          
-          // Get project title and description (new structure优先)
-          const title = proj.title || localized?.name || 'Untitled Project';
-          const description = proj.description || localized?.description || '';
-          const shortDesc = proj.shortDescription || description?.substring(0, 100) || '';
-          
-          // Get banner image (new structure优先)
-          const bannerImage = proj.bannerPhotoUrl || 
-                            proj.images?.[0] || 
-                            proj.gallery?.[0]?.url || 
-                            '/homepage/01.webp';
 
           return (
             <SwiperSlide className="flex flex-col px-4" key={proj._id}>
@@ -128,8 +83,8 @@ export default function ProjectSliderClient({
                     <Image
                       width={200}
                       height={200}
-                      alt={title}
-                      src={getImageUrl(bannerImage)}
+                      alt={localized?.name ?? "Project Image"}
+                      src={getImageUrl(proj.bannerPhotoUrl)}
                       className="object-cover group-hover:scale-110 ease-in-out duration-700 w-full h-[200px]"
                       loading="lazy"
                       referrerPolicy="no-referrer"
@@ -167,7 +122,7 @@ export default function ProjectSliderClient({
                             showBorder={false}
                             className={`line-clamp-1 font-almarai font-extrabold`}
                           >
-                            {title}
+                            {localized?.name ?? "Untitled"}
                           </GradientText>
                         </h1>
                       </div>
@@ -178,7 +133,7 @@ export default function ProjectSliderClient({
                           isArabic ? "text-right" : "text-left"
                         }`}
                       >
-                        {shortDesc}
+                        {localized?.description ?? ""}
                       </p>
 
                       {/* Content */}
@@ -192,22 +147,6 @@ export default function ProjectSliderClient({
 
                       {/* Divider */}
                       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent mb-5" />
-
-                      {/* Media Count Display */}
-                      {proj.mediaCount && proj.mediaCount.total > 0 && (
-                        <div className="flex justify-center gap-4 mb-4 text-xs text-muted-foreground">
-                          {proj.mediaCount.images > 0 && (
-                            <span className="flex items-center gap-1">
-                              📸 {proj.mediaCount.images}
-                            </span>
-                          )}
-                          {proj.mediaCount.videos > 0 && (
-                            <span className="flex items-center gap-1">
-                              🎥 {proj.mediaCount.videos}
-                            </span>
-                          )}
-                        </div>
-                      )}
 
                       {/* Enhanced Donate Button with Better Effects */}
                       <Link href={`/${locale}/donate`}>
