@@ -18,19 +18,34 @@ import { ArrowLeftIcon, MapPinIcon, HeartIcon, UsersIcon } from "lucide-react";
 import Image from "next/image";
 
 interface Project {
-  id: string;
-  beneficiaries: number;
+  _id: string;
   contents: {
+    language_code: string;
     name: string;
     description: string;
-    language_code?: string;
+    content: string;
+    images: string[];
+    videos: string[];
+    documents: string[];
   }[];
-  images: string[];
+  bannerPhotoUrl?: string;
+  gallery?: string[];
+  createdAt: string | { $date: string };
+  updatedAt: string | { $date: string };
 }
 
 const getGoogleDriveId = (url: string): string | null => {
   const match = url?.match(/\/d\/([a-zA-Z0-9-_]+)/);
   return match ? match[1] : null;
+};
+
+const formatDate = (dateString: string | { $date: string }, locale: string) => {
+  const dateStr =
+    typeof dateString === "string" ? dateString : dateString.$date;
+  return new Date(dateStr).toLocaleDateString(locale, {
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const getImageUrl = (url: string): string => {
@@ -124,7 +139,7 @@ const getGeoStyle = (
       outline: "none",
       filter: "brightness(1.1)",
     },
-    pressed: { 
+    pressed: {
       outline: "none",
       fill: "#D32F2F",
     },
@@ -206,7 +221,7 @@ const MarkerComponent = ({
             transition={{ repeat: Infinity, duration: 2 }}
           />
         )}
-        
+
         {/* Main pin */}
         <motion.g
           animate={{
@@ -215,15 +230,8 @@ const MarkerComponent = ({
           transition={{ repeat: isActive ? Infinity : 0, duration: 2 }}
         >
           {/* Pin shadow */}
-          <ellipse
-            cx="0"
-            cy="15"
-            rx="8"
-            ry="3"
-            fill="#000"
-            opacity={0.2}
-          />
-          
+          <ellipse cx="0" cy="15" rx="8" ry="3" fill="#000" opacity={0.2} />
+
           {/* Pin body */}
           <path
             d="M 0 -15 C -8 -15 -15 -8 -15 0 C -15 8 -8 15 0 25 C 8 15 15 8 15 0 C 15 -8 8 -15 0 -15 Z"
@@ -231,7 +239,7 @@ const MarkerComponent = ({
             stroke={isDark ? "#2E2222" : "#FFFFFF"}
             strokeWidth="2"
           />
-          
+
           {/* Inner circle */}
           <circle
             cx="0"
@@ -260,23 +268,53 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   useEffect(() => {
-    if (activeCountry === "Palestine") {
-      setIsLoadingProjects(true);
-      fetch("/api/post/project")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.details) {
-            setApiProjects(data.details);
+    const fetchProjects = async () => {
+      if (activeCountry === "Palestine") {
+        setIsLoadingProjects(true);
+        try {
+          // Try the same endpoint that works in Projects.tsx
+          const baseUrl =
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+          console.log("Fetching projects from:", `${baseUrl}/api/projects`);
+
+          const res = await fetch(`${baseUrl}/api/projects`, {
+            method: "GET",
+            cache: "no-store",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (!res.ok) {
+            console.error(
+              "Failed to fetch projects:",
+              res.status,
+              res.statusText
+            );
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+
+          const data = await res.json();
+          console.log("API Response:", data);
+
+          if (data?.data && Array.isArray(data.data)) {
+            setApiProjects(data.data);
+            console.log("Projects loaded:", data.data.length);
           } else {
+            console.warn("No projects found in response");
             setApiProjects([]);
           }
-        })
-        .catch(() => setApiProjects([]))
-        .finally(() => setIsLoadingProjects(false));
-    } else {
-      setApiProjects([]);
-      setIsLoadingProjects(false);
-    }
+        } catch (error) {
+          console.error("Error fetching projects:", error);
+          setApiProjects([]);
+        } finally {
+          setIsLoadingProjects(false);
+        }
+      } else {
+        setApiProjects([]);
+        setIsLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
   }, [activeCountry]);
 
   useEffect(() => {
@@ -353,8 +391,8 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
           {isArabic ? "خريطة التأثير" : "Impact Map"}
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          {isArabic 
-            ? "استكشف كيف نحدث فرقاً في communities حول العالم" 
+          {isArabic
+            ? "استكشف كيف نحدث فرقاً في communities حول العالم"
             : "Explore how we're making a difference in communities worldwide"}
         </p>
       </motion.div>
@@ -437,10 +475,18 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
               </div>
             </div>
           </div>
-          
+
           <div id="map-container" className="h-[450px] p-6">
             {isMapVisible ? (
-              <Suspense fallback={<MapLoading isArabic={isArabic} isMobile={isMobile} theme={theme} />}>
+              <Suspense
+                fallback={
+                  <MapLoading
+                    isArabic={isArabic}
+                    isMobile={isMobile}
+                    theme={theme}
+                  />
+                }
+              >
                 <ComposableMap
                   projection="geoMercator"
                   projectionConfig={{
@@ -452,9 +498,10 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
                   style={{
                     width: "100%",
                     height: "100%",
-                    background: theme === "dark" 
-                      ? "linear-gradient(135deg, #1a1a1a 0%, #2A2020 100%)"
-                      : "linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%)",
+                    background:
+                      theme === "dark"
+                        ? "linear-gradient(135deg, #1a1a1a 0%, #2A2020 100%)"
+                        : "linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%)",
                     borderRadius: "16px",
                   }}
                 >
@@ -471,8 +518,15 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
                           <Geography
                             key={geo.rsmKey}
                             geography={geo}
-                            style={getGeoStyle(isActive, isHighlighted, theme, isMobile)}
-                            onClick={() => isHighlighted && handleCountryClick(n)}
+                            style={getGeoStyle(
+                              isActive,
+                              isHighlighted,
+                              theme,
+                              isMobile
+                            )}
+                            onClick={() =>
+                              isHighlighted && handleCountryClick(n)
+                            }
                           />
                         );
                       })
@@ -482,7 +536,11 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
                 </ComposableMap>
               </Suspense>
             ) : (
-              <MapLoading isArabic={isArabic} isMobile={isMobile} theme={theme} />
+              <MapLoading
+                isArabic={isArabic}
+                isMobile={isMobile}
+                theme={theme}
+              />
             )}
           </div>
         </motion.div>
@@ -497,7 +555,10 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
             <h2 className="text-2xl font-bold text-foreground">
               {isArabic ? "مشاريعنا" : "Our Projects"}
             </h2>
-            <Link href={`/${locale}/projects`} className="text-primary hover:text-primary/80 transition-colors flex items-center gap-2">
+            <Link
+              href={`/${locale}/projects`}
+              className="text-primary hover:text-primary/80 transition-colors flex items-center gap-2"
+            >
               {isArabic ? "عرض الكل" : "View All"}
               <ArrowLeftIcon className="w-4 h-4" />
             </Link>
@@ -505,55 +566,109 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
 
           {isLoadingProjects ? (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-muted-foreground">
+                  {isArabic ? "جاري تحميل المشاريع..." : "Loading projects..."}
+                </p>
+              </div>
             </div>
           ) : apiProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {apiProjects.slice(0, 6).map((proj: Project, index) => {
                 const content =
                   proj.contents.find((c) => c.language_code === locale) ||
+                  proj.contents.find((c) => c.language_code === "en") ||
                   proj.contents[0];
+
+                const imageUrl = proj.bannerPhotoUrl
+                  ? getImageUrl(proj.bannerPhotoUrl)
+                  : proj.gallery && proj.gallery.length > 0
+                    ? getImageUrl(proj.gallery[0])
+                    : "https://images.unsplash.com/photo-1559027618-c8e82789c944?w=600&h=400&fit=crop&crop=entropy";
 
                 return (
                   <motion.div
-                    key={proj.id}
+                    key={proj._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7 + index * 0.1 }}
                   >
-                    <Link href={`/${locale}/projects/${proj.id}`}>
-                      <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                        {/* Image */}
-                        {proj.images && proj.images.length > 0 && (
-                          <div className="aspect-video overflow-hidden">
-                            <Image
-                              src={getImageUrl(proj.images[0])}
-                              width={400}
-                              height={300}
-                              alt={content?.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
+                    <Link href={`/${locale}/projects/${proj._id}`}>
+                      <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                        {/* Image Section */}
+                        <div className="relative aspect-video overflow-hidden">
+                          <Image
+                            src={imageUrl}
+                            alt={content?.name || "Project image"}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                          {/* Floating badge */}
+                          <div className="absolute top-4 right-4">
+                            <span className="px-3 py-1 bg-primary/90 backdrop-blur-sm text-white text-xs font-bold rounded-full">
+                              {isArabic ? "نشط" : "Active"}
+                            </span>
                           </div>
-                        )}
-                        
-                        {/* Content */}
+
+                          {/* Hover overlay content */}
+                          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="flex items-center gap-2 text-white">
+                              <HeartIcon className="w-4 h-4" />
+                              <span className="text-sm font-medium">
+                                {isArabic
+                                  ? "مشروع إنساني"
+                                  : "Humanitarian Project"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Content Section */}
                         <div className="p-6">
-                          <h3 className="font-bold text-lg text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          {/* Category and Date */}
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-medium text-primary uppercase tracking-wider">
+                              {isArabic
+                                ? "مشروع إنساني"
+                                : "Humanitarian Project"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(proj.createdAt, locale)}
+                            </span>
+                          </div>
+
+                          {/* Title */}
+                          <h3 className="font-bold text-xl text-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
                             {content?.name}
                           </h3>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+
+                          {/* Description */}
+                          <p className="text-muted-foreground mb-6 line-clamp-3 leading-relaxed">
                             {content?.description}
                           </p>
-                          
+
                           {/* Footer */}
                           <div className="flex items-center justify-between pt-4 border-t border-border">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <HeartIcon className="w-4 h-4" />
-                              <span>{proj.beneficiaries?.toLocaleString() || "0"}</span>
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                <HeartIcon className="w-4 h-4 text-primary" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-foreground">
+                                  {isArabic ? "نشط" : "Active"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {isArabic ? "مشروع" : "Project"}
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-primary font-semibold text-sm flex items-center gap-1">
-                              {isArabic ? "التفاصيل" : "Details"}
-                              <ArrowLeftIcon className="w-3 h-3" />
+
+                            <div className="flex items-center gap-2 text-primary font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                              {isArabic ? "تفاصيل" : "Details"}
+                              <ArrowLeftIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                             </div>
                           </div>
                         </div>
@@ -564,38 +679,20 @@ const Map14 = ({ params }: { params: { locale: string } }) => {
               })}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📋</div>
-              <p className="text-muted-foreground">
-                {isArabic 
-                  ? "لا توجد مشاريع متاحة حالياً." 
-                  : "No projects available currently."}
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                <HeartIcon className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                {isArabic ? "لا توجد مشاريع حالياً" : "No Projects Available"}
+              </h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                {isArabic
+                  ? "لم يتم العثور على مشاريع نشطة في هذه المنطقة حالياً. يرجى التحقق لاحقاً."
+                  : "No active projects found in this region currently. Please check back later."}
               </p>
             </div>
           )}
-        </motion.div>
-
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="text-center py-12"
-        >
-          <div className="bg-primary/10 rounded-3xl p-8 md:p-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
-              {isArabic ? "ساعدنا في إحداث فرق" : "Help Us Make a Difference"}
-            </h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              {isArabic 
-                ? "انضم إلينا في مهمتنا لتحسين حياة الناس في communities حول العالم" 
-                : "Join us in our mission to improve lives in communities around the world"}
-            </p>
-            <Link href={`/${locale}/projects`} className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary/90 transition-colors shadow-lg">
-              {isArabic ? "اكتشف المشاريع" : "Explore Projects"}
-              <ArrowLeftIcon className="w-5 h-5" />
-            </Link>
-          </div>
         </motion.div>
       </div>
     </div>

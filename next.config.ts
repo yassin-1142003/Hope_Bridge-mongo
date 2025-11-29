@@ -104,6 +104,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+      },
+      {
+        protocol: "https",
         hostname: "res.cloudinary.com",
       },
       {
@@ -139,7 +147,6 @@ const nextConfig: NextConfig = {
 
   reactStrictMode:false,
   output: 'standalone',
-  compress: true,
   async rewrites() {
     return [
       {

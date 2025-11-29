@@ -52,17 +52,17 @@ export default async function ProjectSlider({
     <>
       <div
         data-aos="fade-up"
-        className="flex  flex-col px-5 justify-center items-center text-center "
+        className="flex flex-col px-5 justify-center items-center text-center "
       >
-        <div className="flex items-center w-full gap-4">
-          <div className="h-1 flex-1 bg-gradient-to-l w-full from-gray-400 to-transparent" />
-          <h1 className="text-3xl md:text-5xl text-primary font-extrabold drop-shadow-lg">
+        <div className="flex items-center w-full gap-4 mb-8">
+          <div className="h-1 flex-1 bg-linear-to-l w-full from-gray-400 to-transparent" />
+          <h1 className="text-4xl md:text-6xl text-primary font-extrabold drop-shadow-lg">
             {p("title")}
           </h1>
-          <div className="h-1 flex-1 bg-gradient-to-l w-full  from-transparent to-gray-400" />
+          <div className="h-1 flex-1 bg-linear-to-l w-full  from-transparent to-gray-400" />
         </div>
 
-        <p className="mt-4 text-lg md:text-xl text-accent-foreground font-bold">
+        <p className="mt-6 text-xl md:text-2xl text-accent-foreground font-bold max-w-4xl">
           {p("subtitle")}
         </p>
       </div>
