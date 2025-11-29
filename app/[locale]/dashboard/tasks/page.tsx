@@ -261,7 +261,7 @@ const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: 
 const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
   const { locale } = await params;
   const isArabic = locale === "ar";
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   return <TaskManagerClient isArabic={isArabic} session={session} />;
 };

@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
 import { getProfessionalDatabase } from "../professionalDatabase";
-import { UserRole, ROLE_PERMISSIONS, canAssignRole } from "@/lib/roles";
+import { UserRole, ROLE_PERMISSIONS, canAssignRole, RolePermissions } from "@/lib/roles";
 
 export interface User {
   _id: string;
@@ -27,7 +27,14 @@ export interface NewUserData {
 export class UserService {
   private db = getProfessionalDatabase();
 
+  private async ensureConnected(): Promise<void> {
+    await this.db.connect();
+  }
+
   async createUser(data: NewUserData): Promise<User> {
+    // Ensure database is connected
+    await this.ensureConnected();
+    
     // Check if user already exists
     const existingUser = await this.db.findOne('users', { email: data.email });
     if (existingUser.data) {
@@ -42,7 +49,7 @@ export class UserService {
       name: data.name,
       email: data.email,
       passwordHash: hashedPassword,
-      role: data.role || UserRole.USER,
+      role: data.role || 'USER',
       isActive: data.isActive ?? true,
       emailVerified: data.emailVerified ?? false,
       createdAt: new Date(),
@@ -93,6 +100,9 @@ export class UserService {
   }
 
   async getByEmail(email: string): Promise<User | null> {
+    // Ensure database is connected
+    await this.ensureConnected();
+    
     const result = await this.db.findOne('users', { email });
     
     if (!result.data) return null;
@@ -158,13 +168,14 @@ export class UserService {
     return this.update(userId, { role: newRole });
   }
 
-  async getUsersWithPermissions(permission: keyof typeof ROLE_PERMISSIONS): Promise<User[]> {
+  async getUsersWithPermissions(permission: keyof RolePermissions): Promise<User[]> {
     const result = await this.db.findMany('users', { isActive: true }, { sort: { createdAt: -1 } });
     
     return result.data
       .filter((user: any) => {
         const userRole = user.role as UserRole;
-        return ROLE_PERMISSIONS[userRole]?.[permission];
+        const rolePermissions = ROLE_PERMISSIONS[userRole];
+        return rolePermissions ? rolePermissions[permission] : false;
       })
       .map((user: any) => ({
         _id: user._id.toString(),

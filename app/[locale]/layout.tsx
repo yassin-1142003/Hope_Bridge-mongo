@@ -116,7 +116,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   if (!hasLocale(routing.locales, locale)) notFound();
 
@@ -164,7 +164,7 @@ export default async function LocaleLayout({
             {/* <ClientWrapper> */}
             <VisitorTracker locale={locale} />
             <PWAProvider>
-              <Navbar session={session} />
+              <Navbar />
               <AOSWrapper>
                 <main className="main-pattern pt-18">{children}</main>
                 <AddToHomeIOS />

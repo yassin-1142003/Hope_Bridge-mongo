@@ -318,7 +318,7 @@ export function hasPermission(userRole: UserRole, permission: keyof RolePermissi
 
 export function getRolesByPermission(permission: keyof RolePermissions): UserRole[] {
   return Object.entries(ROLE_PERMISSIONS)
-    .filter(([_, perms]) => perms[permission])
+    .filter(([, perms]) => perms[permission])
     .map(([role]) => role as UserRole);
 }
 

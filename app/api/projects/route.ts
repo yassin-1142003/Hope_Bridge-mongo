@@ -70,9 +70,9 @@ export async function GET(request: NextRequest) {
         count: projects.length,
         connectionStatus: 'connected',
         mediaStats: {
-          totalImages: projects.reduce((sum, p) => sum + (p.gallery?.length || 0), 0),
-          totalVideos: projects.reduce((sum, p) => sum + (p.videos?.length || 0), 0),
-          projectsWithMedia: projects.filter(p => (p.gallery?.length || 0) > 0).length
+          totalImages: projects.reduce((sum, p) => sum + (p.imageGallery?.length || 0), 0),
+          totalVideos: projects.reduce((sum, p) => sum + (p.videoGallery?.length || 0), 0),
+          projectsWithMedia: projects.filter(p => (p.imageGallery?.length || 0) > 0 || (p.videoGallery?.length || 0) > 0).length
         }
       }
     );
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 // POST - Create new project with media (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session || !session.user) {
       return setCorsHeaders(createUnauthorizedResponse("Authentication required to create projects"));

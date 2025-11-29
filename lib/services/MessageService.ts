@@ -62,7 +62,7 @@ export class MessageService {
   ): Promise<{ messages: Message[]; total: number }> {
     const messagesCollection = await getCollection('messages');
     
-    let query: any = {};
+    const query: any = {};
     
     switch (filter) {
       case 'sent':

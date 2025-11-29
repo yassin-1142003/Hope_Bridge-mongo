@@ -102,11 +102,12 @@ export default async function ProjectSlider({
           },
         ],
         bannerPhotoUrl: "/homepage/01.webp",
-        gallery: [
+        imageGallery: [
           "/homepage/01.webp",
           "/homepage/02.webp",
           "/homepage/03.webp",
         ],
+        videoGallery: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -125,11 +126,12 @@ export default async function ProjectSlider({
           },
         ],
         bannerPhotoUrl: "/aboutus/hero.webp",
-        gallery: [
+        imageGallery: [
           "/aboutus/hero.webp",
           "/aboutus/hero2.webp",
           "/aboutus/hero3.webp",
         ],
+        videoGallery: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       },

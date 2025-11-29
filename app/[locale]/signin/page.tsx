@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SignInPage({
   params,
@@ -24,6 +25,7 @@ export default function SignInPage({
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState({ email: false, password: false });
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -44,24 +46,10 @@ export default function SignInPage({
     }
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        setError(errorData.error || (isArabic ? "فشل تسجيل الدخول" : "Login failed"));
-        setIsLoading(false);
-        return;
-      }
+      await login(formData.email, formData.password);
 
       // ✅ If successful, redirect to dashboard
-      router.push("/dashboard");
+      router.push(`/${locale}/dashboard`);
       router.refresh();
 
     } catch (err) {

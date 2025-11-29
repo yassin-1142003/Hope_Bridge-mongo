@@ -2,7 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { getCollection } from './mongodb';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { AuthOptions } from 'next-auth';
 
 interface User {
   _id: string;
@@ -14,9 +14,13 @@ interface User {
 }
 
 // NextAuth configuration for compatibility
-export const authOptions = {
+export const authOptions: AuthOptions = {
   // Empty config since we're using JWT directly
   // This is just for compatibility with existing code
+  providers: [], // Empty providers array since we're not using NextAuth providers
+  session: {
+    strategy: 'jwt',
+  },
 };
 
 // Custom session function to replace getServerSession

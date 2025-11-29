@@ -42,7 +42,7 @@ export async function GET(
     const actualId = extractIdFromSlug(slugOrId);
     console.log(`🔍 Looking for project with slug/ID: ${slugOrId} -> extracted ID: ${actualId}`);
     
-    const project = await projectService.getProjectWithMedia(actualId);
+    const project = await projectService.getById(actualId);
     
     if (!project) {
       console.log(`❌ Project not found with ID: ${actualId}`);
@@ -108,7 +108,7 @@ export async function PATCH(
       const removeIds = removeGalleryIds ? JSON.parse(removeGalleryIds) : [];
       
       // Update project with media
-      const updatedProject = await projectService.updateProjectMedia(
+      const updatedProject = await projectService.updateMedia(
         id,
         bannerFile,
         galleryFiles,
@@ -119,7 +119,7 @@ export async function PATCH(
       if (projectData && Object.keys(projectData).length > 0) {
         const { bannerPhotoUrl, gallery, ...otherData } = projectData;
         if (Object.keys(otherData).length > 0) {
-          await projectService.updateProject(id, otherData);
+          await projectService.update(id, otherData);
         }
       }
       
@@ -138,7 +138,7 @@ export async function PATCH(
     } else {
       // Handle JSON data only
       const data = await request.json();
-      const updatedProject = await projectService.updateProject(id, data);
+      const updatedProject = await projectService.update(id, data);
       
       if (!updatedProject) {
         return NextResponse.json(
@@ -185,7 +185,7 @@ export async function DELETE(
       );
     }
 
-    const deleted = await projectService.deleteProject(id);
+    const deleted = await projectService.delete(id);
     
     if (!deleted) {
       return NextResponse.json(

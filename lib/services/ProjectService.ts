@@ -1,6 +1,5 @@
 import { getCollection } from "@/lib/mongodb";
 import { MediaService } from "./MediaService";
-import slugify from "slugify";
 import { ObjectId } from "mongodb";
 
 export interface ProjectContent {
@@ -20,6 +19,7 @@ export interface Project {
   bannerPhotoId?: string;
   imageGallery: string[];
   videoGallery: string[];
+  gallery?: string[]; // For backward compatibility with components
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +30,7 @@ export interface NewProject {
   bannerPhotoId?: string;
   imageGallery?: string[];
   videoGallery?: string[];
+  gallery?: string[]; // For backward compatibility
 }
 
 export class ProjectService {
@@ -44,6 +45,7 @@ export class ProjectService {
     
     const project = {
       ...data,
+      bannerPhotoUrl: data.bannerPhotoUrl || '',
       imageGallery: data.imageGallery || [],
       videoGallery: data.videoGallery || [],
       createdAt: new Date(),
@@ -189,7 +191,7 @@ export class ProjectService {
     // Delete all associated media
     const allMediaIds = [
       project.bannerPhotoId,
-      ...project.gallery
+      ...(project.gallery || [])
     ].filter((id): id is string => !!id);
 
     for (const mediaId of allMediaIds) {

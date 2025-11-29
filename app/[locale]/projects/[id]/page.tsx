@@ -54,7 +54,7 @@ export default async function ProjectPage({
   const { id, locale } = await params;
   console.log(id);
   const t = await getTranslations({ locale, namespace: "projects" });
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const projectId = extractIdFromSlug(id);
@@ -154,7 +154,7 @@ export default async function ProjectPage({
             </Link>
             {/* <DonationModalWrapper locale={locale} /> */}
           </div>
-          {!(!session || session.user.role !== "manager") && (
+          {!(!session || session.user.role !== "ADMIN") && (
             <div className="flex gap-3 px-5 items-center">
               <Link href={`/${locale}/dashboard/edit/${id}`}>
                 <PencilIcon className="w-5 h-5" />

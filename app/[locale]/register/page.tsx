@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const registerSchema = z
   .object({
@@ -37,20 +37,21 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
+  const { login } = useAuth();
+
   const onSubmit = async (data: RegisterSchema) => {
     try {
       setIsLoading(true);
       setServerError(""); // Clear previous server errors
 
-      const res = await fetch("/api/register", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: data.email,
-          hash: data.hash,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: "user",
+          password: data.hash, // API expects "password" not "hash"
+          name: `${data.firstName} ${data.lastName}`.trim(), // Combine names
+          role: "USER", // API expects "USER" not "user"
         }),
       });
 
@@ -61,11 +62,8 @@ export default function RegisterPage() {
         return;
       }
       // ✅ If successful, auto login
-      await signIn("credentials", {
-        email: data.email,
-        password: data.hash,
-        callbackUrl: "/",
-      });
+      await login(data.email, data.hash);
+      router.push("/");
     } catch (err) {
       setServerError("Something went wrong. Please try again.");
     } finally {

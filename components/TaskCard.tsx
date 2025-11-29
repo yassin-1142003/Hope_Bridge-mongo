@@ -92,7 +92,7 @@ export default function TaskCard({
     });
   };
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+  const isOverdue = task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completed';
 
   const handleStatusChange = async (newStatus: string) => {
     if (!onUpdate) return;
@@ -110,7 +110,7 @@ export default function TaskCard({
   const handleDelete = async () => {
     if (!onDelete) return;
     
-    if (isArabic ? confirm('هل أنت متأكد من حذف هذه المهمة؟' : 'Are you sure you want to delete this task?') {
+    if ((isArabic ? confirm('هل أنت متأكد من حذف هذه المهمة؟') : confirm('Are you sure you want to delete this task?'))) {
       try {
         await onDelete(task._id!);
       } catch (error) {
@@ -166,9 +166,9 @@ export default function TaskCard({
             <span>
               {isArabic ? 'المسند إلى:' : 'Assigned to:'} {task.assignedTo}
             </span>
-            {task.dueDate && (
+            {task.endDate && (
               <span className={isOverdue ? 'text-red-500 font-semibold' : ''}>
-                {isArabic ? 'تاريخ الاستحقاق:' : 'Due:'} {formatDate(task.dueDate)}
+                {isArabic ? 'تاريخ الاستحقاق:' : 'Due:'} {formatDate(task.endDate)}
               </span>
             )}
           </div>

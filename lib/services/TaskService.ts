@@ -49,7 +49,14 @@ export interface CreateTaskData {
 export class TaskService {
   private db = getProfessionalDatabase();
 
+  private async ensureConnected(): Promise<void> {
+    await this.db.connect();
+  }
+
   async createTask(taskData: CreateTaskData): Promise<Task> {
+    // Ensure database is connected
+    await this.ensureConnected();
+    
     const task = {
       ...taskData,
       status: taskData.status || 'pending',

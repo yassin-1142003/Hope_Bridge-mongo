@@ -1,10 +1,9 @@
-import { authOptions } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
 
 export async function authorizeRole(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
   if (!session || !session.user) {
     throw new AppError(
       "ERR_UNAUTHORIZED",
@@ -12,7 +11,7 @@ export async function authorizeRole(req: NextRequest) {
     )
   }
 
-  if (session.user.role === "user") {
+  if (session.user.role === "USER") {
     throw new AppError(
       "ERR_UNAUTHORIZED",
       "You do not have permission to view this post",
