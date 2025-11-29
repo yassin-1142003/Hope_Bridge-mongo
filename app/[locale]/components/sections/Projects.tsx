@@ -32,27 +32,31 @@ export default async function ProjectSlider({
 }) {
   try {
     // ✅ Direct MongoDB call - no HTTP request needed
-    console.log('🔄 Projects API - Fetching from MongoDB directly');
-    
-    const projectsCollection = await getCollection('projects');
+    console.log("🔄 Projects API - Fetching from MongoDB directly");
+
+    const projectsCollection = await getCollection("projects");
     const projects = await projectsCollection
       .find({})
       .sort({ createdAt: -1 })
       .limit(10)
       .toArray();
 
-    console.log('✅ Projects API - Successfully loaded', projects.length, 'projects');
+    console.log(
+      "✅ Projects API - Successfully loaded",
+      projects.length,
+      "projects"
+    );
 
     // Convert MongoDB documents to Project type
-    const projectsWithIds: Project[] = projects.map(project => ({
+    const projectsWithIds: Project[] = projects.map((project) => ({
       _id: project._id.toString(),
       contents: project.contents || [],
-      bannerPhotoUrl: project.bannerPhotoUrl || '',
+      bannerPhotoUrl: project.bannerPhotoUrl || "",
       bannerPhotoId: project.bannerPhotoId,
       imageGallery: project.imageGallery || [],
       videoGallery: project.videoGallery || [],
       createdAt: project.createdAt,
-      updatedAt: project.updatedAt
+      updatedAt: project.updatedAt,
     }));
 
     const p = await getTranslations({ locale, namespace: "projects" });
@@ -79,45 +83,61 @@ export default async function ProjectSlider({
       </>
     );
   } catch (error: any) {
-    console.error('❌ Projects API - Connection error:', error.message);
-    
+    console.error("❌ Projects API - Connection error:", error.message);
+
     // Return fallback projects when API fails
     const fallbackProjects: Project[] = [
       {
-        _id: 'fallback-1',
-        contents: [{
-          language_code: locale,
-          name: "Community Garden Project",
-          description: "Transforming unused spaces into thriving community gardens",
-          content: "Urban gardening initiative for sustainable living",
-          images: ["/homepage/02.webp", "/homepage/03.webp"],
-          videos: [],
-          documents: []
-        }],
+        _id: "fallback-1",
+        contents: [
+          {
+            language_code: locale,
+            name: "Community Garden Project",
+            description:
+              "Transforming unused spaces into thriving community gardens",
+            content: "Urban gardening initiative for sustainable living",
+            images: ["/homepage/02.webp", "/homepage/03.webp"],
+            videos: [],
+            documents: [],
+          },
+        ],
         bannerPhotoUrl: "/homepage/01.webp",
-        gallery: ["/homepage/01.webp", "/homepage/02.webp", "/homepage/03.webp"],
+        gallery: [
+          "/homepage/01.webp",
+          "/homepage/02.webp",
+          "/homepage/03.webp",
+        ],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
-        _id: 'fallback-2',
-        contents: [{
-          language_code: locale,
-          name: "Youth Education Initiative", 
-          description: "Providing educational resources and mentorship to underprivileged youth",
-          content: "Education empowerment program for young minds",
-          images: ["/aboutus/hero2.webp", "/aboutus/hero3.webp"],
-          videos: [],
-          documents: []
-        }],
+        _id: "fallback-2",
+        contents: [
+          {
+            language_code: locale,
+            name: "Youth Education Initiative",
+            description:
+              "Providing educational resources and mentorship to underprivileged youth",
+            content: "Education empowerment program for young minds",
+            images: ["/aboutus/hero2.webp", "/aboutus/hero3.webp"],
+            videos: [],
+            documents: [],
+          },
+        ],
         bannerPhotoUrl: "/aboutus/hero.webp",
-        gallery: ["/aboutus/hero.webp", "/aboutus/hero2.webp", "/aboutus/hero3.webp"],
+        gallery: [
+          "/aboutus/hero.webp",
+          "/aboutus/hero2.webp",
+          "/aboutus/hero3.webp",
+        ],
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
-    console.log('🔄 Projects API - Using fallback projects due to connection error');
+    console.log(
+      "🔄 Projects API - Using fallback projects due to connection error"
+    );
     const p = await getTranslations({ locale, namespace: "projects" });
 
     return (
