@@ -40,7 +40,7 @@ const StatsSection = async ({
               label: statics("project"),
               value: "90+",
               description: isArabic ? "مشاريع مكتملة" : "Completed Projects",
-              color: "from-emerald-500 to-green-600",
+              color: "bg-gradient-to-r from-emerald-500 to-green-600",
               bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
             },
             {
@@ -48,7 +48,7 @@ const StatsSection = async ({
               label: statics("food"),
               value: "20K+",
               description: isArabic ? "وجبة مقدمة" : "Meals Served",
-              color: "from-orange-500 to-amber-600",
+              color: "bg-gradient-to-r from-orange-500 to-amber-600",
               bgColor: "bg-orange-50 dark:bg-orange-950/20",
             },
             {
@@ -58,7 +58,7 @@ const StatsSection = async ({
               description: isArabic
                 ? "حالات طبية مساعدة"
                 : "Medical Cases Assisted",
-              color: "from-blue-500 to-cyan-600",
+              color: "bg-gradient-to-r from-blue-500 to-cyan-600",
               bgColor: "bg-blue-50 dark:bg-blue-950/20",
             },
             {
@@ -66,7 +66,7 @@ const StatsSection = async ({
               label: statics("orphans"),
               value: "1.1K+",
               description: isArabic ? "يتيم رعايتهم" : "Orphans Supported",
-              color: "from-pink-500 to-rose-600",
+              color: "bg-gradient-to-r from-pink-500 to-rose-600",
               bgColor: "bg-pink-50 dark:bg-pink-950/20",
             },
           ].map(
@@ -77,7 +77,7 @@ const StatsSection = async ({
               >
                 {/* Subtle gradient overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                  className={`absolute inset-0 ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
                 />
 
                 {/* Content */}
@@ -118,22 +118,10 @@ const StatsSection = async ({
 
                   {/* Decorative elements */}
                   <div
-                    className="absolute -top-2 -right-2 w-16 h-16 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition-opacity duration-500"
-                    style={{
-                      backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
-                      ...color
-                        .split(" ")
-                        .reduce((acc, c) => ({ ...acc, [c]: c }), {}),
-                    }}
+                    className={`absolute -top-2 -right-2 w-16 h-16 rounded-full ${color} opacity-10 group-hover:opacity-20 transition-opacity duration-500`}
                   />
                   <div
-                    className="absolute -bottom-1 -left-1 w-12 h-12 rounded-full bg-gradient-to-tl opacity-5 group-hover:opacity-15 transition-opacity duration-500"
-                    style={{
-                      backgroundImage: `linear-gradient(to top left, var(--tw-gradient-stops))`,
-                      ...color
-                        .split(" ")
-                        .reduce((acc, c) => ({ ...acc, [c]: c }), {}),
-                    }}
+                    className={`absolute -bottom-1 -left-1 w-12 h-12 rounded-full ${color} opacity-5 group-hover:opacity-15 transition-opacity duration-500`}
                   />
                 </div>
               </div>

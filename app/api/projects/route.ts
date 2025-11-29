@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth";
-import { authOptions } from "@/lib/auth";
-import { ProjectService } from "@/lib/services/ProjectService";
-
-const projectService = new ProjectService();
+import { getCollection } from '../../../lib/mongodb';
 
 // Helper function to set CORS headers
 const setCorsHeaders = (response: NextResponse) => {
@@ -19,33 +15,173 @@ export async function OPTIONS() {
   return setCorsHeaders(response);
 }
 
-// GET - Get all projects (public)
+// GET - Get all projects with associated media
 export async function GET(request: NextRequest) {
   try {
     console.log('🔄 Fetching fresh projects from MongoDB...');
-    const projects = await projectService.getAll();
-    console.log(`✅ Retrieved ${projects.length} projects from MongoDB`);
     
-    // Debug: Log first project structure
-    if (projects.length > 0) {
-      console.log('🔍 First project in API:', {
-        _id: projects[0]._id,
-        idType: typeof projects[0]._id,
-        bannerPhotoUrl: projects[0].bannerPhotoUrl?.substring(0, 50),
-        galleryCount: projects[0].gallery?.length,
-        contentsCount: projects[0].contents?.length
-      });
+    // Handle MongoDB connection gracefully
+    let projects: any[] = [];
+    let mediaFiles: any[] = [];
+    let isConnected = true;
+    
+    try {
+      const projectsCollection = await getCollection('projects');
+      const mediaCollection = await getCollection('media');
+      
+      // Fetch all projects
+      projects = await projectsCollection.find({}).toArray();
+      
+      // Fetch all media files
+      mediaFiles = await mediaCollection.find({}).toArray();
+      
+    } catch (dbError: any) {
+      console.warn('⚠️ MongoDB not connected, returning sample data:', dbError.message);
+      isConnected = false;
+      
+      // Return sample projects when MongoDB is not available
+      projects = [
+        {
+          _id: { toString: () => 'sample-1' },
+          title: "Community Garden Project",
+          description: "Transforming unused spaces into thriving community gardens",
+          shortDescription: "Urban gardening initiative",
+          status: "active",
+          category: "community",
+          featured: true,
+          bannerPhotoUrl: "/homepage/01.webp",
+          images: ["/homepage/02.webp", "/homepage/03.webp"],
+          gallery: [
+            {
+              id: "img_001",
+              url: "/homepage/01.webp",
+              alt: "Community garden project",
+              caption: "Transforming spaces together"
+            }
+          ],
+          videos: [],
+          mediaCount: { images: 3, videos: 0, total: 3 },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: { toString: () => 'sample-2' },
+          title: "Youth Education Initiative", 
+          description: "Providing educational resources and mentorship to underprivileged youth",
+          shortDescription: "Education empowerment program",
+          status: "active",
+          category: "education",
+          featured: true,
+          bannerPhotoUrl: "/aboutus/hero.webp",
+          images: ["/aboutus/hero2.webp", "/aboutus/hero3.webp"],
+          gallery: [
+            {
+              id: "img_002",
+              url: "/aboutus/hero.webp",
+              alt: "Youth education program",
+              caption: "Empowering young minds"
+            }
+          ],
+          videos: [],
+          mediaCount: { images: 3, videos: 0, total: 3 },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      mediaFiles = [];
     }
     
-    // Create response with CORS headers
+    // Convert media to array and organize by type for easier lookup
+    const mediaArray = mediaFiles.map((media: any) => ({
+      ...media,
+      _id: media._id.toString(),
+      id: media._id.toString()
+    }));
+    
+    // Enhance projects with media information
+    const enrichedProjects = projects.map((project: any) => {
+      const projectObj = { ...project, _id: project._id.toString(), id: project._id.toString() };
+      
+      // Get all images
+      const images = mediaArray.filter(media => 
+        media.type === 'image' && 
+        (
+          // Check if media is associated with this project
+          media.category === 'project' ||
+          media.category === 'banner' ||
+          media.category === 'gallery' ||
+          // Check if filename contains project ID or title reference
+          media.url.includes(project._id.toString()) ||
+          media.title.toLowerCase().includes(project.title?.toLowerCase() || '')
+        )
+      );
+      
+      // Get all videos
+      const videos = mediaArray.filter(media => 
+        media.type === 'video' && 
+        (
+          // Check if media is associated with this project
+          media.category === 'project' ||
+          media.category === 'gallery' ||
+          // Check if filename contains project ID or title reference
+          media.url.includes(project._id.toString()) ||
+          media.title.toLowerCase().includes(project.title?.toLowerCase() || '')
+        )
+      );
+      
+      // Get banner images
+      const banners = mediaArray.filter(media => 
+        media.type === 'image' && media.category === 'banner'
+      );
+      
+      // Get gallery images
+      const gallery = mediaArray.filter(media => 
+        media.type === 'image' && media.category === 'gallery'
+      );
+      
+      // Add arrays to project object
+      projectObj.images = images;
+      projectObj.videos = videos;
+      projectObj.banners = banners;
+      projectObj.gallery = gallery;
+      projectObj.allMedia = [...images, ...videos];
+      
+      // If project has existing media arrays, merge with database media
+      if (project.images && Array.isArray(project.images)) {
+        projectObj.existingImages = project.images;
+      }
+      if (project.videos && Array.isArray(project.videos)) {
+        projectObj.existingVideos = project.videos;
+      }
+      if (project.gallery && Array.isArray(project.gallery)) {
+        projectObj.existingGallery = project.gallery;
+      }
+      
+      return projectObj;
+    });
+    
+    console.log(`✅ Retrieved ${enrichedProjects.length} projects with media from MongoDB`);
+    console.log(`📁 Found ${mediaArray.length} total media files (${mediaArray.filter(m => m.type === 'image').length} images, ${mediaArray.filter(m => m.type === 'video').length} videos)`);
+    
     const response = NextResponse.json({
       success: true,
-      message: "Projects retrieved successfully",
-      data: projects,
-      timestamp: new Date().toISOString()
+      data: enrichedProjects,
+      count: enrichedProjects.length,
+      connectionStatus: isConnected ? 'connected' : 'sample_data',
+      mediaStats: isConnected ? {
+        totalMedia: mediaArray.length,
+        totalImages: mediaArray.filter(m => m.type === 'image').length,
+        totalVideos: mediaArray.filter(m => m.type === 'video').length,
+        categories: Array.from(new Set(mediaArray.map(m => m.category)))
+      } : {
+        totalMedia: 0,
+        totalImages: 0,
+        totalVideos: 0,
+        categories: []
+      }
     }, {
       headers: {
-        'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
@@ -64,113 +200,5 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
     return setCorsHeaders(response);
-  }
-}
-
-// POST - Create new project with media (admin only)
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession();
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    if (session.user.role === "USER") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
-    }
-
-    const contentType = request.headers.get("content-type") || "";
-    
-    let project;
-    
-    if (contentType.includes("multipart/form-data")) {
-      // Handle FormData (with files)
-      console.log('📁 Processing FormData request...');
-      
-      const formData = await request.formData();
-      
-      // Extract project data
-      const projectDataStr = formData.get("projectData") as string;
-      if (!projectDataStr) {
-        console.log('❌ Missing projectData in FormData');
-        return NextResponse.json(
-          { success: false, error: "Missing project data" },
-          { status: 400 }
-        );
-      }
-
-      const projectData = JSON.parse(projectDataStr);
-      console.log('📋 Project data parsed:', projectData);
-      
-      // Extract files
-      const bannerFile = formData.get("banner") as File | undefined;
-      const galleryFiles = formData.getAll("gallery") as File[] | undefined;
-      
-      console.log('🖼️ Files found:', {
-        banner: bannerFile?.name || 'none',
-        gallery: galleryFiles?.length || 0
-      });
-      
-      // Validate required fields
-      if (!projectData.contents || !Array.isArray(projectData.contents)) {
-        console.log('❌ Invalid contents structure');
-        return NextResponse.json(
-          { success: false, error: "Missing required fields: contents" },
-          { status: 400 }
-        );
-      }
-
-      if (bannerFile || (galleryFiles && galleryFiles.length > 0)) {
-        // Create project with media
-        project = await projectService.createWithMedia(
-          projectData,
-          bannerFile,
-          galleryFiles
-        );
-      } else {
-        // Create project without media
-        project = await projectService.create(projectData);
-      }
-    } else {
-      // Handle JSON (no files)
-      console.log('📄 Processing JSON request...');
-      
-      const data = await request.json();
-      console.log('📋 JSON data received:', data);
-      
-      // Validate required fields
-      if (!data.contents || !Array.isArray(data.contents)) {
-        console.log('❌ Invalid contents structure in JSON');
-        return NextResponse.json(
-          { success: false, error: "Missing required fields: contents" },
-          { status: 400 }
-        );
-      }
-
-      project = await projectService.create(data);
-    }
-
-    console.log('✅ Project created successfully:', project._id);
-    
-    return NextResponse.json({
-      success: true,
-      message: "Project created successfully",
-      data: project
-    }, { status: 201 });
-    
-  } catch (error) {
-    console.error("❌ Error creating project:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { success: false, error: "Failed to create project", details: errorMessage },
-      { status: 500 }
-    );
   }
 }
