@@ -2,6 +2,9 @@ import Newsteller from "@/app/[locale]/components/sections/Newsteller";
 import Overview from "@/app/[locale]/components/sections/Overview";
 import StatsSection from "@/app/[locale]/components/sections/StatsSection";
 import GazaCrisis from "@/app/[locale]/components/sections/GazaCrisis";
+import ImpactStories from "@/app/[locale]/components/sections/ImpactStories";
+import VolunteerSection from "@/app/[locale]/components/sections/VolunteerSection";
+import PartnersSection from "@/app/[locale]/components/sections/PartnersSection";
 import type { PageProps } from "@/types/next";
 import { lazy } from "react";
 export default async function HomePage({
@@ -33,12 +36,13 @@ export default async function HomePage({
       <Hero params={{ locale }} />
       <StatsSection params={{ locale }} />
       <Overview params={{ locale }} />
+      {/* <MissionVision params={{ locale }} /> */}
       <GazaCrisis params={{ locale }} />
       <Projects params={{ locale }} />
-      {/* <Stories params={{ locale }} /> */}
-      {/* <News params={{ locale }} /> */}
+      <ImpactStories params={{ locale }} />
+      {/* <VolunteerSection params={{ locale }} /> */}
+      <PartnersSection params={{ locale }} />
       <Map14 params={{ locale }} />
-
       <Newsteller params={{ locale }} />
     </>
   );

@@ -10,7 +10,7 @@ const Newsteller = async ({
   const isArabic = locale === "ar";
 
   return (
-    <section data-aos="fade-up" className="py-24 relative overflow-hidden">
+    <section data-aos="fade-up" className="py-32 relative overflow-hidden">
       {/* Background decoration */}
       {/* <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
@@ -32,13 +32,13 @@ const Newsteller = async ({
             <Sparkles className="w-6 h-6 text-primary animate-pulse" />
           </div>
 
-          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-wide text-accent-foreground mb-4 leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-wide text-accent-foreground mb-6 leading-tight">
             {isArabic
               ? "ابقَ على اطلاع بتأثيرنا"
               : "Stay Updated with Our Impact"}
           </h1>
 
-          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground font-medium max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl lg:text-3xl text-muted-foreground font-medium max-w-4xl mx-auto leading-relaxed">
             {isArabic
               ? "اشترك لتصلك أحدث الأخبار عن مشاريعنا وتأثيرنا في المجتمع"
               : "Subscribe to receive the latest news about our projects and community impact"}

@@ -52,39 +52,6 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
     },
   ];
 
-  const stories = [
-    {
-      name: isArabic ? "فاطمة محمد" : "Fatima Mohammed",
-      age: isArabic ? "32 عاماً" : "32 years old",
-      story: isArabic
-        ? "فقدت منزلي وأعيش الآن في خيمة مع أطفالي الثلاثة. المساعدة التي تلقيناها ساعدتنا على البقاء على قيد الحياة، لكننا نحتاج إلى المزيد من الدعم."
-        : "I lost my home and now live in a tent with my three children. The aid we received helped us survive, but we need more support.",
-      image:
-        "https://images.unsplash.com/photo-1573164713619-24c6757c8ea1?w=400&h=300&fit=crop&crop=faces",
-      location: isArabic ? "رفح" : "Rafah",
-    },
-    {
-      name: isArabic ? "أحمد خالد" : "Ahmed Khalid",
-      age: isArabic ? "45 عاماً" : "45 years old",
-      story: isArabic
-        ? "كنت أعمل كمدرس، والآن مدرستي مدمرة. أؤمن بأن التعليم هو الأمل لمستقبل أطفالنا، وأنا ممتن للفرص التعليمية المؤقتة المتاحة."
-        : "I was a teacher, and now my school is destroyed. I believe education is the hope for our children's future, and I'm grateful for the temporary educational opportunities available.",
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&crop=faces",
-      location: isArabic ? "خان يونس" : "Khan Younis",
-    },
-    {
-      name: isArabic ? "مريم أحمد" : "Mariam Ahmed",
-      age: isArabic ? "28 عاماً" : "28 years old",
-      story: isArabic
-        ? "طفلي يحتاج إلى رعاية طبية مستمرة، والوصول إلى المستشفيات صعب للغاية. فرص الحصول على الأدوية والمساعدة الطبية تنقذ حياته كل يوم."
-        : "My child needs continuous medical care, and access to hospitals is extremely difficult. Opportunities to get medicine and medical help save his life every day.",
-      image:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=300&fit=crop&crop=faces",
-      location: isArabic ? "غزة" : "Gaza City",
-    },
-  ];
-
   return (
     <section className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4">
@@ -95,7 +62,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-4xl text-primary md:text-5xl font-bold  mb-4">
             {isArabic
               ? "أزمة غزة: الواقع الإنساني"
               : "Gaza Crisis: The Human Reality"}
@@ -146,7 +113,10 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
         </motion.div>
 
         {/* Main Content with Image */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <div
+          dir={isArabic ? "rtl" : "ltr"}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
+        >
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -179,14 +149,14 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
             </div>
 
             {/* Emergency Actions */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 p-8 shadow-lg">
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent border-2 border-primary/20 p-8 shadow-lg">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
 
               <div className="relative">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-                    <HeartIcon className="w-6 h-6 text-primary-foreground" />
+                    <HeartIcon className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="text-2xl font-bold text-foreground">
                     {isArabic ? "الإجراءات العاجلة" : "Emergency Actions"}
@@ -227,9 +197,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
                       transition={{ delay: 0.1 * index }}
                       className="flex items-start gap-4 bg-background/50 rounded-xl p-4 backdrop-blur-sm hover:bg-background/70 transition-colors"
                     >
-                      <div className="text-2xl flex-shrink-0">
-                        {action.icon}
-                      </div>
+                      <div className="text-2xlshrink-0">{action.icon}</div>
                       <span className="text-foreground font-medium leading-relaxed">
                         {action.text}
                       </span>
@@ -248,7 +216,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
           >
             {/* Main large image */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
-              <div className="aspect-[4/5] relative">
+              <div className="aspect-4/5 relative">
                 <Image
                   src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&h=1000&fit=crop"
                   alt={
@@ -259,7 +227,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
                     <p className="text-white text-lg font-semibold mb-2">
@@ -285,7 +253,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
           viewport={{ once: true }}
           className="text-center"
         >
-          <div className="bg-primary rounded-3xl p-8 md:p-12 text-primary-foreground">
+          <div className="bg-primary rounded-3xl p-8 md:p-12 text-white">
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
               {isArabic
                 ? "ساعدنا في إحداث فرق الآن"
@@ -299,7 +267,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href={`/${locale}/donate`}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-primary-foreground text-primary font-semibold rounded-full hover:bg-primary-foreground/90 transition-colors shadow-lg"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-transparent border-2 border-primary-foreground text-primary-foreground font-semibold rounded-full hover:bg-primary-foreground/10 transition-colors"
               >
                 {isArabic ? "تبرع الآن" : "Donate Now"}
                 <HeartIcon className="w-5 h-5" />

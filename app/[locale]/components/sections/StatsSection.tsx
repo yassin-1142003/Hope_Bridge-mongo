@@ -10,7 +10,7 @@ const StatsSection = async ({
   const statics = await getTranslations({ locale, namespace: "statics" });
 
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden">
+    <section className="relative py-20 md:py-32 overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-transparent to-muted/20" />
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
@@ -18,11 +18,11 @@ const StatsSection = async ({
 
       <div className="relative max-w-6xl mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-6xl font-black text-primary mb-6">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-primary mb-8">
             {isArabic ? "أثرنا بالأرقام" : "Our Impact in Numbers"}
           </h2>
-          <p className="text-lg md:text-3xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
             {isArabic
               ? "كل رقم يحكي قصة أمل وتغيير إيجابي في حياة الآخرين. شاهد كيف نحقق فرقاً حقيقياً في مجتمعنا."
               : "Every number tells a story of hope and positive change in people's lives. See how we're making a real difference in our community."}
@@ -142,8 +142,8 @@ const StatsSection = async ({
         </div>
 
         {/* Call to Action */}
-        <div className="text-center mt-16">
-          <p className="text-lg text-muted-foreground mb-6">
+        <div className="text-center mt-20">
+          <p className="text-xl text-muted-foreground mb-8">
             {isArabic
               ? "انضم إلينا وكن جزءاً من هذا التأثير الإيجابي"
               : "Join us and be part of this positive impact"}

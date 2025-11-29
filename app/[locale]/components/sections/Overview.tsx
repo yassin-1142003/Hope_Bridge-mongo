@@ -13,7 +13,7 @@ const Overview = async ({
 
   return (
     <section
-      className={`relative flex py-12 md:py-24 px-4 md:px-8 items-center justify-center gap-8 md:gap-16 ${
+      className={`relative flex py-20 md:py-32 px-4 md:px-8 items-center justify-center gap-8 md:gap-16 ${
         isArabic ? "md:flex-row-reverse" : "md:flex-row"
       } flex-col overflow-hidden`}
     >
@@ -28,14 +28,14 @@ const Overview = async ({
           isArabic ? "md:text-right" : "md:text-left"
         }`}
       >
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-accent-foreground leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-accent-foreground leading-tight">
           {highlightWord(
             thierhope,
             highlightyouarethierhope,
             "text-primary drop-shadow-sm"
           )}
         </h1>
-        <p className="text-lg md:text-xl lg:text-2xl text-accent-foreground/80 font-medium leading-relaxed">
+        <p className="text-xl md:text-2xl lg:text-3xl text-accent-foreground/80 font-medium leading-relaxed">
           {t("hopesubtitle")}
         </p>
       </div>
