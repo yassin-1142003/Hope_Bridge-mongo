@@ -83,11 +83,11 @@ export default async function ProjectPage({
   if (!localized) return notFound();
 
   const isArabic = locale === "ar";
-  const imageIds = (details.images || [])
+  const imageIds = (details.imageGallery || [])
     .map((url: string) => getImageUrl(extractDriveId(url)))
     .filter(Boolean) as string[];
 
-  const videoIds = (details.videos || [])
+  const videoIds = (details.videoGallery || [])
     .map((url: string) => getVideoEmbedUrl(extractDriveId(url)))
     .filter(Boolean) as string[];
 

@@ -38,7 +38,7 @@ export default async function HomePage({
       <Overview params={{ locale }} />
       {/* <MissionVision params={{ locale }} /> */}
       <GazaCrisis params={{ locale }} />
-      <Projects params={{ locale }} />
+      {/* <Projects params={{ locale }} /> */}
       <ImpactStories params={{ locale }} />
       {/* <VolunteerSection params={{ locale }} /> */}
       <PartnersSection params={{ locale }} />

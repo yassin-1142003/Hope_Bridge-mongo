@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       message: 'User retrieved successfully',
       details: user
-    });
+    }, { status: 500 });
 
   } catch (error) {
     console.error('Auth me error:', error);

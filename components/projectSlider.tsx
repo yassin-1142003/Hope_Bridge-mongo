@@ -10,6 +10,7 @@ import { useTranslations, useLocale } from "next-intl";
 import SafeImage from "./SafeImage";
 import Link from "next/link";
 import Image from "next/image";
+import { useVisitTracking } from "@/hooks/useVisitTracking";
 //import DonationModalWrapper from "./DonationModalWrapper";
 
 interface ProjectContent {
@@ -27,7 +28,8 @@ interface Project {
   contents: ProjectContent[];
   bannerPhotoUrl: string;
   bannerPhotoId?: string;
-  gallery: string[];
+  imageGallery: string[];
+  videoGallery: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,10 +39,29 @@ const getGoogleDriveId = (url: string): string | null => {
 };
 
 const getImageUrl = (url: string): string => {
+  // If it's already an API URL, return as is
+  if (url.includes('/api/media/')) {
+    return url;
+  }
+  
+  // If it's a local path starting with /, convert to API URL
+  if (url.startsWith('/')) {
+    return `/api/media${url}`;
+  }
+  
+  // If it's a Google Drive URL, convert to direct link
   const fileId = getGoogleDriveId(url);
-  return fileId
-    ? `https://drive.google.com/uc?export=view&id=${fileId}`
-    : url || "https://placehold.net/600x400.png?text=No+Image";
+  if (fileId) {
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+  
+  // If it's an external URL (Unsplash, etc.), use local fallback
+  if (url.startsWith('http')) {
+    return '/api/media/homepage/01.webp';
+  }
+  
+  // Default fallback
+  return '/api/media/homepage/01.webp';
 };
 export default function ProjectSliderClient({
   projects,
@@ -50,6 +71,20 @@ export default function ProjectSliderClient({
   const p = useTranslations("projects");
   const locale = useLocale();
   const isArabic = locale === "ar";
+  const { trackProjectVisit } = useVisitTracking();
+
+  // Handle project click - track visit before navigation
+  const handleProjectClick = (projectId: string, e: React.MouseEvent) => {
+    // Track the project visit
+    trackProjectVisit({
+      projectId,
+      locale,
+      additionalData: {
+        source: 'project_slider',
+        position: 'slider'
+      }
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-10">
@@ -73,7 +108,11 @@ export default function ProjectSliderClient({
 
           return (
             <SwiperSlide className="flex flex-col px-4" key={proj._id}>
-              <Link key={proj._id} href={`/${locale}/projects/${proj._id}`}>
+              <Link 
+                key={proj._id} 
+                href={`/${locale}/projects/${proj._id}`}
+                onClick={(e) => handleProjectClick(proj._id, e)}
+              >
                 <div
                   data-aos="fade-up"
                   className="flex group flex-col w-[355px] overflow-hidden mx-auto mb-10 transition-all duration-500"

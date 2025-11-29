@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       message: 'Users retrieved successfully',
       details: users
-    });
+    }, { status: 500 });
 
   } catch (error) {
     console.error('Admin users API error:', error);

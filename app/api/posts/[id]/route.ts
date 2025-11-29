@@ -53,7 +53,7 @@ export async function GET(
       success: true,
       message: "Post retrieved successfully",
       data: post
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching post:", error);
     return NextResponse.json(
@@ -123,7 +123,7 @@ export async function PATCH(
       success: true,
       message: "Post updated successfully",
       data: returnedPost
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error updating post:", error);
     return NextResponse.json(

@@ -2,6 +2,7 @@
 
 import ProjectSliderClient from "@/components/projectSlider";
 import { getTranslations } from "next-intl/server";
+import { getCollection } from "@/lib/mongodb";
 
 interface ProjectContent {
   language_code: string;
@@ -18,7 +19,8 @@ interface Project {
   contents: ProjectContent[];
   bannerPhotoUrl: string;
   bannerPhotoId?: string;
-  gallery: string[];
+  imageGallery: string[];
+  videoGallery: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,45 +30,116 @@ export default async function ProjectSlider({
 }: {
   params: { locale: string };
 }) {
-  // ✅ fetch server-side
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3002";
-  const res = await fetch(`${baseUrl}/api/projects`, {
-    method: "GET",
-    cache: "no-store",
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    // ✅ Direct MongoDB call - no HTTP request needed
+    console.log('🔄 Projects API - Fetching from MongoDB directly');
+    
+    const projectsCollection = await getCollection('projects');
+    const projects = await projectsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .toArray();
 
-  if (!res.ok) {
-    console.error("Failed to fetch projects");
-    return <p className="text-red-500">Failed to load projects.</p>;
-  }
+    console.log('✅ Projects API - Successfully loaded', projects.length, 'projects');
 
-  const { data: details }: { data: Project[] } = await res.json();
+    // Convert MongoDB documents to Project type
+    const projectsWithIds: Project[] = projects.map(project => ({
+      _id: project._id.toString(),
+      contents: project.contents || [],
+      bannerPhotoUrl: project.bannerPhotoUrl || '',
+      bannerPhotoId: project.bannerPhotoId,
+      imageGallery: project.imageGallery || [],
+      videoGallery: project.videoGallery || [],
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
+    }));
 
-  // ✅ Pass only first 10 projects to client
-  const projects = details.slice(0, 10);
-  // const { locale } = await params;
-  const p = await getTranslations({ locale, namespace: "projects" });
+    const p = await getTranslations({ locale, namespace: "projects" });
 
-  return (
-    <>
-      <div
-        data-aos="fade-up"
-        className="flex flex-col px-5 justify-center items-center text-center "
-      >
-        <div className="flex items-center w-full gap-4 mb-8">
-          <div className="h-1 flex-1 bg-linear-to-l w-full from-gray-400 to-transparent" />
-          <h1 className="text-4xl md:text-6xl text-primary font-extrabold drop-shadow-lg">
-            {p("title")}
-          </h1>
-          <div className="h-1 flex-1 bg-linear-to-l w-full  from-transparent to-gray-400" />
+    return (
+      <>
+        <div
+          data-aos="fade-up"
+          className="flex flex-col px-5 justify-center items-center text-center "
+        >
+          <div className="flex items-center w-full gap-4 mb-8">
+            <div className="h-1 flex-1 bg-gradient-to-l w-full from-gray-400 to-transparent" />
+            <h1 className="text-4xl md:text-6xl text-primary font-extrabold drop-shadow-lg">
+              {p("title")}
+            </h1>
+            <div className="h-1 flex-1 bg-gradient-to-l w-full  from-transparent to-gray-400" />
+          </div>
+
+          <p className="mt-6 text-xl md:text-2xl text-accent-foreground font-bold max-w-4xl">
+            {p("subtitle")}
+          </p>
         </div>
+        <ProjectSliderClient projects={projectsWithIds} />
+      </>
+    );
+  } catch (error: any) {
+    console.error('❌ Projects API - Connection error:', error.message);
+    
+    // Return fallback projects when API fails
+    const fallbackProjects: Project[] = [
+      {
+        _id: 'fallback-1',
+        contents: [{
+          language_code: locale,
+          name: "Community Garden Project",
+          description: "Transforming unused spaces into thriving community gardens",
+          content: "Urban gardening initiative for sustainable living",
+          images: ["/homepage/02.webp", "/homepage/03.webp"],
+          videos: [],
+          documents: []
+        }],
+        bannerPhotoUrl: "/homepage/01.webp",
+        gallery: ["/homepage/01.webp", "/homepage/02.webp", "/homepage/03.webp"],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        _id: 'fallback-2',
+        contents: [{
+          language_code: locale,
+          name: "Youth Education Initiative", 
+          description: "Providing educational resources and mentorship to underprivileged youth",
+          content: "Education empowerment program for young minds",
+          images: ["/aboutus/hero2.webp", "/aboutus/hero3.webp"],
+          videos: [],
+          documents: []
+        }],
+        bannerPhotoUrl: "/aboutus/hero.webp",
+        gallery: ["/aboutus/hero.webp", "/aboutus/hero2.webp", "/aboutus/hero3.webp"],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
 
-        <p className="mt-6 text-xl md:text-2xl text-accent-foreground font-bold max-w-4xl">
-          {p("subtitle")}
-        </p>
-      </div>
-      <ProjectSliderClient projects={projects} />
-    </>
-  );
+    console.log('🔄 Projects API - Using fallback projects due to connection error');
+    const p = await getTranslations({ locale, namespace: "projects" });
+
+    return (
+      <>
+        <div
+          data-aos="fade-up"
+          className="flex flex-col px-5 justify-center items-center text-center "
+        >
+          <div className="flex items-center w-full gap-4 mb-8">
+            <div className="h-1 flex-1 bg-gradient-to-l w-full from-gray-400 to-transparent" />
+            <h1 className="text-4xl md:text-6xl text-primary font-extrabold drop-shadow-lg">
+              {p("title")}
+            </h1>
+            <div className="h-1 flex-1 bg-gradient-to-l w-full  from-transparent to-gray-400" />
+          </div>
+
+          <p className="mt-6 text-xl md:text-2xl text-accent-foreground font-bold max-w-4xl">
+            {p("subtitle")}
+          </p>
+        </div>
+        <ProjectSliderClient projects={fallbackProjects} />
+      </>
+    );
+  }
 }

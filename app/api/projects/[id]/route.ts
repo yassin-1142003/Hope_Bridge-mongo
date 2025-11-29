@@ -58,7 +58,7 @@ export async function GET(
       success: true,
       message: "Project retrieved successfully",
       data: project
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching project:", error);
     return NextResponse.json(
@@ -134,7 +134,7 @@ export async function PATCH(
         success: true,
         message: "Project updated successfully",
         data: updatedProject
-      });
+      }, { status: 200 });
     } else {
       // Handle JSON data only
       const data = await request.json();
@@ -151,7 +151,7 @@ export async function PATCH(
         success: true,
         message: "Project updated successfully",
         data: updatedProject
-      });
+      }, { status: 200 });
     }
   } catch (error) {
     console.error("Error updating project:", error);

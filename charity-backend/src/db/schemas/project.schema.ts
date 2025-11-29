@@ -37,6 +37,12 @@ export class Project {
   @Prop({ required: true, trim: true })
   bannerPhotoUrl!: string;
 
+  @Prop({ type: [String], default: [] })
+  imageGallery!: string[];
+
+  @Prop({ type: [String], default: [] })
+  videoGallery!: string[];
+
   @Prop({ type: [ProjectContentSchema], default: [] })
   contents!: ProjectContent[];
 }

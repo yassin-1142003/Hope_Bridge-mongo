@@ -18,7 +18,8 @@ export interface Project {
   contents: ProjectContent[];
   bannerPhotoUrl: string;
   bannerPhotoId?: string;
-  gallery: string[];
+  imageGallery: string[];
+  videoGallery: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,7 +28,8 @@ export interface NewProject {
   contents: ProjectContent[];
   bannerPhotoUrl?: string;
   bannerPhotoId?: string;
-  gallery?: string[];
+  imageGallery?: string[];
+  videoGallery?: string[];
 }
 
 export class ProjectService {
@@ -42,7 +44,8 @@ export class ProjectService {
     
     const project = {
       ...data,
-      gallery: data.gallery || [],
+      imageGallery: data.imageGallery || [],
+      videoGallery: data.videoGallery || [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -65,9 +68,10 @@ export class ProjectService {
     return projects.map(project => ({
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoUrl: project.bannerPhotoUrl || '',
       bannerPhotoId: project.bannerPhotoId,
-      gallery: project.gallery || [],
+      imageGallery: project.imageGallery || [],
+      videoGallery: project.videoGallery || [],
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     }));
@@ -82,9 +86,10 @@ export class ProjectService {
     return {
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoUrl: project.bannerPhotoUrl || '',
       bannerPhotoId: project.bannerPhotoId,
-      gallery: project.gallery || [],
+      imageGallery: project.imageGallery || [],
+      videoGallery: project.videoGallery || [],
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     };
