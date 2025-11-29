@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         city: vercelCity || "Unknown",
         source: "vercel",
         ip: ip || "auto",
-      });
+      }, { status: 500 });
     }
 
     // Method 2: ip-api fallback
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         countryName: geoData.country,
         source: "ip-api",
         ip: geoData.query,
-      });
+      }, { status: 500 });
 
     }
 
@@ -50,6 +50,6 @@ export async function GET(request: NextRequest) {
       city: "Unknown",
       source: "fallback",
       error: error instanceof Error ? error.message : "Unknown error",
-    });
+    }, { status: 500 });
   }
 }

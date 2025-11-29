@@ -3,6 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import { withErrorHandler } from "@/withErrorHandler";
 import { verifyAdminToken } from "@/lib/auth";
+import { 
+  createSuccessResponse, 
+  createBadRequestResponse, 
+  createUnauthorizedResponse, 
+  createForbiddenResponse, 
+  createErrorResponse, 
+  handleApiError, 
+  setCorsHeaders 
+} from "@/lib/apiResponse";
 
 async function postVisit(req: NextRequest) {
   // Parse body - handle both JSON and text/plain (for sendBeacon)
@@ -27,6 +36,14 @@ async function postVisit(req: NextRequest) {
     "unknown";
   const ipHash = hashValue(ip);
 
+  // Validate required fields for project tracking
+  if (projectId && typeof projectId !== 'string') {
+    return setCorsHeaders(createBadRequestResponse(
+      "Invalid projectId format",
+      "INVALID_PROJECT_ID"
+    ));
+  }
+
   // Fire and forget - don't wait for database write
   (async () => {
     try {
@@ -39,6 +56,7 @@ async function postVisit(req: NextRequest) {
         userAgent,
         ipHash,
         country,
+        visitType: projectId ? 'project' : 'page',
         createdAt: new Date()
       });
     } catch (err) {
@@ -47,7 +65,7 @@ async function postVisit(req: NextRequest) {
   })();
 
   // Return immediately with 202 Accepted
-  return NextResponse.json(
+  const response = NextResponse.json(
     { success: true, message: "Visit recorded successfully." },
     { 
       status: 202,
@@ -56,39 +74,54 @@ async function postVisit(req: NextRequest) {
       },
     },
   );
+  
+  return setCorsHeaders(response);
 }
 
 async function getVisitSummary(req: NextRequest) {
   // Verify admin token
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) {
-    return NextResponse.json(
-      { error: "Authorization token required" },
-      { status: 401 }
-    );
+    return setCorsHeaders(createUnauthorizedResponse("Authorization token required"));
   }
 
   const adminUser = await verifyAdminToken(token);
   if (!adminUser) {
-    return NextResponse.json(
-      { error: "Admin access required" },
-      { status: 403 }
-    );
+    return setCorsHeaders(createForbiddenResponse("Admin access required"));
   }
 
   const recent = clampNumber(req.nextUrl.searchParams.get("recent"), 1, 500, 100);
   const days = clampNumber(req.nextUrl.searchParams.get("days"), 1, 30, 7);
+  const projectId = req.nextUrl.searchParams.get("projectId");
 
   // Get visit summary from MongoDB
   const visitsCollection = await getCollection('visits');
   const now = new Date();
   const daysAgo = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
 
-  const [totalVisits, recentVisits, dailyStats] = await Promise.all([
-    visitsCollection.countDocuments(),
-    visitsCollection.find().sort({ createdAt: -1 }).limit(recent).toArray(),
+  // Build query based on whether we're filtering by project
+  const baseMatch = { createdAt: { $gte: daysAgo } };
+  const matchQuery = projectId 
+    ? { ...baseMatch, projectId }
+    : baseMatch;
+
+  const [
+    totalVisits,
+    recentVisits,
+    dailyStats,
+    projectStats,
+    topProjects,
+    uniqueVisitors
+  ] = await Promise.all([
+    // Total visits count
+    visitsCollection.countDocuments(projectId ? { projectId } : {}),
+    
+    // Recent visits
+    visitsCollection.find(projectId ? { projectId } : {}).sort({ createdAt: -1 }).limit(recent).toArray(),
+    
+    // Daily statistics
     visitsCollection.aggregate([
-      { $match: { createdAt: { $gte: daysAgo } } },
+      { $match: matchQuery },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
@@ -96,18 +129,73 @@ async function getVisitSummary(req: NextRequest) {
         }
       },
       { $sort: { _id: 1 } }
+    ]).toArray(),
+    
+    // Project-specific statistics
+    projectId ? null : visitsCollection.aggregate([
+      { $match: { visitType: 'project', createdAt: { $gte: daysAgo } } },
+      {
+        $group: {
+          _id: "$projectId",
+          visits: { $sum: 1 },
+          uniqueVisitors: { $addToSet: "$ipHash" }
+        }
+      },
+      {
+        $project: {
+          projectId: "$_id",
+          visits: 1,
+          uniqueVisitors: { $size: "$uniqueVisitors" }
+        }
+      },
+      { $sort: { visits: -1 } }
+    ]).toArray(),
+    
+    // Top projects
+    projectId ? null : visitsCollection.aggregate([
+      { $match: { visitType: 'project', createdAt: { $gte: daysAgo } } },
+      {
+        $group: {
+          _id: "$projectId",
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]).toArray(),
+    
+    // Unique visitors count
+    visitsCollection.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: null,
+          uniqueVisitors: { $addToSet: "$ipHash" }
+        }
+      }
     ]).toArray()
   ]);
 
-  return NextResponse.json({
-    message: "Visit summary retrieved successfully.",
-    success: true,
-    details: {
+  const response = createSuccessResponse(
+    {
       totalVisits,
       recentVisits: recentVisits.length,
-      dailyStats
+      dailyStats,
+      projectStats: projectStats || [],
+      topProjects: topProjects || [],
+      uniqueVisitors: uniqueVisitors[0]?.uniqueVisitors?.length || 0,
+      filteredProject: projectId
+    },
+    `Visit summary retrieved successfully for ${projectId ? `project ${projectId}` : 'all pages'}`,
+    {
+      period: `${days} days`,
+      recentEntries: recent,
+      projectId: projectId || 'all',
+      generatedAt: new Date().toISOString()
     }
-  });
+  );
+
+  return setCorsHeaders(response);
 }
 
 export const POST = withErrorHandler(postVisit);

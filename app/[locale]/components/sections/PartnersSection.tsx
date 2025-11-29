@@ -110,7 +110,7 @@ const PartnersSection = ({ params }: { params: { locale: string } }) => {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-6xl font-bold text-primary mb-6">
+          <h2 className="text-4xl md:text-6xl font-bold text-[#2c2c2b] dark:text-background mb-6">
             {isArabic ? "شركاؤنا في التغيير" : "Our Partners in Change"}
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto">

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         message: 'Projects retrieved successfully',
         details: projectsData.data || []
-      });
+      }, { status: 500 });
     } else {
       return NextResponse.json(
         { error: 'Failed to fetch projects' },

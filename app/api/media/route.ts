@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { MediaService } from "@/lib/services/MediaService";
+import { 
+  createSuccessResponse, 
+  createCreatedResponse, 
+  createBadRequestResponse, 
+  createUnauthorizedResponse, 
+  createForbiddenResponse, 
+  createNotFoundResponse, 
+  createErrorResponse, 
+  handleApiError, 
+  setCorsHeaders 
+} from "@/lib/apiResponse";
 
 const mediaService = new MediaService();
+
+// Handle OPTIONS method for CORS preflight
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  return setCorsHeaders(response);
+}
 
 // GET - Get all media files (admin only)
 export async function GET(request: NextRequest) {
@@ -11,17 +28,11 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return setCorsHeaders(createUnauthorizedResponse("Authentication required to access media"));
     }
 
-    if (session.user.role === "user") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
+    if (session.user.role === "USER") {
+      return setCorsHeaders(createForbiddenResponse("Admin access required to access media"));
     }
 
     const { searchParams } = new URL(request.url);
@@ -34,17 +45,19 @@ export async function GET(request: NextRequest) {
       mediaFiles = await mediaService.getAllMedia();
     }
     
-    return NextResponse.json({
-      success: true,
-      message: "Media files retrieved successfully",
-      data: mediaFiles
-    });
-  } catch (error) {
-    console.error("Error fetching media:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch media" },
-      { status: 500 }
+    const response = createSuccessResponse(
+      mediaFiles,
+      `Successfully retrieved ${mediaFiles.length} media files`,
+      {
+        count: mediaFiles.length,
+        type: type || 'all',
+        allowedTypes: ["image", "video", "document"]
+      }
     );
+    
+    return setCorsHeaders(response);
+  } catch (error) {
+    return handleApiError(error, "Fetching media");
   }
 }
 
@@ -54,27 +67,18 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return setCorsHeaders(createUnauthorizedResponse("Authentication required to upload media"));
     }
 
-    if (session.user.role === "user") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
+    if (session.user.role === "USER") {
+      return setCorsHeaders(createForbiddenResponse("Admin access required to upload media"));
     }
 
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
     
     if (!files || files.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "No files provided" },
-        { status: 400 }
-      );
+      return setCorsHeaders(createBadRequestResponse("No files provided", "NO_FILES"));
     }
 
     // Validate files
@@ -83,33 +87,37 @@ export async function POST(request: NextRequest) {
     
     for (const file of files) {
       if (!mediaService.validateFileType(file, allowedTypes)) {
-        return NextResponse.json(
-          { success: false, error: `Invalid file type: ${file.type}` },
-          { status: 400 }
-        );
+        return setCorsHeaders(createBadRequestResponse(
+          `Invalid file type: ${file.type}`,
+          "INVALID_FILE_TYPE",
+          { allowedTypes, fileName: file.name }
+        ));
       }
       
       if (!mediaService.validateFileSize(file, maxSizeInMB)) {
-        return NextResponse.json(
-          { success: false, error: `File too large: ${file.name} (max ${maxSizeInMB}MB)` },
-          { status: 400 }
-        );
+        return setCorsHeaders(createBadRequestResponse(
+          `File too large: ${file.name} (max ${maxSizeInMB}MB)`,
+          "FILE_TOO_LARGE",
+          { fileName: file.name, maxSize: `${maxSizeInMB}MB` }
+        ));
       }
     }
 
     const uploadedFiles = await mediaService.uploadMultipleFiles(files);
     
-    return NextResponse.json({
-      success: true,
-      message: "Files uploaded successfully",
-      data: uploadedFiles
-    }, { status: 201 });
+    const response = createCreatedResponse(
+      uploadedFiles,
+      `Successfully uploaded ${uploadedFiles.length} files`,
+      {
+        uploadedCount: uploadedFiles.length,
+        fileNames: uploadedFiles.map(f => f.filename),
+        totalSize: uploadedFiles.reduce((sum, f) => sum + (f.size || 0), 0)
+      }
+    );
+    
+    return setCorsHeaders(response);
     
   } catch (error) {
-    console.error("Error uploading files:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to upload files" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Uploading media");
   }
 }

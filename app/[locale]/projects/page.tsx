@@ -68,7 +68,7 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
   const mappedProjects = details.map((proj: any) => {
     return {
       id: proj.id,
-      images: proj.gallery || [], // array of images
+      images: proj.gallery || [], // array off images
       banner: proj.bannerPhotoUrl,
       created_at: proj.created_at,
       contents: proj.contents.map((c: any) => ({

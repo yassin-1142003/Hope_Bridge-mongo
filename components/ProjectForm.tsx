@@ -15,6 +15,8 @@ interface ProjectContent {
 interface ProjectFormData {
   bannerPhotoUrl: string;
   contents: ProjectContent[];
+  imageGallery: string[];
+  videoGallery: string[];
 }
 
 interface ProjectFormProps {
@@ -29,12 +31,17 @@ export default function ProjectForm({ initialData, projectId, onSuccess }: Proje
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   
+  // Generate unique form instance ID to prevent ID conflicts
+  const formInstanceId = `project-form-${projectId || 'new'}-${Date.now()}`;
+  
   const [formData, setFormData] = useState<ProjectFormData>(
     initialData || {
       bannerPhotoUrl: "",
       contents: [
         { language_code: "en", name: "", description: "", content: "" }
-      ]
+      ],
+      imageGallery: [],
+      videoGallery: []
     }
   );
 
@@ -58,6 +65,34 @@ export default function ProjectForm({ initialData, projectId, onSuccess }: Proje
       contents: prev.contents.map((content, i) => 
         i === index ? { ...content, [field]: value } : content
       )
+    }));
+  };
+
+  const addToImageGallery = (imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      imageGallery: [...prev.imageGallery, imageUrl]
+    }));
+  };
+
+  const removeFromImageGallery = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      imageGallery: prev.imageGallery.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addToVideoGallery = (videoUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      videoGallery: [...prev.videoGallery, videoUrl]
+    }));
+  };
+
+  const removeFromVideoGallery = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      videoGallery: prev.videoGallery.filter((_, i) => i !== index)
     }));
   };
 
@@ -237,6 +272,135 @@ export default function ProjectForm({ initialData, projectId, onSuccess }: Proje
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Gallery Sections */}
+        <div className="space-y-6">
+          {/* Image Gallery */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Image Gallery
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = prompt("Enter image URL:");
+                  if (url) addToImageGallery(url);
+                }}
+                className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Add Image
+              </button>
+            </div>
+            
+            {formData.imageGallery.length > 0 ? (
+              <div className="space-y-2">
+                {formData.imageGallery.map((url, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <img
+                      src={url}
+                      alt={`Gallery image ${index + 1}`}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => {
+                        const newGallery = [...formData.imageGallery];
+                        newGallery[index] = e.target.value;
+                        setFormData(prev => ({ ...prev, imageGallery: newGallery }));
+                      }}
+                      className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      id={`${formInstanceId}-image-url-${index}`}
+                      aria-label={`Image URL ${index + 1}`}
+                      title={`Image URL ${index + 1}`}
+                      placeholder="Enter image URL"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFromImageGallery(index)}
+                      className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      aria-label="Remove image"
+                      title="Remove image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No images in gallery</p>
+            )}
+          </div>
+
+          {/* Video Gallery */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Video Gallery
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = prompt("Enter video URL:");
+                  if (url) addToVideoGallery(url);
+                }}
+                className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Add Video
+              </button>
+            </div>
+            
+            {formData.videoGallery.length > 0 ? (
+              <div className="space-y-2">
+                {formData.videoGallery.map((url, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center">
+                      <span className="text-2xl">🎥</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => {
+                        const newGallery = [...formData.videoGallery];
+                        newGallery[index] = e.target.value;
+                        setFormData(prev => ({ ...prev, videoGallery: newGallery }));
+                      }}
+                      className="flex-1 px-3 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      id={`${formInstanceId}-video-url-${index}`}
+                      aria-label={`Video URL ${index + 1}`}
+                      title={`Video URL ${index + 1}`}
+                      placeholder="Enter video URL"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFromVideoGallery(index)}
+                      className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      aria-label="Remove video"
+                      title="Remove video"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No videos in gallery</p>
+            )}
+          </div>
         </div>
 
         {/* Submit Button */}

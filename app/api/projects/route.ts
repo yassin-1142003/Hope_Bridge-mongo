@@ -2,16 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
 import { ProjectService } from "@/lib/services/ProjectService";
+import { 
+  createSuccessResponse, 
+  createCreatedResponse, 
+  createBadRequestResponse, 
+  createUnauthorizedResponse, 
+  createForbiddenResponse, 
+  createNotFoundResponse, 
+  createErrorResponse, 
+  handleApiError, 
+  setCorsHeaders 
+} from "@/lib/apiResponse";
+
+// Define Project interface to match the expected structure
+interface Project {
+  _id: string;
+  contents: ProjectContent[];
+  bannerPhotoUrl: string;
+  bannerPhotoId?: string;
+  gallery: string[];
+  videos?: any[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProjectContent {
+  language_code: string;
+  name: string;
+  description: string;
+  content: string;
+  images: string[];
+  videos: string[];
+  documents: string[];
+}
 
 const projectService = new ProjectService();
-
-// Helper function to set CORS headers
-const setCorsHeaders = (response: NextResponse) => {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return response;
-};
 
 // Handle OPTIONS method for CORS preflight
 export async function OPTIONS() {
@@ -37,33 +62,29 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Create response with CORS headers
-    const response = NextResponse.json({
-      success: true,
-      message: "Projects retrieved successfully",
-      data: projects,
-      timestamp: new Date().toISOString()
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      },
-      status: 200
-    });
+    // Create professional response
+    const response = createSuccessResponse(
+      projects,
+      `Successfully retrieved ${projects.length} projects`,
+      {
+        count: projects.length,
+        connectionStatus: 'connected',
+        mediaStats: {
+          totalImages: projects.reduce((sum, p) => sum + (p.imageGallery?.length || 0), 0),
+          totalVideos: projects.reduce((sum, p) => sum + (p.videoGallery?.length || 0), 0),
+          projectsWithMedia: projects.filter(p => (p.imageGallery?.length || 0) > 0 || (p.videoGallery?.length || 0) > 0).length
+        }
+      }
+    );
 
+    // Add cache control headers
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
     return setCorsHeaders(response);
   } catch (error) {
-    console.error("Error fetching projects:", error);
-    const response = NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Failed to fetch projects" 
-      },
-      { status: 500 }
-    );
-    return setCorsHeaders(response);
+    return handleApiError(error, "Fetching projects");
   }
 }
 
@@ -73,17 +94,11 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession();
     
     if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return setCorsHeaders(createUnauthorizedResponse("Authentication required to create projects"));
     }
 
     if (session.user.role === "USER") {
-      return NextResponse.json(
-        { success: false, error: "Forbidden - Admin access required" },
-        { status: 403 }
-      );
+      return setCorsHeaders(createForbiddenResponse("Admin access required to create projects"));
     }
 
     const contentType = request.headers.get("content-type") || "";
@@ -159,18 +174,14 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Project created successfully:', project._id);
     
-    return NextResponse.json({
-      success: true,
-      message: "Project created successfully",
-      data: project
-    }, { status: 201 });
+    const response = createCreatedResponse(
+      project,
+      "Project created successfully"
+    );
+    
+    return setCorsHeaders(response);
     
   } catch (error) {
-    console.error("❌ Error creating project:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { success: false, error: "Failed to create project", details: errorMessage },
-      { status: 500 }
-    );
+    return handleApiError(error, "Creating project");
   }
 }

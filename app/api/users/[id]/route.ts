@@ -23,7 +23,7 @@ export async function GET(
       success: true,
       message: "User retrieved successfully",
       data: user
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching user:", error);
     return NextResponse.json(
@@ -58,7 +58,7 @@ export async function PATCH(
       success: true,
       message: "User updated successfully",
       data: updatedUser
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(

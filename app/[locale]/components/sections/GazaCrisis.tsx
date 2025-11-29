@@ -62,7 +62,7 @@ const GazaCrisis = ({ params }: { params: { locale: string } }) => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl text-primary md:text-5xl font-bold  mb-4">
+          <h2 className="text-4xl text-[#2c2c2b] dark:text-background md:text-5xl font-bold  mb-4">
             {isArabic
               ? "أزمة غزة: الواقع الإنساني"
               : "Gaza Crisis: The Human Reality"}

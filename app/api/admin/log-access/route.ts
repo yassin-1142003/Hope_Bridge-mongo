@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date()
     });
     
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { status: 200 });
     
   } catch (error) {
     console.error('Failed to log admin access:', error);

@@ -41,7 +41,7 @@ export async function GET(
       success: true,
       message: "Media file retrieved successfully",
       data: media
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching media:", error);
     return NextResponse.json(

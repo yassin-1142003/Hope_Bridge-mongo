@@ -77,6 +77,7 @@ export async function GET() {
     });
 
     return new Response(feed.xml({ indent: true }), {
+      status: 200,
       headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
     });
   } catch (err) {

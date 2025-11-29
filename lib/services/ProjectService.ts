@@ -1,6 +1,5 @@
 import { getCollection } from "@/lib/mongodb";
 import { MediaService } from "./MediaService";
-import slugify from "slugify";
 import { ObjectId } from "mongodb";
 
 export interface ProjectContent {
@@ -18,7 +17,9 @@ export interface Project {
   contents: ProjectContent[];
   bannerPhotoUrl: string;
   bannerPhotoId?: string;
-  gallery: string[];
+  imageGallery: string[];
+  videoGallery: string[];
+  gallery?: string[]; // For backward compatibility with components
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,7 +28,9 @@ export interface NewProject {
   contents: ProjectContent[];
   bannerPhotoUrl?: string;
   bannerPhotoId?: string;
-  gallery?: string[];
+  imageGallery?: string[];
+  videoGallery?: string[];
+  gallery?: string[]; // For backward compatibility
 }
 
 export class ProjectService {
@@ -42,7 +45,9 @@ export class ProjectService {
     
     const project = {
       ...data,
-      gallery: data.gallery || [],
+      bannerPhotoUrl: data.bannerPhotoUrl || '',
+      imageGallery: data.imageGallery || [],
+      videoGallery: data.videoGallery || [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -65,9 +70,10 @@ export class ProjectService {
     return projects.map(project => ({
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoUrl: project.bannerPhotoUrl || '',
       bannerPhotoId: project.bannerPhotoId,
-      gallery: project.gallery || [],
+      imageGallery: project.imageGallery || [],
+      videoGallery: project.videoGallery || [],
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     }));
@@ -82,9 +88,10 @@ export class ProjectService {
     return {
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl,
+      bannerPhotoUrl: project.bannerPhotoUrl || '',
       bannerPhotoId: project.bannerPhotoId,
-      gallery: project.gallery || [],
+      imageGallery: project.imageGallery || [],
+      videoGallery: project.videoGallery || [],
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     };
@@ -184,7 +191,7 @@ export class ProjectService {
     // Delete all associated media
     const allMediaIds = [
       project.bannerPhotoId,
-      ...project.gallery
+      ...(project.gallery || [])
     ].filter((id): id is string => !!id);
 
     for (const mediaId of allMediaIds) {
