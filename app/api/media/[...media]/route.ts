@@ -2,17 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import fs from "fs";
 import path from "path";
+import { beautifulLog } from "@/lib/beautifulResponse";
 
 // GET - Serve media file by filename or path
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ media: string[] }> }
 ) {
+  const startTime = Date.now();
+  let mediaPath = 'unknown';
+  
   try {
     const { media } = await params;
-    const mediaPath = media.join('/'); // Reconstruct the path
+    mediaPath = media.join('/'); // Reconstruct the path
     
-    console.log('🔍 Media request:', mediaPath);
+    beautifulLog.media('SERVE', mediaPath);
 
     // Try to find media in database first
     const mediaCollection = await getCollection('media');
@@ -42,6 +46,9 @@ export async function GET(
                            ext === '.pdf' ? 'application/pdf' :
                            'application/octet-stream';
 
+        beautifulLog.success(`Media served from database: ${mediaPath}`);
+        beautifulLog.api('GET', `/api/media/${mediaPath}`, 200, Date.now() - startTime);
+
         return new NextResponse(fileBuffer, {
           headers: {
             'Content-Type': contentType,
@@ -66,6 +73,9 @@ export async function GET(
                          ext === '.pdf' ? 'application/pdf' :
                          'application/octet-stream';
 
+      beautifulLog.success(`Media served from public: ${mediaPath}`);
+      beautifulLog.api('GET', `/api/media/${mediaPath}`, 200, Date.now() - startTime);
+
       return new NextResponse(fileBuffer, {
         headers: {
           'Content-Type': contentType,
@@ -78,6 +88,9 @@ export async function GET(
     const fallbackPath = path.join(process.cwd(), 'public', 'homepage', '01.webp');
     if (fs.existsSync(fallbackPath)) {
       const fileBuffer = fs.readFileSync(fallbackPath);
+      beautifulLog.warning(`Media not found, using fallback: ${mediaPath}`);
+      beautifulLog.api('GET', `/api/media/${mediaPath}`, 200, Date.now() - startTime);
+      
       return new NextResponse(fileBuffer, {
         headers: {
           'Content-Type': 'image/webp',
@@ -87,10 +100,13 @@ export async function GET(
     }
 
     // Return 404 if nothing found
+    beautifulLog.warning(`Media not found: ${mediaPath}`);
+    beautifulLog.api('GET', `/api/media/${mediaPath}`, 404, Date.now() - startTime);
     return new NextResponse('Media not found', { status: 404 });
 
   } catch (error) {
-    console.error('❌ Media serving error:', error);
+    beautifulLog.error('Media serving error', error);
+    beautifulLog.api('GET', `/api/media/${mediaPath}`, 500, Date.now() - startTime);
     return new NextResponse('Internal server error', { status: 500 });
   }
 }

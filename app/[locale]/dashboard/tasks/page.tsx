@@ -28,7 +28,7 @@ const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: 
     try {
       setIsLoading(true);
       const result = await taskService.getAllTasks();
-      setTasks(result.tasks as any[]);
+      setTasks(result as any[]);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
     } finally {

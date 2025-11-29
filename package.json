@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "node beautiful-terminal.mjs && next dev --turbopack",
+    "dev:clean": "node beautiful-terminal.mjs && next dev --turbopack 2>&1 | node beautiful-terminal.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "beautiful": "node beautiful-terminal.mjs"
   },
   "type": "module",
   "dependencies": {
