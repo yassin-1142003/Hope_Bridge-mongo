@@ -1,11 +1,12 @@
 /**
  * Task Service
  * 
- * Handles business logic for task management operations
+ * Handles business logic for task management operations with Cloudinary integration
  */
 
 import { getProfessionalDatabase } from '../professionalDatabase';
 import { ObjectId } from 'mongodb';
+import { CloudinaryService } from './CloudinaryService';
 
 export interface TaskFile {
   id: string;
@@ -48,6 +49,11 @@ export interface CreateTaskData {
 
 export class TaskService {
   private db = getProfessionalDatabase();
+  private cloudinaryService: CloudinaryService;
+
+  constructor() {
+    this.cloudinaryService = new CloudinaryService();
+  }
 
   private async ensureConnected(): Promise<void> {
     await this.db.connect();
@@ -192,18 +198,83 @@ export class TaskService {
   async processFileUpload(files: File[]): Promise<TaskFile[]> {
     const uploadedFiles: TaskFile[] = [];
     
+    if (files.length === 0) {
+      return uploadedFiles;
+    }
+
+    try {
+      // Use enhanced upload API with Multer + Cloudinary
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
+      });
+      formData.append('folder', 'hope-bridge/tasks');
+
+      const response = await fetch('/api/upload-enhanced', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.uploadedFiles) {
+        // Transform the response to match TaskFile interface
+        data.uploadedFiles.forEach((file: any) => {
+          const taskFile: TaskFile = {
+            id: file.id,
+            name: file.name,
+            originalName: file.originalName,
+            type: file.type,
+            size: file.size,
+            url: file.url,
+            uploadedAt: file.uploadedAt
+          };
+          uploadedFiles.push(taskFile);
+        });
+      } else {
+        console.error('Upload failed:', data.message);
+        // Fallback to direct Cloudinary upload if enhanced API fails
+        return this.fallbackUpload(files);
+      }
+    } catch (error) {
+      console.error('Enhanced upload failed, falling back to direct upload:', error);
+      return this.fallbackUpload(files);
+    }
+    
+    return uploadedFiles;
+  }
+
+  // Fallback upload method using direct CloudinaryService
+  private async fallbackUpload(files: File[]): Promise<TaskFile[]> {
+    const uploadedFiles: TaskFile[] = [];
+    
     for (const file of files) {
-      const fileData: TaskFile = {
-        id: new Date().getTime().toString() + Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        originalName: file.name,
-        type: file.type,
-        size: file.size,
-        url: `/uploads/tasks/${Date.now()}-${file.name}`,
-        uploadedAt: new Date().toISOString()
-      };
-      
-      uploadedFiles.push(fileData);
+      try {
+        // Validate file using Cloudinary service
+        const validation = this.cloudinaryService.validateFile(file);
+        if (!validation.valid) {
+          console.warn(`Skipping file ${file.name}: ${validation.error}`);
+          continue;
+        }
+
+        // Upload to Cloudinary
+        const result = await this.cloudinaryService.uploadFile(file, 'hope-bridge/tasks');
+        
+        const fileData: TaskFile = {
+          id: result.public_id,
+          name: file.name,
+          originalName: result.original_filename,
+          type: this.cloudinaryService.getFileTypeFromUrl(result.secure_url),
+          size: result.bytes,
+          url: result.secure_url,
+          uploadedAt: result.created_at
+        };
+        
+        uploadedFiles.push(fileData);
+      } catch (error) {
+        console.error(`Failed to upload file ${file.name}:`, error);
+        // Continue with other files even if one fails
+      }
     }
     
     return uploadedFiles;

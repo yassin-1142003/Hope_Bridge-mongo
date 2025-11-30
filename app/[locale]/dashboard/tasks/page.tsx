@@ -1,8 +1,9 @@
+"use client";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "@/lib/auth";
 import React from "react";
-import TaskForm from "@/components/TaskForm";
-import TaskCard from "@/components/TaskCard";
+import EnhancedTaskForm from "@/components/EnhancedTaskForm";
+import EnhancedTaskCard from "@/components/EnhancedTaskCard";
 import { TaskService } from "@/lib/services/TaskService";
 import { UserRole } from "@/lib/roles";
 
@@ -14,7 +15,7 @@ const employees = [
   { id: "4", name: "Fatima Ibrahim", email: "fatima@company.com", role: "HR" as UserRole },
 ];
 
-const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: any }) => {
+const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: { user?: { email?: string; role?: string } } | null }) => {
   const [tasks, setTasks] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForm, setShowForm] = React.useState(false);
@@ -60,7 +61,7 @@ const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: 
     }
   };
 
-  const handleUpdateTask = async (taskId: string, updates: any) => {
+  const handleUpdateTask = async (taskId: string, updates: Partial<any>) => {
     try {
       setIsLoading(true);
       await taskService.updateTask(taskId, updates);
@@ -163,12 +164,12 @@ const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: 
               </button>
             ) : (
               <div className="space-y-4">
-                <TaskForm
+                <EnhancedTaskForm
                   onSubmit={handleCreateTask}
                   isLoading={isLoading}
                   isArabic={isArabic}
                   employees={employees}
-                  currentUserRole={session?.user?.role || 'USER'}
+                  currentUserRole={(session?.user?.role as UserRole) || 'USER'}
                 />
                 <button
                   onClick={() => setShowForm(false)}
@@ -181,76 +182,64 @@ const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: 
           </div>
 
           {/* Tasks List Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className={`mb-6 ${isArabic ? "text-right" : ""}`}>
-              <h2 className="text-2xl font-bold text-accent-foreground dark:text-white mb-2 flex items-center gap-3">
-                {!isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                )}
-                {isArabic ? "قائمة المهام" : "Tasks List"}
-                {isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                )}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {isArabic ? "عرض وإدارة جميع المهام" : "View and manage all tasks"}
-              </p>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+              <div className={`flex items-center justify-between ${isArabic ? "flex-row-reverse" : ""}`}>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
+                  </div>
+                  {isArabic ? "قائمة المهام" : "Tasks List"}
+                </h2>
+                <div className="text-white/80 text-sm">
+                  {tasks.length} {tasks.length === 1 ? (isArabic ? 'مهمة' : 'task') : (isArabic ? 'مهام' : 'tasks')}
+                </div>
+              </div>
             </div>
-
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  {isArabic ? "جاري التحميل..." : "Loading..."}
-                </p>
-              </div>
-            ) : tasks.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">📋</div>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {isArabic ? "لا توجد مهام حالياً" : "No tasks available"}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {tasks.map((task) => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    onUpdate={handleUpdateTask}
-                    onDelete={handleDeleteTask}
-                    isArabic={isArabic}
-                    currentUserId={session?.user?.email}
-                  />
-                ))}
-              </div>
-            )}
+            
+            <div className="p-6">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">
+                    {isArabic ? 'جاري التحميل...' : 'Loading...'}
+                  </p>
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📋</div>
+                  <p className="text-gray-600">
+                    {isArabic ? "لا توجد مهام حالياً" : "No tasks available"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {tasks.map((task) => (
+                    <EnhancedTaskCard
+                      key={task._id}
+                      task={task}
+                      onUpdate={handleUpdateTask}
+                      onDelete={handleDeleteTask}
+                      isArabic={isArabic}
+                      currentUserId={session?.user?.email}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

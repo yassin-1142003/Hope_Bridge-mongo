@@ -46,13 +46,13 @@ export async function middleware(req: NextRequest) {
   }
 
   // --- CASE B: Dashboard access ---
-  if (pathWithoutLang.startsWith("/dashboard")) {
-    if (!token) {
-      // guest → not allowed
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    // any signed-in user can access, no role restriction
-  }
+  // if (pathWithoutLang.startsWith("/dashboard")) {
+  //   if (!token) {
+  //     // guest → not allowed
+  //     return NextResponse.redirect(new URL("/login", req.url));
+  //   }
+  //   // any signed-in user can access, no role restriction
+  // }
 
   // --- CASE B2: Admin access protection ---
   if (pathWithoutLang.startsWith("/admin")) {

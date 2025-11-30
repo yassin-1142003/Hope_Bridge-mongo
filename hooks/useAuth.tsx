@@ -99,11 +99,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const logout = async () => {
+    try {
+      // Call logout API for server-side logging
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn('Logout API call failed, but proceeding with client logout');
+      }
+    } catch (error) {
+      console.warn('Logout API call failed, but proceeding with client logout:', error);
+    } finally {
+      // Always clear client-side state regardless of API call success
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   };
 
   return (

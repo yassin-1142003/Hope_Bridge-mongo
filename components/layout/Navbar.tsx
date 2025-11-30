@@ -45,6 +45,14 @@ export default function Header() {
   const pwa = usePWA();
   const { user, logout } = useAuth();
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const navLinks = useMemo(
     () =>
       !user || user.role === "USER"
@@ -197,7 +205,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
                 >
                   <LogOut className="h-4 w-4" />
