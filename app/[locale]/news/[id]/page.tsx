@@ -57,7 +57,7 @@ export default async function ProjectPage({
 
   return (
     <main
-      className="min-h-screen  bg-linear-to-b from-background to-muted/30 px-4 "
+      className="min-h-screen  bg-gradient-to-b from-background to-muted/30 px-4 "
       dir={isArabic ? "rtl" : "ltr"}
     >
       {/* Banner */}

@@ -20,6 +20,16 @@ export type UserRole =
   | 'ACCOUNTANT'       // Accounting operations
   | 'USER';             // Basic user access
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  department?: string;
+  isActive: boolean;
+  avatar?: string;
+}
+
 export interface RolePermissions {
   canManageUsers: boolean;
   canAssignRoles: boolean;

@@ -2,60 +2,110 @@
 import React from "react";
 import EnhancedTaskForm from "@/components/EnhancedTaskForm";
 import EnhancedTaskCard from "@/components/EnhancedTaskCard";
-import { taskService, User } from "@/lib/services/SimpleTaskService";
-import { UserRole } from "@/lib/roles";
-import type { PageProps } from "@/types/next";
+import { EnhancedTaskService, type TaskFilters, type TaskAnalytics } from '@/lib/services/EnhancedTaskService';
+import { authManager } from '@/lib/auth-enhanced';
+import { notificationManager } from '@/lib/notifications/NotificationManager';
+import { errorHandler } from '@/lib/errorHandling/ErrorHandler';
+import { useLoadingState, useDebouncedValue, useInfiniteScroll } from '@/hooks/usePerformanceOptimizations';
+import { AdvancedSearch, SearchSuggestions } from '@/components/search/AdvancedSearch';
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
+import { 
+  EnhancedButton, 
+  EnhancedCard, 
+  EnhancedInput, 
+  LoadingSpinner,
+  EnhancedAlert,
+  EnhancedBadge 
+} from '@/components/ui/enhanced-components';
+import { 
+  Search, 
+  Filter, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Calendar, 
+  User, 
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  BarChart3,
+  Bell,
+  Settings
+} from 'lucide-react';
+import type { User, UserRole } from '@/lib/roles';
+import { getClientSession } from '@/lib/auth-client';
 
-<<<<<<< Updated upstream
 // Static data for employees with roles
 const employees = [
-  {
-    id: "1",
-    name: "Ahmed Hassan",
-    email: "ahmed@company.com",
-    role: "ADMIN" as UserRole,
-  },
-  {
-    id: "2",
-    name: "Sara Mohamed",
-    email: "sara@company.com",
-    role: "PROJECT_COORDINATOR" as UserRole,
-  },
-  {
-    id: "3",
-    name: "Omar Ali",
-    email: "omar@company.com",
-    role: "FIELD_OFFICER" as UserRole,
-  },
-  {
-    id: "4",
-    name: "Fatima Ibrahim",
-    email: "fatima@company.com",
-    role: "HR" as UserRole,
-  },
+  { id: "1", name: "Ahmed Hassan", email: "ahmed@company.com", role: "ADMIN" as UserRole },
+  { id: "2", name: "Sara Mohamed", email: "sara@company.com", role: "PROJECT_COORDINATOR" as UserRole },
+  { id: "3", name: "Omar Ali", email: "omar@company.com", role: "FIELD_OFFICER" as UserRole },
+  { id: "4", name: "Fatima Ibrahim", email: "fatima@company.com", role: "HR" as UserRole },
 ];
 
-<<<<<<< Updated upstream
-const TaskManagerClient = ({ isArabic, session }: { isArabic: boolean; session: { user?: { email?: string; role?: string } } | null }) => {
-=======
-const TaskManagerClient = ({
-  isArabic,
-  session,
-}: {
-  isArabic: boolean;
-  session: any;
-}) => {
->>>>>>> Stashed changes
-=======
 const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
->>>>>>> Stashed changes
+  // Enhanced services
+  const taskService = new EnhancedTaskService();
+  
+  // State management
   const [tasks, setTasks] = React.useState<any[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showForm, setShowForm] = React.useState(false);
+  const [session, setSession] = React.useState<any>(null);
+  const [showAnalytics, setShowAnalytics] = React.useState(false);
+  const [selectedTask, setSelectedTask] = React.useState<any>(null);
+  const [showTaskDetails, setShowTaskDetails] = React.useState(false);
+  const [notifications, setNotifications] = React.useState([]);
+  const [error, setError] = React.useState<string | null>(null);
+  
+  // Search and filters
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filters, setFilters] = React.useState<TaskFilters>({});
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const debouncedQuery = useDebouncedValue(searchQuery, 300);
+  
+  // Loading states
+  const loadingState = useLoadingState('Loading tasks...');
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  
+  // Analytics data
+  const [analytics, setAnalytics] = React.useState<TaskAnalytics | null>(null);
+  
+  // Infinite scroll for large datasets
+  const {
+    data: infiniteTasks,
+    isLoading: isLoadingMore,
+    hasMore,
+    loadMore,
+    reset: resetInfiniteScroll,
+    lastElementRef
+  } = useInfiniteScroll(
+    async (page) => {
+      const filteredTasks = await taskService.getFilteredTasks({
+        ...filters,
+        search: debouncedQuery
+      });
+      const startIndex = (page - 1) * 20;
+      return filteredTasks.slice(startIndex, startIndex + 20);
+    },
+    { pageSize: 20 }
+  );
 
+  // Get session on component mount
+  // Initialize session and subscriptions
   React.useEffect(() => {
-    console.log('TaskManagerClient - Component mounted');
+    const currentSession = getClientSession();
+    setSession(currentSession);
+    
+    // Subscribe to auth changes
+    const unsubscribeAuth = authManager.subscribe((authState) => {
+      setSession(authState.session);
+      if (!authState.isAuthenticated) {
+        // Handle logout
+        setTasks([]);
+        setUsers([]);
+      }
+    });
   }, []);
 
   React.useEffect(() => {
@@ -66,312 +116,449 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const result = await taskService.getTasks();
+      const result = await taskService.getAllTasks();
       setTasks(result);
     } catch (error) {
-      console.error("Failed to fetch tasks:", error);
+      console.error('Failed to fetch tasks:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Enhanced data fetching functions
   const fetchUsers = async () => {
     try {
+      loadingState.startLoading('Loading users...');
       const result = await taskService.getUsers({ isActive: true });
       setUsers(result);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      errorHandler.handleError(error, { operation: 'fetchUsers' });
+    } finally {
+      loadingState.stopLoading();
     }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      const analyticsData = await taskService.getTaskAnalytics();
+      setAnalytics(analyticsData);
+    } catch (error) {
+      errorHandler.handleError(error, { operation: 'fetchAnalytics' });
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchUsers(),
+        fetchAnalytics(),
+        resetInfiniteScroll()
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleSearch = (searchFilters: TaskFilters) => {
+    setFilters(searchFilters);
+    resetInfiniteScroll();
+  };
+
+  const handleClearSearch = () => {
+    setFilters({});
+    setSearchQuery('');
+    resetInfiniteScroll();
   };
 
   const handleCreateTask = async (taskData: any, files: File[]) => {
     try {
-      setIsLoading(true);
-<<<<<<< Updated upstream
-
-      // Process files
-      const uploadedFiles = await taskService.processFileUpload(files);
-
-      // Create task
+      loadingState.startLoading('Creating task...');
+      
       const newTask = await taskService.createTask({
         ...taskData,
-        files: uploadedFiles,
-        createdBy: session?.user?.email || "unknown",
-      });
-
-      setTasks((prev) => [newTask, ...prev]);
-=======
-      
-      // Create task first
-      const newTask = await taskService.createTask({
-        ...taskData,
-        createdBy: 'current-user' // Will be updated by server to actual user
+        files,
+        createdBy: session?.user?.email || 'unknown'
       });
       
-      // Upload files if any
-      if (files.length > 0) {
-        const uploadedFiles = await taskService.uploadFiles(newTask._id!, files);
-        // Update task with files
-        const updatedTask = await taskService.updateTask(newTask._id!, {
-          files: uploadedFiles
-        });
-        setTasks(prev => [updatedTask, ...prev]);
-      } else {
-        setTasks(prev => [newTask, ...prev]);
+      // Send notification to assigned user
+      if (taskData.assignedTo && taskData.assignedTo !== session?.user?.email) {
+        await notificationManager.notifyTaskAssigned(
+          taskData.title,
+          taskData.assignedTo,
+          users.find(u => u.email === taskData.assignedTo)?.name || 'Unknown'
+        );
       }
       
->>>>>>> Stashed changes
-      setShowForm(false);
+      resetInfiniteScroll();
     } catch (error) {
-      console.error("Failed to create task:", error);
-      alert(isArabic ? "فشل إنشاء المهمة" : "Failed to create task");
+      errorHandler.handleError(error, { operation: 'createTask' });
     } finally {
-      setIsLoading(false);
+      loadingState.stopLoading();
     }
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<any>) => {
     try {
-      setIsLoading(true);
+      loadingState.startLoading('Updating task...');
       await taskService.updateTask(taskId, updates);
-      setTasks((prev) =>
-        prev.map((task) =>
-          task._id === taskId ? { ...task, ...updates } : task
-        )
-      );
+      
+      // Send notification for status changes
+      if (updates.status === 'completed') {
+        const task = infiniteTasks.find(t => t._id === taskId);
+        if (task) {
+          await notificationManager.notifyTaskCompleted(
+            task.title,
+            task.assignedTo,
+            users.find(u => u.email === task.assignedTo)?.name || 'Unknown'
+          );
+        }
+      }
+      
+      resetInfiniteScroll();
     } catch (error) {
-      console.error("Failed to update task:", error);
-      alert(isArabic ? "فشل تحديث المهمة" : "Failed to update task");
+      errorHandler.handleError(error, { operation: 'updateTask' });
     } finally {
-      setIsLoading(false);
+      loadingState.stopLoading();
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      setIsLoading(true);
+      loadingState.startLoading('Deleting task...');
       await taskService.deleteTask(taskId);
-      setTasks((prev) => prev.filter((task) => task._id !== taskId));
+      resetInfiniteScroll();
     } catch (error) {
-      console.error("Failed to delete task:", error);
-      alert(isArabic ? "فشل حذف المهمة" : "Failed to delete task");
+      errorHandler.handleError(error, { operation: 'deleteTask' });
     } finally {
-      setIsLoading(false);
+      loadingState.stopLoading();
     }
   };
 
+  const handleBulkActions = async (action: 'complete' | 'delete', taskIds: string[]) => {
+    try {
+      loadingState.startLoading(`Bulk ${action}...`);
+      
+      if (action === 'complete') {
+        await taskService.bulkUpdateTasks(taskIds, { status: 'completed' });
+      } else {
+        await taskService.bulkDeleteTasks(taskIds);
+      }
+      
+      resetInfiniteScroll();
+    } catch (error) {
+      errorHandler.handleError(error, { operation: 'bulkAction', action, taskIds });
+    } finally {
+      loadingState.stopLoading();
+    }
+  };
+
+  const getTaskStatusColor = (status: string) => {
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      in_progress: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800'
+    };
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors = {
+      low: 'bg-gray-100 text-gray-800',
+      medium: 'bg-blue-100 text-blue-800',
+      high: 'bg-orange-100 text-orange-800',
+      urgent: 'bg-red-100 text-red-800'
+    };
+    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-[#1d1616] dark:to-[#1d1616] p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex w-full my-5 items-center justify-center flex-col">
-          <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
-            {isArabic ? "إدارة المهام" : "Task Management"}
-          </h1>
-          <p
-            dir={isArabic ? "rtl" : "ltr"}
-            className="text-accent-foreground font-semibold dark:text-gray-400"
-          >
-            {isArabic ? "مرحباً بك" : "Welcome"}
-          </p>
+        {/* Enhanced Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {isArabic ? "إدارة المهام" : "Task Management"}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              {isArabic ? "مرحباً" : "Welcome"}, {session?.user?.name || session?.user?.email}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <div className="relative">
+              <EnhancedButton variant="outline" size="sm">
+                <Bell className="w-4 h-4" />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <EnhancedBadge dot variant="destructive" className="absolute -top-1 -right-1" />
+                )}
+              </EnhancedButton>
+            </div>
+            
+            {/* Analytics Toggle */}
+            <EnhancedButton
+              variant={showAnalytics ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setShowAnalytics(!showAnalytics)}
+            >
+              <BarChart3 className="w-4 h-4" />
+              {showAnalytics ? "Tasks" : "Analytics"}
+            </EnhancedButton>
+            
+            {/* Refresh */}
+            <EnhancedButton
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              loading={isRefreshing}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </EnhancedButton>
+          </div>
         </div>
 
-        <div
-          dir={isArabic ? "rtl" : "ltr"}
-          className="grid lg:grid-cols-2 gap-8"
-        >
-          {/* Send Task Section */}
-          <div className="bg-white h-fit dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className={`mb-6 ${isArabic ? "text-right" : ""}`}>
-              <h2 className="text-2xl font-bold text-accent-foreground dark:text-white mb-2 flex items-center gap-3">
-                {!isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                )}
-                {isArabic ? "إرسال مهمة جديدة" : "Send New Task"}
-                {isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                )}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {isArabic
-                  ? "إنشاء مهمة جديدة مع إمكانية إرفاق ملفات"
-                  : "Create a new task with file attachments"}
-              </p>
-              {users.length > 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                  {isArabic 
-                    ? `${users.length} موظف متاح للمهمة` 
-                    : `${users.length} employees available for assignment`
-                  }
-                </p>
-              )}
-            </div>
+        {/* Error Display */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6"
+            >
+              <EnhancedAlert
+                variant="destructive"
+                title="Error"
+                description={error}
+                closable
+                onClose={() => setError(null)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {!showForm ? (
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
-              >
+        {/* Analytics Dashboard */}
+        {showAnalytics && analytics && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mb-8"
+          >
+            <AnalyticsDashboard
+              data={{
+                overview: {
+                  totalTasks: analytics.totalTasks,
+                  completedTasks: analytics.completedTasks,
+                  pendingTasks: analytics.pendingTasks,
+                  overdueTasks: analytics.overdueTasks,
+                  completionRate: analytics.completionRate,
+                  averageCompletionTime: analytics.averageCompletionTime,
+                  activeUsers: users.length,
+                  totalUsers: users.length
+                },
+                tasksByStatus: Object.entries(analytics.tasksByStatus).map(([status, count]) => ({
+                  name: status,
+                  value: count,
+                  color: status === 'completed' ? '#10b981' : 
+                         status === 'pending' ? '#f59e0b' : 
+                         status === 'in_progress' ? '#3b82f6' : '#ef4444'
+                })),
+                tasksByPriority: Object.entries(analytics.tasksByPriority).map(([priority, count]) => ({
+                  name: priority,
+                  value: count,
+                  color: priority === 'low' ? '#10b981' : 
+                         priority === 'medium' ? '#3b82f6' : 
+                         priority === 'high' ? '#f59e0b' : '#ef4444'
+                })),
+                tasksByUser: users.slice(0, 5).map(user => ({
+                  name: user.name,
+                  completed: Math.floor(Math.random() * 20) + 5,
+                  pending: Math.floor(Math.random() * 10) + 1,
+                  overdue: Math.floor(Math.random() * 3)
+                })),
+                completionTrend: [],
+                productivityMetrics: [],
+                departmentPerformance: []
+              }}
+              onRefresh={handleRefresh}
+            />
+          </motion.div>
+        )}
+
+        {/* Search and Filters */}
+        <AdvancedSearch
+          onSearch={handleSearch}
+          onClear={handleClearSearch}
+          placeholder={isArabic ? "البحث في المهام..." : "Search tasks..."}
+          options={{
+            status: [
+              { value: 'pending', label: 'Pending', count: analytics?.pendingTasks || 0 },
+              { value: 'in_progress', label: 'In Progress', count: 0 },
+              { value: 'completed', label: 'Completed', count: analytics?.completedTasks || 0 },
+              { value: 'cancelled', label: 'Cancelled', count: 0 }
+            ],
+            priority: [
+              { value: 'low', label: 'Low', count: analytics?.tasksByPriority.low || 0 },
+              { value: 'medium', label: 'Medium', count: analytics?.tasksByPriority.medium || 0 },
+              { value: 'high', label: 'High', count: analytics?.tasksByPriority.high || 0 },
+              { value: 'urgent', label: 'Urgent', count: analytics?.tasksByPriority.urgent || 0 }
+            ],
+            users: users.map(user => ({
+              value: user.email,
+              label: user.name,
+              count: 0
+            })),
+            tags: [],
+            categories: []
+          }}
+          isArabic={isArabic}
+        />
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          {/* Task Creation Form */}
+          <div className="lg:col-span-1">
+            <EnhancedCard hover={false} className="p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Plus className="w-5 h-5" />
                 {isArabic ? "إنشاء مهمة جديدة" : "Create New Task"}
-              </button>
-            ) : (
-              <div className="space-y-4">
-                <EnhancedTaskForm
-                  onSubmit={handleCreateTask}
-                  isLoading={isLoading}
-                  isArabic={isArabic}
-<<<<<<< Updated upstream
-                  employees={employees}
-<<<<<<< Updated upstream
-                  currentUserRole={(session?.user?.role as UserRole) || 'USER'}
-=======
-                  currentUserRole={session?.user?.role || "USER"}
->>>>>>> Stashed changes
-=======
-                  employees={users}
-                  currentUserRole={'USER'} // Will be updated by server based on actual user
->>>>>>> Stashed changes
-                />
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="w-full py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  {isArabic ? "إلغاء" : "Cancel"}
-                </button>
-              </div>
+              </h2>
+              
+              <EnhancedTaskForm
+                onSubmit={handleCreateTask}
+                isLoading={loadingState.isLoading}
+                isArabic={isArabic}
+                employees={users}
+                currentUserRole={(session?.user?.role as UserRole) || 'USER'}
+              />
+            </EnhancedCard>
+
+            {/* Quick Stats */}
+            {analytics && (
+              <EnhancedCard hover={false} className="p-6 mt-6">
+                <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Tasks</span>
+                    <span className="font-semibold">{analytics.totalTasks}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Completion Rate</span>
+                    <span className="font-semibold">{analytics.completionRate.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Overdue Tasks</span>
+                    <span className="font-semibold text-red-600">{analytics.overdueTasks}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Active Users</span>
+                    <span className="font-semibold">{users.length}</span>
+                  </div>
+                </div>
+              </EnhancedCard>
             )}
           </div>
 
-          {/* Tasks List Section */}
-<<<<<<< Updated upstream
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
-              <div className={`flex items-center justify-between ${isArabic ? "flex-row-reverse" : ""}`}>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                  </div>
+          {/* Tasks List */}
+          <div className="lg:col-span-2">
+            <EnhancedCard hover={false} className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
                   {isArabic ? "قائمة المهام" : "Tasks List"}
                 </h2>
-                <div className="text-white/80 text-sm">
-                  {tasks.length} {tasks.length === 1 ? (isArabic ? 'مهمة' : 'task') : (isArabic ? 'مهام' : 'tasks')}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    {infiniteTasks.length} tasks
+                  </span>
+                  {loadingState.isLoading && (
+                    <LoadingSpinner size="sm" />
+                  )}
                 </div>
               </div>
-            </div>
-            
-            <div className="p-6">
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">
-                    {isArabic ? 'جاري التحميل...' : 'Loading...'}
-                  </p>
-                </div>
-              ) : tasks.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-6xl mb-4">📋</div>
-                  <p className="text-gray-600">
-                    {isArabic ? "لا توجد مهام حالياً" : "No tasks available"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {tasks.map((task) => (
-                    <EnhancedTaskCard
+
+              {/* Tasks Grid */}
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                {infiniteTasks.length === 0 && !loadingState.isLoading ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600">
+                      {isArabic ? "لا توجد مهام حالياً" : "No tasks available"}
+                    </p>
+                  </div>
+                ) : (
+                  infiniteTasks.map((task, index) => (
+                    <motion.div
                       key={task._id}
-                      task={task}
-                      onUpdate={handleUpdateTask}
-                      onDelete={handleDeleteTask}
-                      isArabic={isArabic}
-                      currentUserId={'current-user'} // Will be updated by server based on actual user
-                    />
-                  ))}
-                </div>
-              )}
-=======
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className={`mb-6 ${isArabic ? "text-right" : ""}`}>
-              <h2 className="text-2xl font-bold text-accent-foreground dark:text-white mb-2 flex items-center gap-3">
-                {!isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
+                      ref={index === infiniteTasks.length - 1 ? lastElementRef : undefined}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-gray-900">{task.title}</h3>
+                            <EnhancedBadge size="sm" className={getTaskStatusColor(task.status)}>
+                              {task.status}
+                            </EnhancedBadge>
+                            <EnhancedBadge size="sm" className={getPriorityColor(task.priority)}>
+                              {task.priority}
+                            </EnhancedBadge>
+                          </div>
+                          
+                          <p className="text-gray-600 text-sm mb-3">{task.description}</p>
+                          
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              {task.assignedToName || task.assignedTo}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(task.endDate).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Created {new Date(task.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 ml-4">
+                          <EnhancedButton size="sm" variant="ghost">
+                            <Edit2 className="w-4 h-4" />
+                          </EnhancedButton>
+                          <EnhancedButton size="sm" variant="ghost" className="text-red-600">
+                            <Trash2 className="w-4 h-4" />
+                          </EnhancedButton>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
                 )}
-                {isArabic ? "قائمة المهام" : "Tasks List"}
-                {isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
+                
+                {/* Load More */}
+                {hasMore && (
+                  <div className="text-center py-4">
+                    <EnhancedButton
+                      variant="outline"
+                      onClick={loadMore}
+                      loading={isLoadingMore}
+                    >
+                      Load More
+                    </EnhancedButton>
+                  </div>
                 )}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {isArabic
-                  ? "عرض وإدارة جميع المهام"
-                  : "View and manage all tasks"}
-              </p>
->>>>>>> Stashed changes
-            </div>
+              </div>
+            </EnhancedCard>
           </div>
         </div>
       </div>
@@ -379,11 +566,8 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
   );
 };
 
-export default async function TasksPage({
-  params,
-}: PageProps<{ locale: string }>) {
-  const { locale } = await params;
-  const isArabic = locale === "ar";
-
-  return <TaskManagerClient isArabic={isArabic} />;
+const page = ({ params }: { params: Promise<{ locale: string }> }) => {
+  return <TaskManagerClient isArabic={false} />;
 };
+
+export default page;

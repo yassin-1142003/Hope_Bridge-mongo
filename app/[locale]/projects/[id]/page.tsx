@@ -95,7 +95,7 @@ export default async function ProjectPage({
 
   return (
     <main
-      className="min-h-screen bg-linear-to-b from-background to-muted/30 px-4 "
+      className="min-h-screen bg-gradient-to-b from-background to-muted/30 px-4 "
       dir={isArabic ? "rtl" : "ltr"}
     >
       <div className="max-w-4xl mx-auto py-0 space-y-12">
@@ -133,7 +133,7 @@ export default async function ProjectPage({
         {/* Content Section */}
         <section
           dir={isArabic ? "rtl" : "ltr"}
-          className={`relative bg-linear-to-br from-[#ffffff] to-[#ffffff]  dark:from-gray-900 dark:to-gray-800 backdrop-blur-md p-6 md:p-10 rounded-2xl shadow-lg transition-all`}
+          className={`relative bg-gradient-to-br from-[#ffffff] to-[#ffffff]  dark:from-gray-900 dark:to-gray-800 backdrop-blur-md p-6 md:p-10 rounded-2xl shadow-lg transition-all`}
         >
           <div
             className={`prose prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line ${
