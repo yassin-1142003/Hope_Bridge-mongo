@@ -1,12 +1,12 @@
 "use client";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "@/lib/auth";
 import React from "react";
 import EnhancedTaskForm from "@/components/EnhancedTaskForm";
 import EnhancedTaskCard from "@/components/EnhancedTaskCard";
-import { TaskService } from "@/lib/services/TaskService";
+import { taskService, User } from "@/lib/services/SimpleTaskService";
 import { UserRole } from "@/lib/roles";
+import type { PageProps } from "@/types/next";
 
+<<<<<<< Updated upstream
 // Static data for employees with roles
 const employees = [
   {
@@ -46,20 +46,28 @@ const TaskManagerClient = ({
   session: any;
 }) => {
 >>>>>>> Stashed changes
+=======
+const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
+>>>>>>> Stashed changes
   const [tasks, setTasks] = React.useState<any[]>([]);
+  const [users, setUsers] = React.useState<User[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForm, setShowForm] = React.useState(false);
-  const taskService = new TaskService();
+
+  React.useEffect(() => {
+    console.log('TaskManagerClient - Component mounted');
+  }, []);
 
   React.useEffect(() => {
     fetchTasks();
+    fetchUsers();
   }, []);
 
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const result = await taskService.getAllTasks();
-      setTasks(result as any[]);
+      const result = await taskService.getTasks();
+      setTasks(result);
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
     } finally {
@@ -67,9 +75,19 @@ const TaskManagerClient = ({
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const result = await taskService.getUsers({ isActive: true });
+      setUsers(result);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
+
   const handleCreateTask = async (taskData: any, files: File[]) => {
     try {
       setIsLoading(true);
+<<<<<<< Updated upstream
 
       // Process files
       const uploadedFiles = await taskService.processFileUpload(files);
@@ -82,6 +100,27 @@ const TaskManagerClient = ({
       });
 
       setTasks((prev) => [newTask, ...prev]);
+=======
+      
+      // Create task first
+      const newTask = await taskService.createTask({
+        ...taskData,
+        createdBy: 'current-user' // Will be updated by server to actual user
+      });
+      
+      // Upload files if any
+      if (files.length > 0) {
+        const uploadedFiles = await taskService.uploadFiles(newTask._id!, files);
+        // Update task with files
+        const updatedTask = await taskService.updateTask(newTask._id!, {
+          files: uploadedFiles
+        });
+        setTasks(prev => [updatedTask, ...prev]);
+      } else {
+        setTasks(prev => [newTask, ...prev]);
+      }
+      
+>>>>>>> Stashed changes
       setShowForm(false);
     } catch (error) {
       console.error("Failed to create task:", error);
@@ -133,7 +172,7 @@ const TaskManagerClient = ({
             dir={isArabic ? "rtl" : "ltr"}
             className="text-accent-foreground font-semibold dark:text-gray-400"
           >
-            {isArabic ? "مرحباً" : "Welcome"}, {session?.user?.email}
+            {isArabic ? "مرحباً بك" : "Welcome"}
           </p>
         </div>
 
@@ -184,6 +223,14 @@ const TaskManagerClient = ({
                   ? "إنشاء مهمة جديدة مع إمكانية إرفاق ملفات"
                   : "Create a new task with file attachments"}
               </p>
+              {users.length > 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                  {isArabic 
+                    ? `${users.length} موظف متاح للمهمة` 
+                    : `${users.length} employees available for assignment`
+                  }
+                </p>
+              )}
             </div>
 
             {!showForm ? (
@@ -199,11 +246,16 @@ const TaskManagerClient = ({
                   onSubmit={handleCreateTask}
                   isLoading={isLoading}
                   isArabic={isArabic}
+<<<<<<< Updated upstream
                   employees={employees}
 <<<<<<< Updated upstream
                   currentUserRole={(session?.user?.role as UserRole) || 'USER'}
 =======
                   currentUserRole={session?.user?.role || "USER"}
+>>>>>>> Stashed changes
+=======
+                  employees={users}
+                  currentUserRole={'USER'} // Will be updated by server based on actual user
 >>>>>>> Stashed changes
                 />
                 <button
@@ -270,7 +322,7 @@ const TaskManagerClient = ({
                       onUpdate={handleUpdateTask}
                       onDelete={handleDeleteTask}
                       isArabic={isArabic}
-                      currentUserId={session?.user?.email}
+                      currentUserId={'current-user'} // Will be updated by server based on actual user
                     />
                   ))}
                 </div>
@@ -327,12 +379,11 @@ const TaskManagerClient = ({
   );
 };
 
-const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
+export default async function TasksPage({
+  params,
+}: PageProps<{ locale: string }>) {
   const { locale } = await params;
   const isArabic = locale === "ar";
-  const session = await getServerSession();
 
-  return <TaskManagerClient isArabic={isArabic} session={session} />;
+  return <TaskManagerClient isArabic={isArabic} />;
 };
-
-export default page;

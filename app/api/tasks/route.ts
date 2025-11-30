@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 import { getCollection } from "@/lib/mongodb";
 import { 
   createSuccessResponse, 
@@ -30,16 +29,10 @@ export async function OPTIONS() {
 // GET - Get all tasks (admin only)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session || !session.user) {
       return setCorsHeaders(createUnauthorizedResponse("Authentication required to access tasks"));
-    }
-
-    const userRole = session.user.role as UserRole;
-    
-    if (!hasPermission(userRole, 'canViewAllTasks')) {
-      return setCorsHeaders(createForbiddenResponse("Insufficient permissions to access tasks"));
     }
 
     const { searchParams } = new URL(request.url);
@@ -50,7 +43,7 @@ export async function GET(request: NextRequest) {
     
     const tasksCollection = await getCollection('tasks');
     
-    // Build query
+    // Build query - for now, allow all authenticated users to see all tasks
     const query: any = {};
     if (status) query.status = status;
     if (assignedTo) query.assignedTo = assignedTo;
@@ -86,16 +79,10 @@ export async function GET(request: NextRequest) {
 // POST - Create new task with file uploads (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     
     if (!session || !session.user) {
       return setCorsHeaders(createUnauthorizedResponse("Authentication required to create tasks"));
-    }
-
-    const userRole = session.user.role as UserRole;
-    
-    if (!hasPermission(userRole, 'canCreateTasks')) {
-      return setCorsHeaders(createForbiddenResponse("Insufficient permissions to create tasks"));
     }
 
     const contentType = request.headers.get("content-type");

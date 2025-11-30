@@ -132,7 +132,7 @@ export class CloudinaryService {
       return '';
     }
     
-    let transformations = [];
+    const transformations = [];
     if (options.width) transformations.push(`w_${options.width}`);
     if (options.height) transformations.push(`h_${options.height}`);
     if (options.crop) transformations.push(`c_${options.crop}`);

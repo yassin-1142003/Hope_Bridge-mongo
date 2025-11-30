@@ -7,7 +7,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Task, TaskFile } from '@/lib/services/TaskService';
+import { Task, TaskFile } from '@/lib/services/SimpleTaskService';
 
 interface TaskCardProps {
   task: Task;

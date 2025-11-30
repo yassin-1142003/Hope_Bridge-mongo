@@ -8,7 +8,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Task, TaskFile } from '@/lib/services/TaskService';
+import { Task, TaskFile } from '@/lib/services/SimpleTaskService';
 import { 
   Calendar, 
   Clock, 
@@ -61,8 +61,8 @@ export default function EnhancedTaskCard({
   const [showFiles, setShowFiles] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return null;
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -73,7 +73,7 @@ export default function EnhancedTaskCard({
     });
   };
 
-  const isOverdue = (endDate: string) => {
+  const isOverdue = (endDate?: string) => {
     if (!endDate) return false;
     return new Date(endDate) < new Date() && task.status !== 'completed';
   };
@@ -204,7 +204,7 @@ export default function EnhancedTaskCard({
                   </span>
                 </div>
                 <div className="mt-2 space-y-1">
-                  {task.alerts.map((alert, index) => (
+                  {task.alerts.map((alert: string, index: number) => (
                     <p key={index} className="text-sm text-blue-600">
                       {alert}
                     </p>
@@ -217,7 +217,7 @@ export default function EnhancedTaskCard({
             <div className="flex items-center gap-2">
               <button
                 className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
-                onClick={() => onUpdate?.(task._id, { status: 'in_progress' })}
+                onClick={() => task._id && onUpdate?.(task._id, { status: 'in_progress' })}
                 disabled={isUpdating}
               >
                 <PlayCircle className="w-4 h-4" />
@@ -226,7 +226,7 @@ export default function EnhancedTaskCard({
               
               <button
                 className="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1"
-                onClick={() => onUpdate?.(task._id, { status: 'completed' })}
+                onClick={() => task._id && onUpdate?.(task._id, { status: 'completed' })}
                 disabled={isUpdating}
               >
                 <CheckCircle className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function EnhancedTaskCard({
               
               <button
                 className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-1"
-                onClick={() => onDelete?.(task._id)}
+                onClick={() => task._id && onDelete?.(task._id)}
                 disabled={isUpdating}
               >
                 <XCircle className="w-4 h-4" />
