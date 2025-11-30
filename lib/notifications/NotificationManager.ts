@@ -463,43 +463,103 @@ export class NotificationManager {
     this.subscribers.clear();
   }
 
+  // Email notification methods
+  async sendEmailNotification(options: {
+    to: string;
+    subject: string;
+    html?: string;
+    text?: string;
+    from?: string;
+    replyTo?: string;
+  }): Promise<{ messageId: string; sent: boolean }> {
+    try {
+      // In a real implementation, this would use a service like:
+      // - SendGrid
+      // - AWS SES
+      // - Nodemailer with SMTP
+      // - Resend
+      
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Mock email sending
+      console.log('Sending email:', {
+        to: options.to,
+        subject: options.subject,
+        messageId
+      });
+      
+      // Store email log
+      this.emailLogs.push({
+        messageId,
+        to: options.to,
+        subject: options.subject,
+        sentAt: new Date().toISOString(),
+        status: 'sent'
+      });
+      
+      return { messageId, sent: true };
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      throw error;
+    }
+  }
+
+  async getEmailNotificationLogs(status?: string, limit: number = 50): Promise<any[]> {
+    let logs = [...this.emailLogs];
+    
+    if (status) {
+      logs = logs.filter(log => log.status === status);
+    }
+    
+    return logs.slice(0, limit);
+  }
+
+  // Email logs storage
+  private emailLogs: Array<{
+    messageId: string;
+    to: string;
+    subject: string;
+    sentAt: string;
+    status: 'sent' | 'failed' | 'pending';
+  }> = [];
+
   // Utility methods for task-related notifications
   async notifyTaskAssigned(taskTitle: string, assignedTo: string, assignedToName: string): Promise<void> {
     await this.addNotification({
       title: 'New Task Assigned',
       message: `You have been assigned a new task: ${taskTitle}`,
-      type: 'task_assigned',
+      type: 'info',
       userId: assignedTo,
       priority: 'medium',
       actionUrl: '/dashboard/tasks',
       actionText: 'View Task',
-      metadata: { taskTitle, assignedTo }
+      metadata: { taskTitle, assignedTo, assignedToName }
     });
   }
 
-  async notifyTaskCompleted(taskTitle: string, completedBy: string, completedByName: string): Promise<void> {
+  async notifyTaskCompleted(taskTitle: string, assignedTo: string, assignedToName: string): Promise<void> {
     await this.addNotification({
       title: 'Task Completed',
-      message: `Task "${taskTitle}" has been completed by ${completedByName}`,
-      type: 'task_completed',
-      userId: completedBy,
+      message: `Task "${taskTitle}" has been completed by ${assignedToName}`,
+      type: 'success',
+      userId: assignedTo,
       priority: 'low',
       actionUrl: '/dashboard/tasks',
-      actionText: 'View Task',
-      metadata: { taskTitle, completedBy }
+      actionText: 'View Tasks',
+      metadata: { taskTitle, assignedTo, assignedToName }
     });
   }
 
   async notifyTaskOverdue(taskTitle: string, assignedTo: string, assignedToName: string): Promise<void> {
     await this.addNotification({
       title: 'Task Overdue',
-      message: `Your task "${taskTitle}" is overdue!`,
-      type: 'task_overdue',
+      message: `Task "${taskTitle}" is overdue and needs your attention`,
+      type: 'warning',
       userId: assignedTo,
       priority: 'high',
       actionUrl: '/dashboard/tasks',
       actionText: 'View Task',
-      metadata: { taskTitle, assignedTo }
+      metadata: { taskTitle, assignedTo, assignedToName }
     });
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { motion, AnimatePresence } from 'framer-motion';
 import EnhancedTaskForm from "@/components/EnhancedTaskForm";
 import EnhancedTaskCard from "@/components/EnhancedTaskCard";
 import { EnhancedTaskService, type TaskFilters, type TaskAnalytics } from '@/lib/services/EnhancedTaskService';
@@ -24,8 +25,9 @@ import {
   Edit2, 
   Trash2, 
   Calendar, 
-  User, 
+  User as UserIcon,
   Clock,
+  RefreshCw,
   CheckCircle,
   AlertCircle,
   TrendingUp,
@@ -33,7 +35,7 @@ import {
   Bell,
   Settings
 } from 'lucide-react';
-import type { User, UserRole } from '@/lib/roles';
+import type { User as UserType, UserRole } from '@/lib/roles';
 import { getClientSession } from '@/lib/auth-client';
 
 // Static data for employees with roles
@@ -50,13 +52,14 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
   
   // State management
   const [tasks, setTasks] = React.useState<any[]>([]);
-  const [users, setUsers] = React.useState<User[]>([]);
+  const [users, setUsers] = React.useState<UserType[]>([]);
   const [session, setSession] = React.useState<any>(null);
   const [showAnalytics, setShowAnalytics] = React.useState(false);
   const [selectedTask, setSelectedTask] = React.useState<any>(null);
   const [showTaskDetails, setShowTaskDetails] = React.useState(false);
   const [notifications, setNotifications] = React.useState([]);
   const [error, setError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
   
   // Search and filters
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -120,6 +123,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       setTasks(result);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
+      errorHandler.handleError(error as Error, { operation: 'fetchTasks' });
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +136,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       const result = await taskService.getUsers({ isActive: true });
       setUsers(result);
     } catch (error) {
-      errorHandler.handleError(error, { operation: 'fetchUsers' });
+      errorHandler.handleError(error as Error, { operation: 'fetchUsers' });
     } finally {
       loadingState.stopLoading();
     }
@@ -143,7 +147,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       const analyticsData = await taskService.getTaskAnalytics();
       setAnalytics(analyticsData);
     } catch (error) {
-      errorHandler.handleError(error, { operation: 'fetchAnalytics' });
+      errorHandler.handleError(error as Error, { operation: 'fetchAnalytics' });
     }
   };
 
@@ -160,8 +164,17 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
     }
   };
 
-  const handleSearch = (searchFilters: TaskFilters) => {
-    setFilters(searchFilters);
+  const handleSearch = (searchFilters: any) => {
+    // Convert SearchFilters to TaskFilters format
+    const taskFilters: TaskFilters = {
+      search: searchFilters.search,
+      status: searchFilters.status?.[0] as any, // Convert array to single value
+      priority: searchFilters.priority?.[0] as any,
+      assignedTo: searchFilters.assignedTo?.[0],
+      tags: searchFilters.tags,
+      categories: searchFilters.categories
+    };
+    setFilters(taskFilters);
     resetInfiniteScroll();
   };
 
@@ -192,7 +205,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       
       resetInfiniteScroll();
     } catch (error) {
-      errorHandler.handleError(error, { operation: 'createTask' });
+      errorHandler.handleError(error as Error, { operation: 'createTask' });
     } finally {
       loadingState.stopLoading();
     }
@@ -217,7 +230,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       
       resetInfiniteScroll();
     } catch (error) {
-      errorHandler.handleError(error, { operation: 'updateTask' });
+      errorHandler.handleError(error as Error, { operation: 'updateTask' });
     } finally {
       loadingState.stopLoading();
     }
@@ -229,7 +242,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
       await taskService.deleteTask(taskId);
       resetInfiniteScroll();
     } catch (error) {
-      errorHandler.handleError(error, { operation: 'deleteTask' });
+      errorHandler.handleError(error as Error, { operation: 'deleteTask' });
     } finally {
       loadingState.stopLoading();
     }
@@ -360,14 +373,14 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
                   activeUsers: users.length,
                   totalUsers: users.length
                 },
-                tasksByStatus: Object.entries(analytics.tasksByStatus).map(([status, count]) => ({
+                tasksByStatus: Object.entries(analytics.tasksByStatus).map(([status, count]: [string, number]) => ({
                   name: status,
                   value: count,
                   color: status === 'completed' ? '#10b981' : 
                          status === 'pending' ? '#f59e0b' : 
                          status === 'in_progress' ? '#3b82f6' : '#ef4444'
                 })),
-                tasksByPriority: Object.entries(analytics.tasksByPriority).map(([priority, count]) => ({
+                tasksByPriority: Object.entries(analytics.tasksByPriority).map(([priority, count]: [string, number]) => ({
                   name: priority,
                   value: count,
                   color: priority === 'low' ? '#10b981' : 
@@ -518,7 +531,7 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
                           
                           <div className="flex items-center gap-4 text-xs text-gray-500">
                             <div className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
+                              <UserIcon className="w-3 h-3" />
                               {task.assignedToName || task.assignedTo}
                             </div>
                             <div className="flex items-center gap-1">

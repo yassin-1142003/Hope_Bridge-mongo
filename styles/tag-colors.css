@@ -31,3 +31,9 @@
 .tag-color-zinc { background-color: #71717a; }
 .tag-color-neutral { background-color: #737373; }
 .tag-color-stone { background-color: #78716c; }
+
+/* Dynamic color class using CSS custom properties */
+.tag-color-dynamic {
+  /* CSS custom property will be set via style attribute for dynamic colors */
+  background-color: var(--tag-color, #6b7280);
+}

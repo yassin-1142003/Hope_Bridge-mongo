@@ -412,10 +412,12 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                           <span
                             className={`w-3 h-3 rounded-full tag-color-base ${
                               tag.color.startsWith('#') 
-                                ? '' 
+                                ? 'tag-color-dynamic' 
                                 : `tag-color-${tag.color.toLowerCase()}`
                             }`}
-                            style={tag.color.startsWith('#') ? { backgroundColor: tag.color } : undefined}
+                            {...(tag.color.startsWith('#') && {
+                              style: { '--tag-color': tag.color } as React.CSSProperties
+                            })}
                             aria-label={`Tag color: ${tag.color}`}
                           />
                         )}

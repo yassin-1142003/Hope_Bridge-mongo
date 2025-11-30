@@ -11,6 +11,8 @@ export interface TaskFilters {
     end: string;
   };
   search?: string;
+  tags?: string[];
+  categories?: string[];
 }
 
 export interface TaskAnalytics {
@@ -220,6 +222,121 @@ export class EnhancedTaskService extends TaskServiceClient {
     }
   }
 
+  // Analytics and reporting methods
+  async getTaskTrends(dateRange?: { start: string; end: string }): Promise<any[]> {
+    // Mock trend data - in real implementation, this would query database
+    const trends = [];
+    const start = dateRange?.start ? new Date(dateRange.start) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = dateRange?.end ? new Date(dateRange.end) : new Date();
+    
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
+      trends.push({
+        date: date.toISOString().split('T')[0],
+        created: Math.floor(Math.random() * 10) + 5,
+        completed: Math.floor(Math.random() * 8) + 3,
+        overdue: Math.floor(Math.random() * 3)
+      });
+    }
+    
+    return trends;
+  }
+
+  async getProductivityMetrics(userId?: string, department?: string): Promise<any[]> {
+    // Mock productivity data
+    return [
+      { day: 'Mon', tasks: 12, hours: 8, efficiency: 85.0 },
+      { day: 'Tue', tasks: 15, hours: 8.5, efficiency: 88.2 },
+      { day: 'Wed', tasks: 18, hours: 9, efficiency: 90.0 },
+      { day: 'Thu', tasks: 14, hours: 7.5, efficiency: 93.3 },
+      { day: 'Fri', tasks: 16, hours: 8, efficiency: 92.0 },
+      { day: 'Sat', tasks: 8, hours: 4, efficiency: 80.0 },
+      { day: 'Sun', tasks: 5, hours: 3, efficiency: 83.3 }
+    ];
+  }
+
+  async exportAnalytics(filters: any, format: 'json' | 'csv' | 'pdf' = 'json'): Promise<any> {
+    const analytics = await this.getTaskAnalytics();
+    const trends = await this.getTaskTrends(filters.dateRange);
+    const productivity = await this.getProductivityMetrics(filters.userId, filters.department);
+
+    const exportData = {
+      analytics,
+      trends,
+      productivity,
+      exportedAt: new Date().toISOString(),
+      filters
+    };
+
+    if (format === 'json') {
+      return exportData;
+    } else if (format === 'csv') {
+      // Convert to CSV format
+      return this.convertToCSV(exportData);
+    } else if (format === 'pdf') {
+      // Convert to PDF format
+      return this.convertToPDF(exportData);
+    }
+  }
+
+  async getCustomAnalytics(filters: any): Promise<any> {
+    // Custom analytics based on filters
+    const tasks = await this.getFilteredTasks(filters);
+    
+    return {
+      totalTasks: tasks.length,
+      averageCompletionTime: this.calculateAverageCompletionTime(tasks),
+      tasksByUser: this.groupTasksByUser(tasks),
+      tasksByPriority: this.groupTasksByPriority(tasks),
+      completionRate: this.calculateCompletionRate(tasks),
+      overdueRate: this.calculateOverdueRate(tasks)
+    };
+  }
+
+  // Helper methods for analytics
+  private convertToCSV(data: any): string {
+    // Simple CSV conversion - in real implementation, use a proper CSV library
+    const headers = ['Date', 'Created', 'Completed', 'Overdue'];
+    const rows = data.trends.map((trend: any) => [
+      trend.date,
+      trend.created,
+      trend.completed,
+      trend.overdue
+    ]);
+    
+    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+  }
+
+  private convertToPDF(data: any): Buffer {
+    // PDF conversion - in real implementation, use a library like jsPDF or Puppeteer
+    return Buffer.from('PDF content placeholder');
+  }
+
+  private calculateAverageCompletionTime(tasks: any[]): number {
+    // Mock calculation
+    return 3.2; // days
+  }
+
+  private groupTasksByUser(tasks: any[]): any {
+    // Mock grouping
+    return {};
+  }
+
+  private groupTasksByPriority(tasks: any[]): any {
+    // Mock grouping
+    return {};
+  }
+
+  private calculateCompletionRate(tasks: any[]): number {
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    return (completed / tasks.length) * 100;
+  }
+
+  private calculateOverdueRate(tasks: any[]): number {
+    const overdue = tasks.filter(t => t.status === 'overdue').length;
+    return (overdue / tasks.length) * 100;
+  }
+
   // Real-time updates
   private initializeRealtimeUpdates(): void {
     // Simulate real-time updates with polling
@@ -304,48 +421,42 @@ export class EnhancedTaskService extends TaskServiceClient {
     }
   }
 
-  async importTasks(data: string, format: 'json' | 'csv' = 'json'): Promise<number> {
-    try {
-      let tasks: Partial<Task>[];
-      
-      if (format === 'json') {
-        tasks = JSON.parse(data);
-      } else {
-        // CSV format - simple implementation
-        const lines = data.split('\n');
-        const headers = lines[0].split(',');
-        
-        tasks = lines.slice(1).map(line => {
-          const values = line.split(',');
-          return {
-            title: values[1],
-            description: values[2],
-            assignedTo: values[3],
-            priority: values[4] as Task['priority'],
-            status: values[5] as Task['status'],
-            startDate: values[6],
-            endDate: values[7],
-            createdBy: values[8]
-          };
-        });
-      }
-      
-      // Create tasks
-      let importedCount = 0;
-      for (const taskData of tasks) {
-        try {
-          await this.createTask(taskData as CreateTaskData);
-          importedCount++;
-        } catch (error) {
-          console.error('Error importing task:', error);
+  async importTasks(tasks: Partial<Task>[], options?: { overwrite?: boolean }): Promise<{ imported: number; skipped: number; errors: string[] }> {
+    const result = { imported: 0, skipped: 0, errors: [] as string[] };
+    
+    for (const taskData of tasks) {
+      try {
+        // Validate required fields
+        if (!taskData.title || !taskData.assignedTo) {
+          result.errors.push(`Task missing required fields: ${taskData.title || 'Untitled'}`);
+          result.skipped++;
+          continue;
         }
+        
+        // Check if task already exists (if not overwriting)
+        if (!options?.overwrite) {
+          const existingTasks = await this.getAllTasks();
+          const exists = existingTasks.some(t => 
+            t.title === taskData.title && 
+            t.assignedTo === taskData.assignedTo
+          );
+          
+          if (exists) {
+            result.skipped++;
+            continue;
+          }
+        }
+        
+        // Create task
+        await this.createTask(taskData as CreateTaskData);
+        result.imported++;
+      } catch (error) {
+        result.errors.push(`Failed to import task: ${taskData.title} - ${error}`);
+        result.skipped++;
       }
-      
-      this.clearCache();
-      return importedCount;
-    } catch (error) {
-      console.error('Error importing tasks:', error);
-      throw error;
     }
+    
+    this.clearCache();
+    return result;
   }
 }
