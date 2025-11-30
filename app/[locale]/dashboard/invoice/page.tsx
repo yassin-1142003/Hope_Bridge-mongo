@@ -116,60 +116,162 @@ const InvoiceForm = () => {
   const grandTotalGBP = items.reduce((sum, item) => sum + item.totalGBP, 0);
   const grandTotalUSD = items.reduce((sum, item) => sum + item.totalUSD, 0);
 
-  const handlePrint = async () => {
-    if (!invoiceRef.current) return;
-
+  const handlePrint = () => {
     try {
-      // Hide elements we don't want in PDF
-      const elementsToHide = document.querySelectorAll('.print\\:hidden');
-      elementsToHide.forEach(el => el.classList.add('pdf-hidden'));
-
-      // Capture the invoice content
-      const canvas = await html2canvas(invoiceRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
       });
 
-      // Restore hidden elements
-      elementsToHide.forEach(el => el.classList.remove('pdf-hidden'));
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 15;
 
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
+      // -------- HEADER --------
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(
+        "Palestinian Hope Bridge Charitable Association",
+        pageWidth / 2,
+        y,
+        { align: "center" }
+      );
+
+      // INVOICE BOX
+      y += 12;
+      doc.setFillColor(255, 153, 102);
+      doc.rect(pageWidth / 2 - 25, y - 6, 50, 8, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.text("INVOICE", pageWidth / 2, y, { align: "center" });
+      doc.setTextColor(0, 0, 0);
+
+      // Invoice To + Date
+      y += 12;
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Invoice to: ${invoiceTo || "-"}`, 20, y);
+      doc.text(`Date: ${invoiceDate || ""}`, pageWidth - 20, y, {
+        align: "right",
       });
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+      // Invoice Number
+      y += 10;
+      doc.setFont("helvetica", "bold");
+      doc.text(`Invoice No: ${invoiceNo || "-"}`, pageWidth / 2, y, {
+        align: "center",
+      });
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Project Title
+      y += 12;
+      doc.setFontSize(12);
+      doc.text(projectName || "Gaza strip Relief project", pageWidth / 2, y, {
+        align: "center",
+      });
+      y += 7;
+      doc.text(
+        emergencyProject || "Emergency Project War September 2025",
+        pageWidth / 2,
+        y,
+        { align: "center" }
+      );
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // ---------- TABLE ----------
+      y += 12;
+
+      const col = {
+        no: 15,
+        item: 40,
+        unit: 110,
+        qty: 135,
+        totalGBP: 160,
+        totalUSD: 185,
+      };
+
+      // Header
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("No", col.no, y);
+      doc.text("ITEMS", col.item, y);
+      doc.text("UNIT P (£)", col.unit, y);
+      doc.text("QTY", col.qty, y);
+      doc.text("TOTAL (£)", col.totalGBP, y);
+      doc.text("TOTAL ($)", col.totalUSD, y);
+
+      // Rows
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      items.forEach((item, i) => {
+        if (!item.itemName) return;
+
+        // Auto new page
+        if (y > pageHeight - 40) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.text(String(i + 1), col.no, y);
+        doc.text(item.itemName, col.item, y);
+        doc.text(item.unitPrice.toFixed(2), col.unit, y, { align: "right" });
+        doc.text(String(item.quantity), col.qty, y, { align: "right" });
+        doc.text(item.totalGBP.toFixed(2), col.totalGBP, y, { align: "right" });
+        doc.text(item.totalUSD.toFixed(2), col.totalUSD, y, { align: "right" });
+
+        y += 6;
+      });
+
+      // Total Row
+      y += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("Total:", col.qty, y);
+      doc.text(grandTotalGBP.toFixed(2), col.totalGBP, y, { align: "right" });
+      doc.text(grandTotalUSD.toFixed(2), col.totalUSD, y, { align: "right" });
+
+      // ---------- MANAGER ----------
+      y += 12;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("General manager", 20, y);
+      y += 5;
+      doc.text(managerName || "Mohammed Zohd", 20, y);
+
+      // ---------- BANK INFO AT BOTTOM ----------
+      if (currentBank) {
+        const bankY = pageHeight - 35;
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("Bank Information", pageWidth / 2, bankY, { align: "center" });
+
+        doc.setFont("helvetica", "normal");
+        doc.text(`Bank: ${currentBank.name}`, pageWidth / 2, bankY + 6, {
+          align: "center",
+        });
+        doc.text(currentBank.account, pageWidth / 2, bankY + 12, {
+          align: "center",
+        });
+        doc.text(`SWIFT: ${currentBank.swift}`, pageWidth / 2, bankY + 18, {
+          align: "center",
+        });
+        doc.text(`IBAN: ${currentBank.iban}`, pageWidth / 2, bankY + 24, {
+          align: "center",
+        });
       }
 
-      // Generate filename
-      const filename = `invoice_${invoiceNo || 'draft'}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(filename);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
+      doc.save(`invoice_${invoiceNo || "draft"}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("PDF error");
     }
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-primary/10 via-primary/5 to-background p-4 md:p-8">
-      <div ref={invoiceRef} className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div
+        ref={invoiceRef}
+        className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden"
+      >
         {/* Header */}
         <div className="bg-linear-to-r from-primary to-primary/80 p-8 print:hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -498,8 +600,7 @@ const InvoiceForm = () => {
 
           .print\:hidden,
           .print-header,
-          .print-footer,
-          .pdf-hidden {
+          .print-footer {
             display: none !important;
           }
 
