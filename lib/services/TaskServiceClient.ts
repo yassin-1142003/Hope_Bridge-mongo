@@ -26,6 +26,15 @@ export interface Task {
   updatedAt: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  isActive?: boolean;
+  department?: string;
+}
+
 export interface CreateTaskData {
   title: string;
   description: string;
@@ -40,13 +49,13 @@ export interface CreateTaskData {
 }
 
 export class TaskServiceClient {
-  private baseUrl: string;
+  protected baseUrl: string;
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   }
 
-  private async getAuthHeaders(): Promise<Record<string, string>> {
+  protected async getAuthHeaders(): Promise<Record<string, string>> {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('auth-token');
       const headers: Record<string, string> = {
@@ -60,10 +69,10 @@ export class TaskServiceClient {
     return { 'Content-Type': 'application/json' };
   }
 
-  async getAllTasks(): Promise<Task[]> {
+  async getAllTasks(page: number = 1, limit: number = 20): Promise<{ tasks: Task[]; total: number; hasMore: boolean }> {
     try {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.baseUrl}/api/tasks`, {
+      const response = await fetch(`${this.baseUrl}/api/tasks?page=${page}&limit=${limit}`, {
         headers,
         cache: 'no-store'
       });
@@ -73,10 +82,15 @@ export class TaskServiceClient {
       }
 
       const result = await response.json();
-      return result.data || result.tasks || [];
+      const tasks = result.data || result.tasks || [];
+      const total = result.metadata?.pagination?.total || 0;
+      const totalPages = result.metadata?.pagination?.totalPages || 1;
+      const hasMore = page < totalPages;
+
+      return { tasks, total, hasMore };
     } catch (error) {
       console.error('Error fetching tasks:', error);
-      return [];
+      return { tasks: [], total: 0, hasMore: false };
     }
   }
 

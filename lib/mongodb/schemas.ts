@@ -137,6 +137,63 @@ export interface Activity {
   userAgent?: string;
 }
 
+export interface TaskActivity {
+  _id?: ObjectId;
+  userId: string;
+  userRole: 'ADMIN' | 'PROJECT_COORDINATOR' | 'FIELD_OFFICER' | 'HR' | 'VOLUNTEER' | 'USER';
+  userName: string;
+  userEmail: string;
+  action: string;
+  entityType: 'task' | 'project' | 'user' | 'notification' | 'system' | 'email' | 'file';
+  entityId: string;
+  entityName: string;
+  operation: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'SEND' | 'RECEIVE' | 'LOGIN' | 'LOGOUT';
+  description: string;
+  dataSent?: any;
+  dataReceived?: any;
+  apiEndpoint?: string;
+  httpMethod?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  statusCode?: number;
+  responseTime?: number;
+  success: boolean;
+  errorMessage?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  department?: string;
+  metadata?: {
+    [key: string]: any;
+    previousValues?: any;
+    newValues?: any;
+    affectedUsers?: string[];
+    attachments?: string[];
+    notificationsSent?: number;
+  };
+  createdAt: Date;
+}
+
+export interface RoleMetrics {
+  _id?: ObjectId;
+  role: string;
+  date: Date; // YYYY-MM-DD format
+  totalActions: number;
+  actionsByType: Record<string, number>;
+  actionsByEntity: Record<string, number>;
+  successfulActions: number;
+  failedActions: number;
+  averageResponseTime: number;
+  mostActiveUsers: Array<{
+    userId: string;
+    userName: string;
+    actionCount: number;
+  }>;
+  peakHours: Array<{
+    hour: number; // 0-23
+    actionCount: number;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Schema validation rules
 export const SCHEMA_VALIDATION = {
   users: {
@@ -327,6 +384,83 @@ export const SCHEMA_VALIDATION = {
         userAgent: { bsonType: 'string', description: 'User agent string' }
       }
     }
+  },
+
+  task_activities: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['userId', 'userRole', 'userName', 'userEmail', 'action', 'entityType', 'entityId', 'entityName', 'operation', 'description', 'success', 'createdAt'],
+      properties: {
+        userId: { bsonType: 'string', description: 'ID of user who performed action' },
+        userRole: { 
+          bsonType: 'string', 
+          enum: ['ADMIN', 'PROJECT_COORDINATOR', 'FIELD_OFFICER', 'HR', 'VOLUNTEER', 'USER'],
+          description: 'User role in the system'
+        },
+        userName: { bsonType: 'string', description: 'Name of user who performed action' },
+        userEmail: { bsonType: 'string', description: 'Email of user who performed action' },
+        action: { bsonType: 'string', minLength: 1, description: 'Action performed' },
+        entityType: { 
+          bsonType: 'string', 
+          enum: ['task', 'project', 'user', 'notification', 'system', 'email', 'file'],
+          description: 'Type of entity affected'
+        },
+        entityId: { bsonType: 'string', description: 'ID of entity affected' },
+        entityName: { bsonType: 'string', description: 'Name of entity affected' },
+        operation: { 
+          bsonType: 'string', 
+          enum: ['CREATE', 'READ', 'UPDATE', 'DELETE', 'SEND', 'RECEIVE', 'LOGIN', 'LOGOUT'],
+          description: 'Type of operation performed'
+        },
+        description: { bsonType: 'string', minLength: 1, description: 'Activity description' },
+        dataSent: { bsonType: 'object', description: 'Data sent in the request' },
+        dataReceived: { bsonType: 'object', description: 'Data received in the response' },
+        apiEndpoint: { bsonType: 'string', description: 'API endpoint accessed' },
+        httpMethod: { 
+          bsonType: 'string', 
+          enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+          description: 'HTTP method used'
+        },
+        statusCode: { bsonType: 'int', description: 'HTTP status code' },
+        responseTime: { bsonType: 'number', minimum: 0, description: 'Response time in milliseconds' },
+        success: { bsonType: 'bool', description: 'Whether the operation was successful' },
+        errorMessage: { bsonType: 'string', description: 'Error message if operation failed' },
+        ipAddress: { bsonType: 'string', description: 'IP address of user' },
+        userAgent: { bsonType: 'string', description: 'User agent string' },
+        department: { bsonType: 'string', description: 'User department' },
+        metadata: { bsonType: 'object', description: 'Additional activity metadata' },
+        createdAt: { bsonType: 'date', description: 'When activity occurred' }
+      }
+    }
+  },
+
+  role_metrics: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['role', 'date', 'totalActions', 'actionsByType', 'actionsByEntity', 'successfulActions', 'failedActions', 'averageResponseTime', 'mostActiveUsers', 'peakHours', 'createdAt', 'updatedAt'],
+      properties: {
+        role: { bsonType: 'string', description: 'User role' },
+        date: { bsonType: 'date', description: 'Date for metrics (YYYY-MM-DD format)' },
+        totalActions: { bsonType: 'int', minimum: 0, description: 'Total number of actions' },
+        actionsByType: { bsonType: 'object', description: 'Actions grouped by type' },
+        actionsByEntity: { bsonType: 'object', description: 'Actions grouped by entity type' },
+        successfulActions: { bsonType: 'int', minimum: 0, description: 'Number of successful actions' },
+        failedActions: { bsonType: 'int', minimum: 0, description: 'Number of failed actions' },
+        averageResponseTime: { bsonType: 'number', minimum: 0, description: 'Average response time' },
+        mostActiveUsers: { 
+          bsonType: 'array', 
+          items: { bsonType: 'object' },
+          description: 'Most active users for this role'
+        },
+        peakHours: { 
+          bsonType: 'array', 
+          items: { bsonType: 'object' },
+          description: 'Peak activity hours'
+        },
+        createdAt: { bsonType: 'date', description: 'When metrics were created' },
+        updatedAt: { bsonType: 'date', description: 'When metrics were last updated' }
+      }
+    }
   }
 };
 
@@ -381,6 +515,29 @@ export const INDEX_DEFINITIONS = {
     { key: { entityType: 1, entityId: 1 } },
     { key: { createdAt: -1 } },
     { key: { action: 1 } }
+  ] as const,
+  
+  task_activities: [
+    { key: { userId: 1, createdAt: -1 } },
+    { key: { userRole: 1, createdAt: -1 } },
+    { key: { entityType: 1, entityId: 1 } },
+    { key: { action: 1 } },
+    { key: { operation: 1 } },
+    { key: { apiEndpoint: 1 } },
+    { key: { success: 1 } },
+    { key: { createdAt: -1 } },
+    { key: { responseTime: 1 } },
+    { key: { department: 1 } },
+    { key: { userRole: 1, success: 1 } },
+    { key: { entityType: 1, operation: 1 } }
+  ] as const,
+  
+  role_metrics: [
+    { key: { role: 1, date: -1 } },
+    { key: { date: -1 } },
+    { key: { role: 1 } },
+    { key: { totalActions: -1 } },
+    { key: { createdAt: -1 } }
   ] as const
 };
 

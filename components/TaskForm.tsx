@@ -132,7 +132,12 @@ export default function TaskForm({
     if (type.startsWith('image/')) return '🖼️';
     if (type.startsWith('video/')) return '🎥';
     if (type.includes('pdf')) return '📄';
-    if (type.includes('word') || type.includes('document')) return '📝';
+    if (type.includes('word') || type.includes('document') || type.includes('.doc')) return '📝';
+    if (type.includes('sheet') || type.includes('excel') || type.includes('.xls')) return '📊';
+    if (type.includes('presentation') || type.includes('powerpoint') || type.includes('.ppt')) return '📽️';
+    if (type.includes('text') || type.includes('.txt')) return '📃';
+    if (type.includes('csv')) return '📋';
+    if (type.includes('zip') || type.includes('rar') || type.includes('7z')) return '🗜️';
     return '📎';
   };
 
@@ -209,33 +214,32 @@ export default function TaskForm({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Assigned To */}
+        {/* Assigned To - Email Input */}
         <div>
           <label 
             htmlFor="task-assigned-to"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            {isArabic ? 'المسند إلى' : 'Assigned To'} *
+            {isArabic ? 'المسند إلى (البريد الإلكتروني)' : 'Assigned To (Email)'} *
           </label>
-          <select
+          <input
             id="task-assigned-to"
+            type="email"
             name="assignedTo"
             value={formData.assignedTo}
             onChange={handleInputChange}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder={isArabic ? 'أدخل البريد الإلكتروني للموظف' : 'Enter employee email address'}
             required
-            aria-label={isArabic ? 'المسند إلى' : 'Assigned to employee'}
+            aria-label={isArabic ? 'البريد الإلكتروني للموظف' : 'Employee email address'}
             aria-required="true"
-          >
-            <option value="">{isArabic ? 'اختر الموظف' : 'Select employee'}</option>
-            {employees
-              .filter(emp => canSendMessage(currentUserRole, emp.role))
-              .map(emp => (
-                <option key={emp.id} value={emp.email}>
-                  {emp.name} ({emp.email}) - {ROLE_DISPLAY_NAMES[emp.role]}
-                </option>
-              ))}
-          </select>
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {isArabic 
+              ? 'أدخل البريد الإلكتروني للموظف الذي تريد إسناد المهمة إليه' 
+              : 'Enter the email address of the employee to assign this task to'
+            }
+          </p>
         </div>
 
         {/* Priority */}
@@ -390,52 +394,52 @@ export default function TaskForm({
         </label>
         
         {/* Drop Zone */}
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-            isDragging 
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-          }`}
-          role="button"
-          tabIndex={0}
-          aria-label={isArabic ? 'منطقة إسقاط الملفات - اسحب أو انقر لاختيار الملفات' : 'File drop zone - drag files here or click to select'}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
-        >
-          <div className="space-y-2">
-            <div className="text-4xl">📁</div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isArabic 
-                ? 'اسحب الملفات هنا أو انقر للاختيار' 
-                : 'Drag files here or click to select'
-              }
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              {isArabic 
-                ? 'الصور، الفيديوهات، والمستندات مدعومة (الحد الأقصى: 50 ميجابايت)' 
-                : 'Images, videos, and documents supported (Max: 50MB)'
-              }
-            </p>
+        <div className="relative">
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              isDragging 
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                : 'border-gray-300 dark:border-gray-600'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="text-4xl">📁</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {isArabic 
+                  ? 'اسحب الملفات هنا أو' 
+                  : 'Drag files here or'
+                }
+              </p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                aria-label={isArabic ? 'اختر ملفات' : 'Select files'}
+              >
+                {isArabic ? 'اختر ملفات' : 'Select Files'}
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                {isArabic 
+                  ? 'الصور، الفيديوهات، والمستندات مدعومة: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR, 7Z (الحد الأقصى: 50 ميجابايت)' 
+                  : 'Images, videos, and documents supported: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR, 7Z (Max: 50MB)'
+                }
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              id="task-files"
+              type="file"
+              multiple
+              accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z"
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className="hidden"
+              aria-label={isArabic ? 'اختر ملفات للمرفقات' : 'Select files for attachments'}
+              title={isArabic ? 'اختر ملفات للمرفقات' : 'Select files for attachments'}
+            />
           </div>
-          <input
-            ref={fileInputRef}
-            id="task-files"
-            type="file"
-            multiple
-            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
-            onChange={(e) => handleFileSelect(e.target.files)}
-            className="hidden"
-            aria-label={isArabic ? 'اختر ملفات للمرفقات' : 'Select files for attachments'}
-            title={isArabic ? 'اختر ملفات للمرفقات' : 'Select files for attachments'}
-          />
         </div>
 
         {/* Uploaded Files */}

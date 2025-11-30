@@ -45,61 +45,45 @@ export class EnhancedTaskService extends TaskServiceClient {
   }
 
   // Advanced filtering and search
-  async getFilteredTasks(filters: TaskFilters): Promise<Task[]> {
-    const cacheKey = `filtered_tasks_${JSON.stringify(filters)}`;
+  async getFilteredTasks(filters: TaskFilters, page: number = 1, limit: number = 20): Promise<Task[]> {
+    const cacheKey = `filtered_tasks_${JSON.stringify(filters)}_${page}_${limit}`;
     
     // Check cache first
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
     }
-
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.priority) params.append('priority', filters.priority);
+    if (filters.assignedTo) params.append('assignedTo', filters.assignedTo);
+    if (filters.createdBy) params.append('createdBy', filters.createdBy);
+    if (filters.search) params.append('search', filters.search);
+    params.append('page', page.toString());
+    params.append('limit', limit.toString());
+    
     try {
-      const allTasks = await this.getAllTasks();
-      
-      let filteredTasks = allTasks.filter(task => {
-        // Status filter
-        if (filters.status && task.status !== filters.status) return false;
-        
-        // Priority filter
-        if (filters.priority && task.priority !== filters.priority) return false;
-        
-        // Assigned to filter
-        if (filters.assignedTo && task.assignedTo !== filters.assignedTo) return false;
-        
-        // Created by filter
-        if (filters.createdBy && task.createdBy !== filters.createdBy) return false;
-        
-        // Date range filter
-        if (filters.dateRange) {
-          const taskDate = new Date(task.createdAt);
-          const startDate = new Date(filters.dateRange.start);
-          const endDate = new Date(filters.dateRange.end);
-          if (taskDate < startDate || taskDate > endDate) return false;
-        }
-        
-        // Search filter
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          return (
-            task.title.toLowerCase().includes(searchLower) ||
-            task.description.toLowerCase().includes(searchLower) ||
-            task.assignedToName?.toLowerCase().includes(searchLower)
-          );
-        }
-        
-        return true;
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${this.baseUrl}/api/tasks?${params}`, {
+        headers,
+        cache: 'no-store'
       });
 
-      // Sort by creation date (newest first)
-      filteredTasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      if (!response.ok) {
+        throw new Error(`Failed to fetch filtered tasks: ${response.status}`);
+      }
 
+      const result = await response.json();
+      const tasks = result.data || result.tasks || [];
+      
       // Cache the result
-      this.cache.set(cacheKey, { data: filteredTasks, timestamp: Date.now() });
-
-      return filteredTasks;
+      this.cache.set(cacheKey, { data: tasks, timestamp: Date.now() });
+      
+      return tasks;
     } catch (error) {
-      console.error('Error filtering tasks:', error);
+      console.error('Error fetching filtered tasks:', error);
       return [];
     }
   }
@@ -110,27 +94,29 @@ export class EnhancedTaskService extends TaskServiceClient {
       const tasks = userId 
         ? await this.getFilteredTasks({ assignedTo: userId })
         : await this.getAllTasks();
+      
+      const taskArray = Array.isArray(tasks) ? tasks : tasks.tasks || [];
 
-      const totalTasks = tasks.length;
-      const completedTasks = tasks.filter(t => t.status === 'completed').length;
-      const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+      const totalTasks = taskArray.length;
+      const completedTasks = taskArray.filter((t: any) => t.status === 'completed').length;
+      const pendingTasks = taskArray.filter((t: any) => t.status === 'pending').length;
       
       // Calculate overdue tasks
       const now = new Date();
-      const overdueTasks = tasks.filter(t => 
+      const overdueTasks = taskArray.filter((t: any) => 
         t.status !== 'completed' && 
         t.status !== 'cancelled' && 
         new Date(t.endDate) < now
       ).length;
 
       // Tasks by priority
-      const tasksByPriority = tasks.reduce((acc, task) => {
+      const tasksByPriority = taskArray.reduce((acc: any, task: any) => {
         acc[task.priority] = (acc[task.priority] || 0) + 1;
         return acc;
       }, {} as Record<Task['priority'], number>);
 
       // Tasks by status
-      const tasksByStatus = tasks.reduce((acc, task) => {
+      const tasksByStatus = taskArray.reduce((acc: any, task: any) => {
         acc[task.status] = (acc[task.status] || 0) + 1;
         return acc;
       }, {} as Record<Task['status'], number>);
@@ -139,14 +125,14 @@ export class EnhancedTaskService extends TaskServiceClient {
       const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       // Average completion time (in days)
-      const completedTasksWithDates = tasks.filter(t => 
+      const completedTasksWithDates = taskArray.filter((t: any) => 
         t.status === 'completed' && 
         t.updatedAt && 
         t.createdAt
       );
       
       const averageCompletionTime = completedTasksWithDates.length > 0
-        ? completedTasksWithDates.reduce((sum, task) => {
+        ? completedTasksWithDates.reduce((sum: number, task: any) => {
             const created = new Date(task.createdAt).getTime();
             const completed = new Date(task.updatedAt).getTime();
             return sum + (completed - created) / (1000 * 60 * 60 * 24); // Convert to days
@@ -204,7 +190,13 @@ export class EnhancedTaskService extends TaskServiceClient {
   async createTaskTemplate(template: Omit<CreateTaskData, 'assignedTo'> & { name: string }): Promise<void> {
     try {
       const templates = this.getTaskTemplates();
-      templates.push({ ...template, id: Date.now().toString() });
+      // Add a default assignedTo for template (empty string or user can set it later)
+      const taskTemplate = { 
+        ...template, 
+        assignedTo: '', // Default empty, user will set when using template
+        id: Date.now().toString() 
+      };
+      templates.push(taskTemplate);
       localStorage.setItem('task_templates', JSON.stringify(templates));
     } catch (error) {
       console.error('Error creating task template:', error);
@@ -255,10 +247,12 @@ export class EnhancedTaskService extends TaskServiceClient {
     ];
   }
 
-  async exportAnalytics(filters: any, format: 'json' | 'csv' | 'pdf' = 'json'): Promise<any> {
+  async exportTasks(filters?: TaskFilters, format: 'json' | 'csv' = 'json'): Promise<any> {
+    const result = await this.getAllTasks();
+    const tasks = Array.isArray(result) ? result : result.tasks || [];
     const analytics = await this.getTaskAnalytics();
-    const trends = await this.getTaskTrends(filters.dateRange);
-    const productivity = await this.getProductivityMetrics(filters.userId, filters.department);
+    const trends = await this.getTaskTrends(filters?.dateRange);
+    const productivity = await this.getProductivityMetrics();
 
     const exportData = {
       analytics,
@@ -304,7 +298,7 @@ export class EnhancedTaskService extends TaskServiceClient {
       trend.overdue
     ]);
     
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    return [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n');
   }
 
   private convertToPDF(data: any): Buffer {
@@ -391,30 +385,27 @@ export class EnhancedTaskService extends TaskServiceClient {
   }
 
   // Export/Import functionality
-  async exportTasks(format: 'json' | 'csv' = 'json'): Promise<string> {
+  async exportTasksToCSV(): Promise<string> {
     try {
-      const tasks = await this.getAllTasks();
+      const result = await this.getAllTasks();
+      const tasks = Array.isArray(result) ? result : result.tasks || [];
       
-      if (format === 'json') {
-        return JSON.stringify(tasks, null, 2);
-      } else {
-        // CSV format
-        const headers = ['ID', 'Title', 'Description', 'Assigned To', 'Priority', 'Status', 'Start Date', 'End Date', 'Created By', 'Created At'];
-        const rows = tasks.map(task => [
-          task._id,
-          task.title,
-          task.description,
-          task.assignedToName || task.assignedTo,
-          task.priority,
-          task.status,
-          task.startDate,
-          task.endDate,
-          task.createdByName || task.createdBy,
-          task.createdAt
-        ]);
-        
-        return [headers, ...rows].map(row => row.join(',')).join('\n');
-      }
+      // CSV format
+      const headers = ['ID', 'Title', 'Description', 'Assigned To', 'Priority', 'Status', 'Start Date', 'End Date', 'Created By', 'Created At'];
+      const rows = tasks.map((task: any) => [
+        task._id,
+        task.title,
+        task.description,
+        task.assignedToName || task.assignedTo,
+        task.priority,
+        task.status,
+        task.startDate,
+        task.endDate,
+        task.createdByName || task.createdBy,
+        task.createdAt
+      ]);
+      
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
     } catch (error) {
       console.error('Error exporting tasks:', error);
       throw error;
@@ -435,8 +426,9 @@ export class EnhancedTaskService extends TaskServiceClient {
         
         // Check if task already exists (if not overwriting)
         if (!options?.overwrite) {
-          const existingTasks = await this.getAllTasks();
-          const exists = existingTasks.some(t => 
+          const existingTasksResult = await this.getAllTasks();
+          const existingTasks = Array.isArray(existingTasksResult) ? existingTasksResult : existingTasksResult.tasks || [];
+          const exists = existingTasks.some((t: any) => 
             t.title === taskData.title && 
             t.assignedTo === taskData.assignedTo
           );

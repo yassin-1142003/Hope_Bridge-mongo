@@ -227,7 +227,13 @@ export default function EnhancedTaskForm({
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return <Image className="w-5 h-5" />;
     if (type.startsWith('video/')) return <Video className="w-5 h-5" />;
-    if (type.includes('pdf') || type.includes('document')) return <FileText className="w-5 h-5" />;
+    if (type.includes('pdf')) return <FileText className="w-5 h-5" />;
+    if (type.includes('word') || type.includes('document') || type.includes('.doc')) return <FileText className="w-5 h-5 text-blue-600" />;
+    if (type.includes('sheet') || type.includes('excel') || type.includes('.xls')) return <FileText className="w-5 h-5 text-green-600" />;
+    if (type.includes('presentation') || type.includes('powerpoint') || type.includes('.ppt')) return <FileText className="w-5 h-5 text-orange-600" />;
+    if (type.includes('text') || type.includes('.txt')) return <FileText className="w-5 h-5 text-gray-600" />;
+    if (type.includes('csv')) return <FileText className="w-5 h-5 text-purple-600" />;
+    if (type.includes('zip') || type.includes('rar') || type.includes('7z')) return <Paperclip className="w-5 h-5 text-yellow-600" />;
     return <Paperclip className="w-5 h-5" />;
   };
 
@@ -358,31 +364,31 @@ export default function EnhancedTaskForm({
               )}
             </div>
 
-            {/* Assigned To */}
+            {/* Assigned To - Email Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {isArabic ? 'المسند إلى' : 'Assigned To'} *
+                {isArabic ? 'المسند إلى (البريد الإلكتروني)' : 'Assigned To (Email)'} *
               </label>
-              <select
+              <input
+                type="email"
                 name="assignedTo"
                 value={formData.assignedTo}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                   errors.assignedTo ? 'border-red-300 bg-red-50' : 'border-gray-300'
                 }`}
+                placeholder={isArabic ? 'أدخل البريد الإلكتروني للموظف' : 'Enter employee email address'}
                 disabled={isSubmitting}
-                aria-label={isArabic ? 'اختر الموظف' : 'Select employee'}
-                title={isArabic ? 'اختر الموظف لتعيين المهمة' : 'Select employee to assign task'}
-              >
-                <option value="">{isArabic ? 'اختر الموظف' : 'Select employee'}</option>
-                {employees
-                  .filter(emp => canSendMessage(currentUserRole, emp.role))
-                  .map(emp => (
-                    <option key={emp.id} value={emp.email}>
-                      {emp.name} ({emp.email}) - {ROLE_DISPLAY_NAMES[emp.role]}
-                    </option>
-                  ))}
-              </select>
+                aria-label={isArabic ? 'البريد الإلكتروني للموظف' : 'Employee email address'}
+                title={isArabic ? 'أدخل البريد الإلكتروني للموظف لتعيين المهمة' : 'Enter employee email address to assign task'}
+                required
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {isArabic 
+                  ? 'أدخل البريد الإلكتروني للموظف الذي تريد إسناد المهمة إليه' 
+                  : 'Enter the email address of the employee to assign this task to'
+                }
+              </p>
               {errors.assignedTo && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <AlertCircle className="w-4 h-4" />
@@ -567,47 +573,56 @@ export default function EnhancedTaskForm({
           </h3>
           
           {/* Drop Zone */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-              isDragging 
-                ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
-                : 'border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
-            }`}
-          >
-            <div className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <Upload className="w-8 h-8 text-blue-500" />
+          <div className="relative">
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                isDragging 
+                  ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
+                  : 'border-gray-300 bg-gray-50'
+              }`}
+            >
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-gray-700">
+                    {isArabic 
+                      ? 'اسحب الملفات هنا أو' 
+                      : 'Drag files here or'
+                    }
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mt-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    aria-label={isArabic ? 'اختر ملفات' : 'Select files'}
+                  >
+                    {isArabic ? 'اختر ملفات' : 'Select Files'}
+                  </button>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {isArabic 
+                      ? 'جميع أنواع الملفات مدعومة (الحد الأقصى: 100 ميجابايت)' 
+                      : 'All file types supported (Max: 100MB)'
+                    }
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-medium text-gray-700">
-                  {isArabic 
-                    ? 'اسحب الملفات هنا أو انقر للاختيار' 
-                    : 'Drag files here or click to select'
-                  }
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {isArabic 
-                    ? 'جميع أنواع الملفات مدعومة (الحد الأقصى: 100 ميجابايت)' 
-                    : 'All file types supported (Max: 100MB)'
-                  }
-                </p>
-              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.tar,.gz,.psd,.ai,.eps,.svg,.dwg,.skp,.stl,.obj,.dae,.3ds,.blend,.max,.c4d,.ma,.mb,.fbx,.unity,.package,.prefab,.scene,.anim,.controller,.shader,.compute,.cg,.hlsl,.glsl,.metal,.spirv,.wasm,.js,.jsx,.ts,.tsx,.html,.css,.scss,.sass,.less,.xml,.json,.yaml,.yml,.toml,.ini,.cfg,.conf,.log,.bak,.tmp,.cache,.lock,.env,.config,.settings,.prefs,.profile,.session,.cookie,.token,.key,.pem,.crt,.cer,.der,.p12,.pfx,.jks,.keystore,.bks,.mobileprovision,.provisionprofile,.ipa,.apk,.aab,.exe,.msi,.dmg,.pkg,.deb,.rpm,.snap,.flatpak,.appimage,.bin,.run,.sh,.bat,.cmd,.ps1,.py,.rb,.php,.pl,.go,.rs,.java,.class,.jar,.war,.ear,.nar,.swf,.flv,.avi,.mov,.wmv,.mp4,.m4v,.3gp,.3g2,.mkv,.webm,.ogg,.ogv,.oga,.wav,.mp3,.flac,.aac,.m4a,.wma,.aiff,.au,.ra,.amr,.3ga,.m4b,.m4p,.m4r,.ogg,.opus"
+                onChange={(e) => handleFileSelect(e.target.files)}
+                className="hidden"
+                disabled={isSubmitting}
+                aria-label={isArabic ? 'اختر ملفات للرفع' : 'Select files to upload'}
+                title={isArabic ? 'اختر ملفات للرفع (جميع أنواع الملفات المدعومة)' : 'Select files to upload (all supported file types)'}
+              />
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.tar,.gz,.psd,.ai,.eps,.svg,.dwg,.skp,.stl,.obj,.dae,.3ds,.blend,.max,.c4d,.ma,.mb,.fbx,.unity,.package,.prefab,.scene,.anim,.controller,.shader,.compute,.cg,.hlsl,.glsl,.metal,.spirv,.wasm,.js,.jsx,.ts,.tsx,.html,.css,.scss,.sass,.less,.xml,.json,.yaml,.yml,.toml,.ini,.cfg,.conf,.log,.bak,.tmp,.cache,.lock,.env,.config,.settings,.prefs,.profile,.session,.cookie,.token,.key,.pem,.crt,.cer,.der,.p12,.pfx,.jks,.keystore,.bks,.mobileprovision,.provisionprofile,.ipa,.apk,.aab,.exe,.msi,.dmg,.pkg,.deb,.rpm,.snap,.flatpak,.appimage,.bin,.run,.sh,.bat,.cmd,.ps1,.py,.rb,.php,.pl,.go,.rs,.java,.class,.jar,.war,.ear,.nar,.swf,.flv,.avi,.mov,.wmv,.mp4,.m4v,.3gp,.3g2,.mkv,.webm,.ogg,.ogv,.oga,.wav,.mp3,.flac,.aac,.m4a,.wma,.aiff,.au,.ra,.amr,.3ga,.m4b,.m4p,.m4r,.ogg,.opus"
-              onChange={(e) => handleFileSelect(e.target.files)}
-              className="hidden"
-              disabled={isSubmitting}
-              aria-label={isArabic ? 'اختر ملفات للرفع' : 'Select files to upload'}
-              title={isArabic ? 'اختر ملفات للرفع (جميع أنواع الملفات المدعومة)' : 'Select files to upload (all supported file types)'}
-            />
           </div>
 
           {/* Uploaded Files */}

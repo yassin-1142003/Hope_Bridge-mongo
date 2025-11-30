@@ -1,6 +1,6 @@
 // lib/auth-enhanced.ts - Enhanced authentication with better session management
 import { getClientSession, parseJWT } from './auth-client';
-import type { User } from './roles';
+import type { User, UserRole } from './roles';
 
 export interface SessionInfo {
   user: User;
@@ -19,24 +19,84 @@ export interface AuthState {
 }
 
 export class EnhancedAuthManager {
-  private static instance: EnhancedAuthManager;
+  private state: AuthState;
+  private subscribers: Set<(state: AuthState) => void> = new Set();
   private sessionTimeout: NodeJS.Timeout | null = null;
   private refreshInterval: NodeJS.Timeout | null = null;
-  private readonly SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  private readonly WARNING_TIMEOUT = 15 * 60 * 1000; // 15 minutes
   private readonly REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
-  private readonly WARNING_TIMEOUT = 25 * 60 * 1000; // 25 minutes
 
-  private state: AuthState = {
-    isAuthenticated: false,
-    isLoading: false,
-    user: null,
-    session: null,
-    error: null
-  };
+  // 🔒 SSR-safe localStorage access
+  private isClientSide(): boolean {
+    return typeof window !== 'undefined' && 
+           typeof localStorage !== 'undefined' && 
+           typeof sessionStorage !== 'undefined';
+  }
 
-  private subscribers: Set<(state: AuthState) => void> = new Set();
+  private safeLocalStorageGet(key: string): string | null {
+    if (!this.isClientSide()) return null;
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private safeLocalStorageSet(key: string, value: string): void {
+    if (!this.isClientSide()) return;
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Silently fail
+    }
+  }
+
+  private safeLocalStorageRemove(key: string): void {
+    if (!this.isClientSide()) return;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Silently fail
+    }
+  }
+
+  private safeSessionStorageGet(key: string): string | null {
+    if (!this.isClientSide()) return null;
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private safeSessionStorageSet(key: string, value: string): void {
+    if (!this.isClientSide()) return;
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // Silently fail
+    }
+  }
+
+  private safeSessionStorageRemove(key: string): void {
+    if (!this.isClientSide()) return;
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      // Silently fail
+    }
+  }
+  
+  private static instance: EnhancedAuthManager | null = null;
 
   private constructor() {
+    this.state = {
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      session: null,
+      error: null
+    };
     this.initializeSessionMonitoring();
   }
 
@@ -54,10 +114,10 @@ export class EnhancedAuthManager {
       if (!session) return null;
 
       const user = session.user;
-      const permissions = this.getUserPermissions(user.role);
+      const permissions = this.getUserPermissions(user.role as UserRole);
       
       return {
-        user,
+        user: user as any, // Type assertion to handle role compatibility
         expires: session.expires,
         isActive: true,
         lastActivity: new Date().toISOString(),
@@ -113,9 +173,9 @@ export class EnhancedAuthManager {
         
         // Store token
         if (rememberMe) {
-          localStorage.setItem('auth-token', token);
+          this.safeLocalStorageSet('auth-token', token);
         } else {
-          sessionStorage.setItem('auth-token', token);
+          this.safeSessionStorageSet('auth-token', token);
         }
 
         this.updateSession(session);
@@ -135,6 +195,12 @@ export class EnhancedAuthManager {
   }
 
   async signOut(): Promise<void> {
+    // Prevent signOut execution during SSR
+    if (!this.isClientSide()) {
+      console.warn('signOut called during SSR - skipping');
+      return;
+    }
+    
     try {
       // Call signout API
       await fetch('/api/auth/logout', {
@@ -147,8 +213,8 @@ export class EnhancedAuthManager {
       console.error('Error calling signout API:', error);
     } finally {
       // Clear local storage regardless of API call success
-      localStorage.removeItem('auth-token');
-      sessionStorage.removeItem('auth-token');
+      this.safeLocalStorageRemove('auth-token');
+      this.safeSessionStorageRemove('auth-token');
       
       // Clear session monitoring
       this.clearSessionMonitoring();
@@ -253,18 +319,30 @@ export class EnhancedAuthManager {
 
   // Session monitoring
   private initializeSessionMonitoring(): void {
-    // Check session on initialization
-    this.checkSession();
-
-    // Set up refresh interval
-    this.refreshInterval = setInterval(() => {
+    // Only initialize session monitoring on client side after DOM is ready
+    if (!this.isClientSide()) return;
+    
+    // Additional safety check - wait for next tick to ensure we're fully on client
+    setTimeout(() => {
+      if (!this.isClientSide()) return;
+      
+      // Check session on initialization
       this.checkSession();
-    }, this.REFRESH_INTERVAL);
 
-    // Set up session timeout warning
-    this.sessionTimeout = setTimeout(() => {
-      this.warnSessionExpiry();
-    }, this.WARNING_TIMEOUT);
+      // Set up refresh interval
+      this.refreshInterval = setInterval(() => {
+        if (this.isClientSide()) {
+          this.checkSession();
+        }
+      }, this.REFRESH_INTERVAL);
+
+      // Set up session timeout warning
+      this.sessionTimeout = setTimeout(() => {
+        if (this.isClientSide()) {
+          this.warnSessionExpiry();
+        }
+      }, this.WARNING_TIMEOUT);
+    }, 0);
   }
 
   private clearSessionMonitoring(): void {
@@ -280,25 +358,33 @@ export class EnhancedAuthManager {
   }
 
   private async checkSession(): Promise<void> {
-    const session = await this.getCurrentSession();
+    // Don't check session during SSR
+    if (!this.isClientSide()) return;
     
-    if (!session) {
-      await this.signOut();
-      return;
-    }
+    try {
+      const session = await this.getCurrentSession();
+      
+      if (!session) {
+        await this.signOut();
+        return;
+      }
 
-    // Check if session is expired
-    const expiryTime = new Date(session.expires).getTime();
-    const now = Date.now();
-    
-    if (now >= expiryTime) {
-      await this.signOut();
-      return;
-    }
+      // Check if session is expired
+      const expiryTime = new Date(session.expires).getTime();
+      const currentTime = Date.now();
+      
+      if (currentTime >= expiryTime) {
+        await this.signOut();
+        return;
+      }
 
-    // Update last activity
-    session.lastActivity = new Date().toISOString();
-    this.setState({ session, isAuthenticated: true, user: session.user });
+      // Update last activity
+      session.lastActivity = new Date().toISOString();
+      this.setState({ session, isAuthenticated: true, user: session.user });
+    } catch (error) {
+      console.error('Error checking session:', error);
+      await this.signOut();
+    }
   }
 
   private warnSessionExpiry(): void {
@@ -333,7 +419,8 @@ export class EnhancedAuthManager {
   }
 
   private getAuthToken(): string {
-    return localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token') || '';
+    return this.safeLocalStorageGet('auth-token') || 
+           this.safeSessionStorageGet('auth-token') || '';
   }
 
   // Utility methods
