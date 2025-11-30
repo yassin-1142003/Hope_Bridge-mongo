@@ -97,11 +97,11 @@ export default function LoadingScreen() {
   }, [isArabic]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-screen w-full bg-gradient-to-br from-background via-background to-green-50/20 dark:from-[#1d1616] dark:via-[#1d1616] dark:to-green-950/10 text-accent-foreground dark:text-gray-200 font-sans overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center h-screen w-full bg-linear-to-br from-background via-background to-green-50/20 dark:from-[#1d1616] dark:via-[#1d1616] dark:to-green-950/10 text-accent-foreground dark:text-gray-200 font-sans overflow-hidden">
       <FloatingParticles />
 
       {/* Ambient glow effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-green-400/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-radial from-green-400/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Logo with enhanced animation */}
       <motion.div
@@ -127,7 +127,7 @@ export default function LoadingScreen() {
 
       {/* Title with modern animation */}
       <motion.h1
-        className="mt-8 text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent z-10"
+        className="mt-8 text-3xl md:text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
@@ -155,7 +155,7 @@ export default function LoadingScreen() {
         {[0, 1, 2, 3].map((i) => (
           <motion.div key={i} className="relative">
             <motion.span
-              className="block w-2.5 h-2.5 rounded-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 shadow-lg"
+              className="block w-2.5 h-2.5 rounded-full bg-linear-to-r from-green-500 via-emerald-500 to-teal-500 shadow-lg"
               initial={{ scale: 0.7, opacity: 0.3 }}
               animate={{
                 scale: [0.7, 1.4, 0.7],

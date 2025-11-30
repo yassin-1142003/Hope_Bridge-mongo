@@ -141,7 +141,7 @@ export default function ContactPage() {
             alt="HopeBridge contact workspace"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/70 to-transparent" />
           <div
             className={`absolute bottom-8 ${
               isArabic ? "right-8 text-right" : "left-8"

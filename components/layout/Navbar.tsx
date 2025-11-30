@@ -166,7 +166,10 @@ export default function Header() {
                   className="flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-accent/50 transition-all duration-200 group"
                 >
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                    <AvatarImage
+                      src="/avatar-placeholder.webp"
+                      alt={user.name}
+                    />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -180,32 +183,48 @@ export default function Header() {
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center gap-2 p-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                    <AvatarImage
+                      src="/avatar-placeholder.webp"
+                      alt={user.name}
+                    />
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                       {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href={`/${locale}/dashboard`} className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href={`/${locale}/dashboard`}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <User className="h-4 w-4" />
                     <span>{isArabic ? "الملف الشخصي" : "Profile"}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/${locale}/settings`} className="flex items-center gap-2 cursor-pointer">
+                  <Link
+                    href={`/${locale}/settings`}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <Settings className="h-4 w-4" />
                     <span>{isArabic ? "الإعدادات" : "Settings"}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+<<<<<<< Updated upstream
                 <DropdownMenuItem 
                   onClick={handleLogout}
+=======
+                <DropdownMenuItem
+                  onClick={logout}
+>>>>>>> Stashed changes
                   className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
                 >
                   <LogOut className="h-4 w-4" />
@@ -273,7 +292,7 @@ export default function Header() {
               className="w-80 flex flex-col bg-background/95 backdrop-blur-xl border-l border-border/20 shadow-2xl"
             >
               {/* Mobile Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border/10 bg-gradient-to-r from-background/50 to-background/30">
+              <div className="flex items-center justify-between p-4 border-b border-border/10 bg-linear-to-r from-background/50 to-background/30">
                 <Link
                   href={`/${locale}/`}
                   onClick={() => setOpen(false)}
@@ -299,21 +318,28 @@ export default function Header() {
                   </div>
                 </Link>
                 {user ? (
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-3 p-3 bg-linear-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                      <AvatarImage
+                        src="/avatar-placeholder.webp"
+                        alt={user.name}
+                      />
                       <AvatarFallback className="bg-primary/20 text-primary font-medium">
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
-                      <p className="text-sm font-medium truncate">{user.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      <p className="text-sm font-medium truncate">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <Link href={`/${locale}/signin`}>
-                    <Button className="w-full bg-gradient-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                    <Button className="w-full bg-linear-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
                       <LogIn
                         className="
             w-5 h-5 transition-transform 
@@ -378,7 +404,7 @@ export default function Header() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="p-4 space-y-3 border-t border-border/10 bg-gradient-to-b from-background/30 to-background/50">
+                <div className="p-4 space-y-3 border-t border-border/10 bg-linear-to-b from-background/30 to-background/50">
                   <div className="px-3 mb-2">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {isArabic ? "إجراءات" : "Actions"}
@@ -388,7 +414,7 @@ export default function Header() {
                     href={`/${locale}/donate`}
                     onClick={() => setOpen(false)}
                   >
-                    <Button className="w-full h-11 rounded-xl font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl border border-primary/20">
+                    <Button className="w-full h-11 rounded-xl font-semibold bg-linear-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl border border-primary/20">
                       <span className="text-sm font-bold">{t("donate")}</span>
                     </Button>
                   </Link>

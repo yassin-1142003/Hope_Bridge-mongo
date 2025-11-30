@@ -109,7 +109,7 @@ export default async function NewsSection({ locale }: { locale: string }) {
                     }
                     className="object-cover h-full w-full transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
 
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
@@ -177,7 +177,7 @@ export default async function NewsSection({ locale }: { locale: string }) {
                       alt={item.title}
                       className="object-cover w-full h-full  transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent" />
                   </div>
 
                   {/* Content */}

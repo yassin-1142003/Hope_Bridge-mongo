@@ -125,7 +125,7 @@ export default function ServiceworkerWrapper({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-[9999] bg-gradient-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white rounded-t-3xl shadow-2xl max-w-2xl mx-auto"
+              className="fixed bottom-0 left-0 right-0 z-[9999] bg-linear-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white rounded-t-3xl shadow-2xl max-w-2xl mx-auto"
             >
               <div className="p-6 relative">
                 {/* Close */}

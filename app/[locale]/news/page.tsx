@@ -62,7 +62,7 @@ const News = async ({ params }: PageProps<{ id: string; locale: string }>) => {
   return (
     <main className="min-h-screen ">
       {/* Hero Section */}
-      <section className="relative w-full flex items-center justify-center bg-gradient-to-r from-background/80 to-background/60">
+      <section className="relative w-full flex items-center justify-center bg-linear-to-r from-background/80 to-background/60">
         <div className="relative z-10 text-center max-w-3xl px-4">
           <h1 className="text-3xl md:text-5xl text-primary font-extrabold drop-shadow-lg">
             {isArabic ? "الأخبار" : "News & Updates"}
@@ -98,7 +98,7 @@ const News = async ({ params }: PageProps<{ id: string; locale: string }>) => {
                     alt={item.title}
                     className="object-cover w-full h-full  transition-transform duration-700 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent" />
                 </div>
 
                 {/* Content */}

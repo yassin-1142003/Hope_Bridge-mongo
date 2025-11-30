@@ -18,7 +18,7 @@ const Overview = async ({
       } flex-col overflow-hidden`}
     >
       {/* Background ambient glow */}
-      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-radial from-primary/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Content Section */}
       <div
@@ -61,7 +61,7 @@ const Overview = async ({
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
 
             {/* Middle pill - taller */}
@@ -74,7 +74,7 @@ const Overview = async ({
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               {/* Highlight border on center pill */}
               <div className="absolute inset-0 border-2 border-primary/20 rounded-full" />
             </div>
@@ -89,7 +89,7 @@ const Overview = async ({
                 backgroundRepeat: "no-repeat",
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
           </div>
         </div>

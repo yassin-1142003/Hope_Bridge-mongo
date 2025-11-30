@@ -181,7 +181,7 @@ const PartnersSection = ({ params }: { params: { locale: string } }) => {
               >
                 {/* Logo */}
                 <div className="relative w-full h-24 mb-4 flex items-center justify-center">
-                  <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl flex items-center justify-center">
+                  <div className="w-full h-full bg-linear-to-br from-primary/10 to-primary/5 rounded-xl flex items-center justify-center">
                     <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
                       <GlobeIcon className="w-8 h-8 text-primary" />
                     </div>
