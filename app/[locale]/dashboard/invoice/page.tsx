@@ -21,10 +21,14 @@ const InvoiceForm = () => {
     new Date().toISOString().split("T")[0]
   );
   const [invoiceNo, setInvoiceNo] = useState("");
+  const [invoiceNumber, setinvoiceNumber] = useState("");
+
   const [projectName, setProjectName] = useState("");
   const [emergencyProject, setEmergencyProject] = useState("");
   const [managerName, setManagerName] = useState("Mohammed Zohd");
   const [selectedBank, setSelectedBank] = useState("");
+
+  const invoiceToOptions = ["OneNation", "Our Umma", "Ummah", "Dudley"];
 
   const banks = [
     {
@@ -128,18 +132,16 @@ const InvoiceForm = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       let y = 15;
 
-      // -------- HEADER --------
+      // Header (Arabic + English names)
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text(
-        "Palestinian Hope Bridge Charitable Association",
-        pageWidth / 2,
-        y,
-        { align: "center" }
-      );
+      doc.setFontSize(10);
+      // Removed problematic Arabic text - add it back properly if needed
+      doc.text("Hope Bridge  Association", pageWidth / 2, y, {
+        align: "center",
+      });
 
-      // INVOICE BOX
-      y += 12;
+      // INVOICE label
+      y += 10;
       doc.setFillColor(255, 153, 102);
       doc.rect(pageWidth / 2 - 25, y - 6, 50, 8, "F");
       doc.setTextColor(255, 255, 255);
@@ -147,23 +149,23 @@ const InvoiceForm = () => {
       doc.text("INVOICE", pageWidth / 2, y, { align: "center" });
       doc.setTextColor(0, 0, 0);
 
-      // Invoice To + Date
+      // Invoice to / Date row
       y += 12;
       doc.setFontSize(11);
       doc.setFont("helvetica", "normal");
       doc.text(`Invoice to: ${invoiceTo || "-"}`, 20, y);
-      doc.text(`Date: ${invoiceDate || ""}`, pageWidth - 20, y, {
-        align: "right",
-      });
+      const formattedDate = invoiceDate || "";
+      doc.text(`Date: ${formattedDate}`, pageWidth - 20, y, { align: "right" });
 
-      // Invoice Number
+      // Invoice number
       y += 10;
+      doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(`Invoice No: ${invoiceNo || "-"}`, pageWidth / 2, y, {
+      doc.text(`Invoice No: ${invoiceNumber}`, pageWidth / 2, y, {
         align: "center",
       });
 
-      // Project Title
+      // Project title + emergency line
       y += 12;
       doc.setFontSize(12);
       doc.text(projectName || "Gaza strip Relief project", pageWidth / 2, y, {
@@ -177,58 +179,55 @@ const InvoiceForm = () => {
         { align: "center" }
       );
 
-      // ---------- TABLE ----------
+      // Items table header - FIXED ALIGNMENT
       y += 12;
-
-      const col = {
-        no: 15,
-        item: 40,
-        unit: 110,
-        qty: 135,
-        totalGBP: 160,
-        totalUSD: 185,
-      };
-
-      // Header
+      const colX = [15, 45, 110, 140, 165, 185];
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("No", col.no, y);
-      doc.text("ITEMS", col.item, y);
-      doc.text("UNIT P (£)", col.unit, y);
-      doc.text("QTY", col.qty, y);
-      doc.text("TOTAL (£)", col.totalGBP, y);
-      doc.text("TOTAL ($)", col.totalUSD, y);
+      doc.text("No", colX[0], y);
+      doc.text("ITEMS", colX[1], y);
+      doc.text("UNIT P (£)", colX[2], y);
+      doc.text("QTY", colX[3], y);
+      doc.text("TOTAL (£)", colX[4], y);
+      doc.text("TOTAL ($)", colX[5], y);
 
-      // Rows
-      y += 5;
+      // Horizontal line under header
+      y += 4;
+      doc.line(15, y, pageWidth - 15, y);
+      y += 7;
+
+      // Items rows - FIXED ALIGNMENT
       doc.setFont("helvetica", "normal");
-      items.forEach((item, i) => {
-        if (!item.itemName) return;
-
-        // Auto new page
-        if (y > pageHeight - 40) {
+      items.forEach((item, index) => {
+        if (!item.itemName && !item.unitPrice && !item.quantity) {
+          return;
+        }
+        if (y > 240) {
+          // Leave space for bank info at bottom
           doc.addPage();
           y = 20;
         }
-
-        doc.text(String(i + 1), col.no, y);
-        doc.text(item.itemName, col.item, y);
-        doc.text(item.unitPrice.toFixed(2), col.unit, y, { align: "right" });
-        doc.text(String(item.quantity), col.qty, y, { align: "right" });
-        doc.text(item.totalGBP.toFixed(2), col.totalGBP, y, { align: "right" });
-        doc.text(item.totalUSD.toFixed(2), col.totalUSD, y, { align: "right" });
-
+        doc.text(String(index + 1), colX[0], y);
+        doc.text(item.itemName || "-", colX[1], y);
+        doc.text(String(item.unitPrice.toFixed(2)), colX[2], y);
+        doc.text(String(item.quantity), colX[3], y);
+        doc.text(String(item.totalGBP.toFixed(2)), colX[4], y);
+        doc.text(String(item.totalUSD.toFixed(2)), colX[5], y);
         y += 6;
       });
 
-      // Total Row
+      // Horizontal line before totals
+      y += 2;
+      doc.line(15, y, pageWidth - 15, y);
       y += 5;
-      doc.setFont("helvetica", "bold");
-      doc.text("Total:", col.qty, y);
-      doc.text(grandTotalGBP.toFixed(2), col.totalGBP, y, { align: "right" });
-      doc.text(grandTotalUSD.toFixed(2), col.totalUSD, y, { align: "right" });
 
-      // ---------- MANAGER ----------
+      // Totals row
+      doc.setFont("helvetica", "bold");
+      doc.text("Total:", colX[3], y);
+      doc.text(String(grandTotalGBP.toFixed(2)), colX[4], y);
+      doc.text(String(grandTotalUSD.toFixed(2)), colX[5], y);
+
+      // Manager
       y += 12;
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -236,33 +235,35 @@ const InvoiceForm = () => {
       y += 5;
       doc.text(managerName || "Mohammed Zohd", 20, y);
 
-      // ---------- BANK INFO AT BOTTOM ----------
+      // Bank details - CENTERED AT BOTTOM OF PAGE
       if (currentBank) {
-        const bankY = pageHeight - 35;
-
-        doc.setFontSize(10);
+        const bankY = pageHeight - 35; // Position from bottom
+        doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
-        doc.text("Bank Information", pageWidth / 2, bankY, { align: "center" });
+        doc.text("Bank Details", pageWidth / 2, bankY, { align: "center" });
 
         doc.setFont("helvetica", "normal");
-        doc.text(`Bank: ${currentBank.name}`, pageWidth / 2, bankY + 6, {
+        doc.text(`Bank: ${currentBank.name}`, pageWidth / 2, bankY + 5, {
           align: "center",
         });
-        doc.text(currentBank.account, pageWidth / 2, bankY + 12, {
+        doc.text(currentBank.account, pageWidth / 2, bankY + 10, {
           align: "center",
         });
-        doc.text(`SWIFT: ${currentBank.swift}`, pageWidth / 2, bankY + 18, {
+        doc.text(`SWIFT: ${currentBank.swift}`, pageWidth / 2, bankY + 15, {
           align: "center",
         });
-        doc.text(`IBAN: ${currentBank.iban}`, pageWidth / 2, bankY + 24, {
+        doc.text(`IBAN: ${currentBank.iban}`, pageWidth / 2, bankY + 20, {
           align: "center",
         });
       }
 
-      doc.save(`invoice_${invoiceNo || "draft"}.pdf`);
-    } catch (err) {
-      console.error(err);
-      alert("PDF error");
+      const filename = `invoice_${invoiceNo || "draft"}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
+      doc.save(filename);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Error generating PDF. Please try again.");
     }
   };
 
@@ -308,13 +309,18 @@ const InvoiceForm = () => {
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
                 Invoice To:
               </label>
-              <input
-                type="text"
+              <select
                 value={invoiceTo}
                 onChange={(e) => setInvoiceTo(e.target.value)}
                 className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-colors"
-                placeholder="Enter recipient name"
-              />
+              >
+                <option value="">Select recipient...</option>
+                {invoiceToOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="bg-linear-to-br from-primary/5 to-primary/10 p-4 rounded-xl border-l-4 border-primary">
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
@@ -338,6 +344,18 @@ const InvoiceForm = () => {
                 onChange={(e) => setInvoiceNo(e.target.value)}
                 className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-colors"
                 placeholder="e.g., 09/2025"
+              />
+            </div>
+            <div className="bg-linear-to-br from-primary/5 to-primary/10 p-4 rounded-xl border-l-4 border-primary">
+              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                Invoice Number:
+              </label>
+              <input
+                type="text"
+                value={invoiceNumber}
+                onChange={(e) => setinvoiceNumber(e.target.value)}
+                className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-colors"
+                placeholder="e.g., 0014"
               />
             </div>
           </div>
