@@ -2,11 +2,41 @@
 @import "tw-animate-css";
 @import "aos/dist/aos.css";
 
+/* Firefox theme color support - Firefox doesn't support meta theme-color */
+@supports (-moz-appearance: none) {
+  :root {
+    --firefox-theme-color: #d23e3e;
+  }
+  
+  /* Apply Firefox theme color */
+  @media not all and (min-resolution: .001dpcm) {
+    @supports (-webkit-appearance: none) {
+      /* Safari fallback */
+    }
+    
+    html {
+      scrollbar-color: #d23e3e #f1f1f1;
+    }
+  }
+}
+
+/* Global theme color for all browsers */
+html {
+  color-scheme: light dark;
+}
+
+/* Theme color meta tag fallback for browsers that don't support it */
+body {
+  /* This helps with theme color in some browsers */
+  background-color: #ffffff;
+}
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+/* Tailwind CSS custom variant - valid directive */
 @custom-variant dark (&:is(.dark *));
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+/* Tailwind CSS theme directive - valid directive */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -48,6 +78,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --shadow-lg: 0 10px 15px -3px oklch(0.08 0.015 250 / 0.7), 0 4px 6px -4px oklch(0.08 0.015 250 / 0.7);
 }
 
 .main-pattern {
@@ -185,6 +216,7 @@
 @layer base {
   * {
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    /* Tailwind CSS apply directive - valid directive */
     @apply border-border outline-ring/50;
   }
 
@@ -293,6 +325,11 @@
   background-clip: text;
   color: transparent;
   animation: gradient linear infinite;
+}
+
+/* Progress bar custom property support */
+.progress-bar-fill {
+  width: var(--progress-width, 0%);
 }
 
 /* Make the dots use your primary color */

@@ -1,5 +1,4 @@
 {
-
   "header": {
     "home": "الرئيسية",
     "about": "من نحن",
@@ -9,6 +8,16 @@
     "contact": "تواصل ",
     "donate": "تبرع الآن",
     "dashboard" : "لوحة تحكمك"
+  },
+  "chat": {
+    "title": "دردشة الفريق",
+    "searchUsers": "البحث عن المستخدمين...",
+    "typeMessage": "اكتب رسالة...",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "send": "إرسال",
+    "noUsersFound": "لم يتم العثور على مستخدمين",
+    "startConversation": "اختر مستخدمًا لبدء الدردشة"
   },
     "HomePage": {
    

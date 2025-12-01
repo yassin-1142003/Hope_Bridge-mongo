@@ -14,18 +14,18 @@ export interface ProjectContent {
 
 export interface Project {
   _id: string;
-  contents: ProjectContent[];
-  bannerPhotoUrl: string;
+  contents?: ProjectContent[];
+  bannerPhotoUrl?: string;
   bannerPhotoId?: string;
-  imageGallery: string[];
-  videoGallery: string[];
+  imageGallery?: string[];
+  videoGallery?: string[];
   gallery?: string[]; // For backward compatibility with components
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface NewProject {
-  contents: ProjectContent[];
+  contents?: ProjectContent[];
   bannerPhotoUrl?: string;
   bannerPhotoId?: string;
   imageGallery?: string[];
@@ -45,7 +45,7 @@ export class ProjectService {
     
     const project = {
       ...data,
-      bannerPhotoUrl: data.bannerPhotoUrl || '',
+      bannerPhotoUrl: data.bannerPhotoUrl,
       imageGallery: data.imageGallery || [],
       videoGallery: data.videoGallery || [],
       createdAt: new Date(),
@@ -70,10 +70,11 @@ export class ProjectService {
     return projects.map(project => ({
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl || '',
+      bannerPhotoUrl: project.bannerPhotoUrl,
       bannerPhotoId: project.bannerPhotoId,
       imageGallery: project.imageGallery || [],
       videoGallery: project.videoGallery || [],
+      gallery: project.imageGallery || [], // For backward compatibility
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     }));
@@ -88,10 +89,11 @@ export class ProjectService {
     return {
       _id: project._id.toString(),
       contents: project.contents,
-      bannerPhotoUrl: project.bannerPhotoUrl || '',
+      bannerPhotoUrl: project.bannerPhotoUrl,
       bannerPhotoId: project.bannerPhotoId,
       imageGallery: project.imageGallery || [],
       videoGallery: project.videoGallery || [],
+      gallery: project.imageGallery || [], // For backward compatibility
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     };

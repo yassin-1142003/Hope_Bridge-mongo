@@ -161,6 +161,7 @@ const MapLoading = ({
   return (
     <div
       className="flex items-center justify-center rounded-2xl animate-pulse"
+      // eslint-disable-next-line react/forbid-component-props
       style={{
         width: "100%",
         height,

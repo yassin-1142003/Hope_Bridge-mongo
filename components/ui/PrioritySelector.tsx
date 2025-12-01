@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { 
   Flag, 
@@ -135,8 +137,8 @@ const PrioritySelector: React.FC<PrioritySelectorProps> = ({
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
         `}
         aria-haspopup="listbox"
-        aria-expanded={isOpen} // Edge Tools may show false positive - this is correct boolean usage
-        aria-disabled={disabled}
+        aria-expanded={isOpen ? "true" : "false"}
+        aria-disabled={disabled ? "true" : "false"}
         title="Select priority level"
         aria-label="Select priority level"
       >
@@ -169,6 +171,8 @@ const PrioritySelector: React.FC<PrioritySelectorProps> = ({
             <div 
               role="listbox"
               className="py-1"
+              aria-label="Priority options"
+              title="Priority options"
             >
               {priorities.map((priority, index) => (
                 <button
@@ -186,7 +190,7 @@ const PrioritySelector: React.FC<PrioritySelectorProps> = ({
                     ${focusedIndex === index ? 'ring-inset ring-2 ring-blue-500 ring-offset-0' : ''}
                   `}
                   role="option"
-                  aria-selected={value === priority.value} // Edge Tools may show false positive - this is correct boolean usage
+                  aria-selected={value === priority.value ? "true" : "false"}
                 >
                   <span className={priority.color}>
                     {priority.icon}

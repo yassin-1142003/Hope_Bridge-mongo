@@ -17,10 +17,12 @@ import {
 // Define Project interface to match the expected structure
 interface Project {
   _id: string;
-  contents: ProjectContent[];
-  bannerPhotoUrl: string;
+  contents?: ProjectContent[];
+  bannerPhotoUrl?: string;
   bannerPhotoId?: string;
-  gallery: string[];
+  gallery?: string[];
+  imageGallery?: string[];
+  videoGallery?: string[];
   videos?: any[];
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +59,8 @@ export async function GET(request: NextRequest) {
         _id: projects[0]._id,
         idType: typeof projects[0]._id,
         bannerPhotoUrl: projects[0].bannerPhotoUrl?.substring(0, 50),
+        imageGalleryCount: projects[0].imageGallery?.length,
+        videoGalleryCount: projects[0].videoGallery?.length,
         galleryCount: projects[0].gallery?.length,
         contentsCount: projects[0].contents?.length
       });
@@ -135,11 +139,14 @@ export async function POST(request: NextRequest) {
       
       // Validate required fields
       if (!projectData.contents || !Array.isArray(projectData.contents)) {
-        console.log('❌ Invalid contents structure');
-        return NextResponse.json(
-          { success: false, error: "Missing required fields: contents" },
-          { status: 400 }
-        );
+        // Allow projects without contents if they have media in main schema
+        if (!projectData.imageGallery && !projectData.videoGallery && !projectData.bannerPhotoUrl) {
+          console.log('❌ Invalid contents structure and no media found');
+          return NextResponse.json(
+            { success: false, error: "Missing required fields: contents or media" },
+            { status: 400 }
+          );
+        }
       }
 
       if (bannerFile || (galleryFiles && galleryFiles.length > 0)) {
@@ -162,11 +169,14 @@ export async function POST(request: NextRequest) {
       
       // Validate required fields
       if (!data.contents || !Array.isArray(data.contents)) {
-        console.log('❌ Invalid contents structure in JSON');
-        return NextResponse.json(
-          { success: false, error: "Missing required fields: contents" },
-          { status: 400 }
-        );
+        // Allow projects without contents if they have media in main schema
+        if (!data.imageGallery && !data.videoGallery && !data.bannerPhotoUrl) {
+          console.log('❌ Invalid contents structure in JSON and no media found');
+          return NextResponse.json(
+            { success: false, error: "Missing required fields: contents or media" },
+            { status: 400 }
+          );
+        }
       }
 
       project = await projectService.create(data);

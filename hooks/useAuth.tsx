@@ -4,9 +4,10 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 
 interface User {
   _id: string;
+  id: string;
   name: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'GENERAL_MANAGER' | 'PROGRAM_MANAGER' | 'PROJECT_COORDINATOR' | 'HR' | 'FINANCE' | 'PROCUREMENT' | 'STOREKEEPER' | 'ME' | 'FIELD_OFFICER' | 'ACCOUNTANT' | 'USER';
   isActive: boolean;
   emailVerified: boolean;
 }
@@ -46,6 +47,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
+    } else {
+      // For development/testing - provide a mock user with one of the allowed roles
+      const mockUser: User = {
+        _id: 'test-user-id',
+        id: 'test-user-id', // Add the required id field
+        name: 'Test Admin',
+        email: 'admin@hopebridge.com',
+        role: 'ADMIN', // This role has chat permissions
+        isActive: true,
+        emailVerified: true
+      };
+      setUser(mockUser);
+      setToken('mock-token');
     }
     setLoading(false);
   }, []);

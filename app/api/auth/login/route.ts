@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
       details: {
         user: {
           _id: user._id,
+          id: user._id.toString(), // Add id field for compatibility
           name: user.name,
           email: user.email,
           role: user.role,

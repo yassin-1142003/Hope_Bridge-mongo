@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -12,12 +14,15 @@ import {
   Users,
   TrendingUp,
   Filter,
-  Search
+  Search,
+  Link2,
+  ExternalLink
 } from 'lucide-react';
 import { useRoleBasedTasks } from '../../hooks/useRoleBasedTasks';
 import PrioritySelector from '../ui/PrioritySelector';
 import TaskStatusSelector from '../ui/TaskStatusSelector';
 import PDFViewer from '../ui/PDFViewer';
+import { useLocale } from 'next-intl';
 
 interface RoleBasedTaskDashboardProps {
   userId?: string;
@@ -32,6 +37,7 @@ const RoleBasedTaskDashboard: React.FC<RoleBasedTaskDashboardProps> = ({
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const locale = useLocale();
 
   const userRole = getUserRole();
   const selectedTaskData = userTasks.find(task => task.id === selectedTask);
@@ -110,6 +116,30 @@ const RoleBasedTaskDashboard: React.FC<RoleBasedTaskDashboardProps> = ({
           >
             <AlertCircle className="w-5 h-5 text-gray-600" />
           </button>
+        </div>
+
+        {/* Project Integration */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link2 className="w-5 h-5 text-blue-600" />
+              <div>
+                <h3 className="font-medium text-blue-900">
+                  {locale === 'ar' ? 'ربط المهام بالمشاريع' : 'Connect Tasks with Projects'}
+                </h3>
+                <p className="text-sm text-blue-700">
+                  {locale === 'ar' ? 'عرض المشاريع المرتبطة بالمهام' : 'View projects related to your tasks'}
+                </p>
+              </div>
+            </div>
+            <a
+              href={`/${locale}/projects`}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {locale === 'ar' ? 'عرض المشاريع' : 'View Projects'}
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
 
         {/* Stats Cards */}

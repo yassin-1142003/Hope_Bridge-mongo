@@ -1,8 +1,16 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import DatabaseConnectedDashboard from '@/components/professional/DatabaseConnectedDashboard';
 
 export default function DatabaseVerificationPage() {
-  const [verification, setVerification] = useState<any>(null);
+  const [verification, setVerification] = useState<{
+    database: {
+      counts: Record<string, number>;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingSampleData, setCreatingSampleData] = useState(false);
@@ -117,54 +125,75 @@ export default function DatabaseVerificationPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">Database Connection</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    verification.database.connection === 'connected' 
+                    verification?.database?.connection === 'connected' 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {verification.database.connection}
+                    {verification?.database?.connection}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">Overall Status</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    verification.api.functionality.overall === 'excellent' 
+                    verification?.api?.functionality?.overall === 'excellent' 
                       ? 'bg-green-100 text-green-800'
-                    : verification.api.functionality.overall === 'good'
+                    : verification?.api?.functionality?.overall === 'good'
                       ? 'bg-blue-100 text-blue-800'
-                    : verification.api.functionality.overall === 'needs_attention'
+                    : verification?.api?.functionality?.overall === 'needs_attention'
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {verification.api.functionality.overall}
+                    {verification?.api?.functionality?.overall}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Tables Found</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {Object.keys(verification?.database?.tables || {}).length}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">API Endpoints</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {Object.keys(verification?.api?.endpoints || {}).length}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">Issues Found</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    verification.issues.length === 0 
-                      ? 'bg-green-100 text-green-800' 
+                    (verification?.issues?.length || 0) === 0
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {verification.issues.length}
+                    {verification?.issues?.length || 0}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Last Checked</span>
+                  <span className="text-sm text-gray-500">
+                    {new Date(verification?.timestamp || Date.now()).toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">Recommendations</span>
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {verification.recommendations.length}
+                    {verification?.recommendations?.length || 0}
                   </span>
                 </div>
               </div>
 
               {/* Issues */}
-              {verification.issues.length > 0 && (
+              {(verification?.issues?.length || 0) > 0 && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Issues Found</h3>
                   <div className="space-y-2">
-                    {verification.issues.map((issue: string, index: number) => (
+                    {verification?.issues?.map((issue: string, index: number) => (
                       <div key={index} className="flex items-start space-x-2">
                         <span className="text-red-500 mt-1">•</span>
                         <span className="text-sm text-gray-700">{issue}</span>
@@ -175,11 +204,11 @@ export default function DatabaseVerificationPage() {
               )}
 
               {/* Recommendations */}
-              {verification.recommendations.length > 0 && (
+              {(verification?.recommendations?.length || 0) > 0 && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Recommendations</h3>
                   <div className="space-y-2">
-                    {verification.recommendations.map((rec: string, index: number) => (
+                    {verification?.recommendations?.map((rec: string, index: number) => (
                       <div key={index} className="flex items-start space-x-2">
                         <span className="text-blue-500 mt-1">•</span>
                         <span className="text-sm text-gray-700">{rec}</span>
@@ -223,7 +252,7 @@ export default function DatabaseVerificationPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">Database Details</h2>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                {Object.entries(verification.database.counts).map(([table, count]) => (
+                {Object.entries(verification?.database?.counts || {}).map(([table, count]) => (
                   <div key={table} className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{count}</div>
                     <div className="text-sm text-gray-600 capitalize">{table}</div>
@@ -232,11 +261,11 @@ export default function DatabaseVerificationPage() {
               </div>
 
               {/* Sample Data */}
-              {verification.database.sampleData.tasks && (
+              {verification?.database?.sampleData?.tasks && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Sample Tasks from Database</h3>
                   <div className="space-y-3">
-                    {verification.database.sampleData.tasks.slice(0, 3).map((task: any, index: number) => (
+                    {verification?.database?.sampleData?.tasks?.slice(0, 3).map((task: any, index: number) => (
                       <div key={task.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium text-gray-900">{task.title}</h4>
@@ -265,7 +294,7 @@ export default function DatabaseVerificationPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Task Assignments</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {verification.api.functionality.taskAssignments?.slice(0, 4).map((assignment: any) => (
+                    {verification?.api?.functionality?.taskAssignments?.slice(0, 4).map((assignment: any) => (
                       <div key={assignment.assignedToId} className="text-center">
                         <div className="text-lg font-bold text-gray-900">{assignment._count.id}</div>
                         <div className="text-sm text-gray-600">Tasks</div>
@@ -277,7 +306,7 @@ export default function DatabaseVerificationPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">User Roles</h3>
                   <div className="flex flex-wrap gap-2">
-                    {verification.api.functionality.userRoles?.map((role: any) => (
+                    {verification?.api?.functionality?.userRoles?.map((role: any) => (
                       <span key={role.role} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
                         {role.role}: {role._count.id} users
                       </span>
@@ -288,7 +317,7 @@ export default function DatabaseVerificationPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Task Statuses</h3>
                   <div className="flex flex-wrap gap-2">
-                    {verification.api.functionality.taskStatuses?.map((status: any) => (
+                    {verification?.api?.functionality?.taskStatuses?.map((status: any) => (
                       <span key={status.status} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
                         {status.status}: {status._count.id}
                       </span>

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { 
   Clock, 
@@ -137,8 +139,8 @@ const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
         `}
         aria-haspopup="listbox"
-        aria-expanded={isOpen} // Edge Tools may show false positive - this is correct boolean usage
-        aria-disabled={disabled}
+        aria-expanded={isOpen ? "true" : "false"}
+        aria-disabled={disabled ? "true" : "false"}
         title="Select task status"
         aria-label="Select task status"
       >
@@ -173,6 +175,8 @@ const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
             <div 
               role="listbox"
               className="py-1"
+              aria-label="Task status options"
+              title="Task status options"
             >
               {statuses.map((status, index) => (
                 <button
@@ -190,7 +194,7 @@ const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
                     ${focusedIndex === index ? 'ring-inset ring-2 ring-blue-500 ring-offset-0' : ''}
                   `}
                   role="option"
-                  aria-selected={value === status.value} // Edge Tools may show false positive - this is correct boolean usage
+                  aria-selected={value === status.value ? "true" : "false"}
                 >
                   <span className={status.color}>
                     {status.icon}

@@ -51,20 +51,75 @@ const getImageUrl = (url: string): string => {
 const Page = async ({ params }: PageProps<{ locale: string }>) => {
   const { locale } = await params;
   const p = await getTranslations({ locale, namespace: "projects" });
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3002";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
 
-  const res = await fetch(`${baseUrl}/api/projects`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-  });
+  let projects = [];
+  let hasError = false;
+  let errorMessage = "";
 
-  if (!res.ok) throw new Error("Failed to fetch details");
+  try {
+    const res = await fetch(`${baseUrl}/api/projects`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
 
-  // ✅ API returns projects directly in response data
-  const responseData = await res.json();
-  const projects = responseData.data || responseData;
-  console.log('API Response:', projects);
+    if (!res.ok) {
+      hasError = true;
+      errorMessage = `API Error: ${res.status} ${res.statusText}`;
+      console.error('Projects API Error:', errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    // ✅ API returns projects directly in response data
+    const responseData = await res.json();
+    projects = responseData.data || responseData;
+    console.log('API Response:', projects);
+  } catch (error) {
+    hasError = true;
+    errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    console.error('Failed to fetch projects:', errorMessage);
+    
+    // Provide fallback mock data for development
+    projects = [
+      {
+        _id: "mock-project-1",
+        bannerPhotoUrl: "https://images.unsplash.com/photo-1488521787951-7083234c57eb?w=800",
+        imageGallery: [
+          "https://images.unsplash.com/photo-1488521787951-7083234c57eb?w=800",
+          "https://images.unsplash.com/photo-1469571486292-c0f3ee937b5b?w=800"
+        ],
+        contents: [
+          {
+            language_code: locale,
+            name: locale === 'ar' ? "مشروع المياه النظيفة" : "Clean Water Project",
+            description: locale === 'ar' ? "توفير مياه نظيفة للمناطق المحتاجة" : "Providing clean water to needy areas",
+            content: locale === 'ar' ? "هذا المشروع يهدف إلى توفير مياه نظيفة وآمنة للمناطق المحتاجة." : "This project aims to provide clean and safe water to needy areas."
+          }
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        _id: "mock-project-2",
+        bannerPhotoUrl: "https://images.unsplash.com/photo-1509099836639-18ba1795216c?w=800",
+        imageGallery: [
+          "https://images.unsplash.com/photo-1509099836639-18ba1795216c?w=800",
+          "https://images.unsplash.com/photo-1520335782732-749908f5df25?w=800"
+        ],
+        contents: [
+          {
+            language_code: locale,
+            name: locale === 'ar' ? "مشروع التعليم" : "Education Project",
+            description: locale === 'ar' ? "دعم التعليم للأطفال المحتاجين" : "Supporting education for needy children",
+            content: locale === 'ar' ? "هذا المشروع يهدف إلى دعم التعليم للأطفال في المناطق المحتاجة." : "This project aims to support education for children in needy areas."
+          }
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+  }
   // 🔥 Re-map API response to match existing frontend structure
   const mappedProjects = projects.map((proj: any) => {
     return {
@@ -104,6 +159,34 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
           {p("subtitle")}
         </p>
       </div>
+
+      {/* Error Notification */}
+      {hasError && (
+        <div className="mx-auto max-w-4xl px-4 py-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-yellow-500 rounded-full animate-pulse"></div>
+              <div>
+                <h3 className="font-semibold">
+                  {locale === 'ar' ? 'تنبيه' : 'Notice'}
+                </h3>
+                <p className="text-sm">
+                  {locale === 'ar' 
+                    ? 'يتم عرض بيانات تجريبية. قد تكون هناك مشكلة في الاتصال بقاعدة البيانات.' 
+                    : 'Showing sample data. There may be an issue connecting to the database.'
+                  }
+                </p>
+                {errorMessage && (
+                  <p className="text-xs mt-1 opacity-75">
+                    {locale === 'ar' ? 'خطأ:' : 'Error:'} {errorMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ✅ Render details list */}
       <section
         dir={isArabic ? "rtl" : "ltr"}

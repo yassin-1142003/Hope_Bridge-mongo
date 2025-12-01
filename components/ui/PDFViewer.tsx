@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
@@ -12,7 +14,7 @@ import {
   X,
   Loader2
 } from 'lucide-react';
-import '../styles/pdf-viewer.css';
+import '../../styles/pdf-viewer.css';
 
 interface PDFViewerProps {
   url: string;

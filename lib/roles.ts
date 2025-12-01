@@ -1,24 +1,24 @@
 /**
- * Comprehensive Role System for Hope Bridge
+ * Official Organization Role Hierarchy for Hope Bridge
  * 
- * This file defines all user roles and their permissions
- * to support the organizational structure requested.
+ * This file defines the official user roles and their permissions
+ * according to the organizational structure and hierarchy.
  */
 
 export type UserRole = 
-  | 'SUPER_ADMIN'      // Can manage everything including user roles
-  | 'ADMIN'            // Standard admin with most permissions
-  | 'GENERAL_MANAGER'  // Can manage most operations and assign roles
-  | 'PROGRAM_MANAGER'  // Manages programs and projects
-  | 'PROJECT_COORDINATOR' // Coordinates specific projects
-  | 'HR'               // Human Resources management
-  | 'FINANCE'          // Financial management
-  | 'PROCUREMENT'      // Procurement and purchasing
-  | 'STOREKEEPER'      // Inventory and store management
-  | 'ME'               // Monitoring & Evaluation
-  | 'FIELD_OFFICER'    // Field operations
-  | 'ACCOUNTANT'       // Accounting operations
-  | 'USER';             // Basic user access
+  | 'SUPER_ADMIN'      // System administrator - full system access and user management
+  | 'ADMIN'            // Admin - full system access and user management
+  | 'GENERAL_MANAGER'  // Manage all departments and assign tasks to any user
+  | 'PROGRAM_MANAGER'  // Manage programs and assign tasks to project coordinators and field teams
+  | 'PROJECT_COORDINATOR' // Manage tasks within projects and assign to field staff
+  | 'HR'               // Manage HR workflows, staff records, and HR-specific tasks
+  | 'FINANCE'          // Manage financial tasks and approvals
+  | 'PROCUREMENT'      // Manage purchase requests and procurement workflows
+  | 'STOREKEEPER'      // Manage stock tasks and inventory documentation
+  | 'ME_OFFICER'       // Perform monitoring, evaluation, and data submissions
+  | 'FIELD_OFFICER'    // Receive field assignments and submit reports
+  | 'ACCOUNTANT'       // Handle accounting workflows and financial document submissions
+  | 'USER';            // Basic user access - roles hidden from general users
 
 export interface User {
   id: string;
@@ -202,7 +202,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canReceiveMessages: true,
     canViewReports: true,
   },
-  ME: {
+  ME_OFFICER: {
     canManageUsers: false,
     canAssignRoles: false,
     canCreateTasks: true,
@@ -282,7 +282,7 @@ export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   FINANCE: 'Finance',
   PROCUREMENT: 'Procurement',
   STOREKEEPER: 'Storekeeper',
-  ME: 'M&E',
+  ME_OFFICER: 'M&E Officer',
   FIELD_OFFICER: 'Field Officer',
   ACCOUNTANT: 'Accountant',
   USER: 'User',
@@ -290,26 +290,26 @@ export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
 
 export const ROLE_HIERARCHY: UserRole[] = [
   'SUPER_ADMIN',
-  'GENERAL_MANAGER',
   'ADMIN',
+  'GENERAL_MANAGER',
   'PROGRAM_MANAGER',
   'PROJECT_COORDINATOR',
   'HR',
   'FINANCE',
   'PROCUREMENT',
   'STOREKEEPER',
-  'ME',
+  'ME_OFFICER',
   'FIELD_OFFICER',
   'ACCOUNTANT',
   'USER',
 ];
 
 export function canAssignRole(assignerRole: UserRole, targetRole: UserRole): boolean {
-  const assignerIndex = ROLE_HIERARCHY.indexOf(assignerRole);
-  const targetIndex = ROLE_HIERARCHY.indexOf(targetRole);
+  // Only authorized administrators can assign or update roles
+  // Roles are hidden from general users
+  const authorizedAdmins = ['SUPER_ADMIN', 'ADMIN'];
   
-  // Only SUPER_ADMIN and GENERAL_MANAGER can assign roles
-  if (assignerRole !== 'SUPER_ADMIN' && assignerRole !== 'GENERAL_MANAGER') {
+  if (!authorizedAdmins.includes(assignerRole)) {
     return false;
   }
   
@@ -318,8 +318,8 @@ export function canAssignRole(assignerRole: UserRole, targetRole: UserRole): boo
     return true;
   }
   
-  // GENERAL_MANAGER can assign roles lower than themselves (but not SUPER_ADMIN)
-  return targetIndex > assignerIndex && targetRole !== 'SUPER_ADMIN';
+  // ADMIN can assign roles but not SUPER_ADMIN
+  return targetRole !== 'SUPER_ADMIN';
 }
 
 export function hasPermission(userRole: UserRole, permission: keyof RolePermissions): boolean {

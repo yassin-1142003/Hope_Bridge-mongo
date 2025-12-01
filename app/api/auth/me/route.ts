@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
       message: 'User retrieved successfully',
       user: {
         _id: user._id.toString(),
+        id: user._id.toString(), // Add id field for compatibility
         name: user.name,
         email: user.email,
         role: user.role,
