@@ -1,5 +1,4 @@
 {
-
   "header": {
     "home": "Home",
     "about": "About Us",
@@ -9,9 +8,18 @@
      "projects": "Projects",
     "donate": "Donate Now",
        "dashboard" : "Your Dashboard"
-  }
-  ,
-    "HomePage": {
+  },
+  "chat": {
+    "title": "Team Chat",
+    "searchUsers": "Search users...",
+    "typeMessage": "Type a message...",
+    "online": "Online",
+    "offline": "Offline",
+    "send": "Send",
+    "noUsersFound": "No users found",
+    "startConversation": "Select a user to start chatting"
+  },
+  "HomePage": {
   "uppertext": "A Journey of Hope and Giving",
   "maintext": "Together, We Build a Legacy of Humanity",
   "subtext": "Our foundation was established to be a bridge between compassionate hearts and families in need. For years, we have been providing humanitarian and developmental aid, offering those in need a chance for a dignified life filled with ",
