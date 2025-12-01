@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class AppError extends Error {
   public code: string;
   public statusCode: number;

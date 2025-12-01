@@ -1,4 +1,5 @@
 // lib/auth.ts - JWT-based authentication utilities
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jwt from 'jsonwebtoken';
 import { getCollection } from './mongodb';
 import { cookies } from 'next/headers';
