@@ -4,7 +4,7 @@ import mongoose, { Model } from "mongoose";
 import { Comment, CommentDocument } from "../../db/schemas/comment.schema";
 import { CreateCommentDto, UpdateCommentDto } from "./comments.zod";
 
-interface CommentNode {
+export interface CommentNode {
   id: string;
   postId: string;
   parentId: string | null;

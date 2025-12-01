@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { CommentsService } from "./comments.service";
+import { CommentsService, CommentNode } from "./comments.service";
 import {
   CreateCommentSchema,
   UpdateCommentSchema,

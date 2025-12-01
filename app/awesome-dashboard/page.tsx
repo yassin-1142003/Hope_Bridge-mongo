@@ -2,6 +2,11 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+'use client';
+
+>>>>>>> Stashed changes
 =======
 'use client';
 
@@ -90,7 +95,11 @@ export default function AwesomeDashboardPage() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                       {Array.isArray(value) ? value.join(', ') : value}
+=======
+                      {Array.isArray(value) ? value.join(', ') : String(value)}
+>>>>>>> Stashed changes
 =======
                       {Array.isArray(value) ? value.join(', ') : String(value)}
 >>>>>>> Stashed changes

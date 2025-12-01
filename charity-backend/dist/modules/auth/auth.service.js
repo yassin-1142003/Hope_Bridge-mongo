@@ -49,11 +49,13 @@ const config_1 = require("@nestjs/config");
 const bcrypt = __importStar(require("bcrypt"));
 const users_service_1 = require("../users/users.service");
 const role_enum_1 = require("../../common/enums/role.enum");
+const email_service_1 = require("../email/email.service");
 let AuthService = class AuthService {
-    constructor(usersService, jwtService, config) {
+    constructor(usersService, jwtService, config, emailService) {
         this.usersService = usersService;
         this.jwtService = jwtService;
         this.config = config;
+        this.emailService = emailService;
     }
     toAuthUser(user) {
         var _a, _b, _c;
@@ -80,14 +82,31 @@ let AuthService = class AuthService {
         });
         return { accessToken, refreshToken };
     }
+    async signEmailVerificationToken(user) {
+        var _a, _b, _c, _d;
+        const payload = {
+            sub: (_c = (_b = (_a = user._id) === null || _a === void 0 ? void 0 : _a.toString) === null || _b === void 0 ? void 0 : _b.call(_a)) !== null && _c !== void 0 ? _c : user.id,
+            email: user.email,
+            type: "verify-email",
+        };
+        return this.jwtService.signAsync(payload, {
+            secret: this.config.get("JWT_ACCESS_SECRET"),
+            expiresIn: (_d = this.config.get("JWT_EMAIL_VERIFICATION_EXPIRES_IN")) !== null && _d !== void 0 ? _d : "1d",
+        });
+    }
     async register(data) {
+        var _a;
         const email = data.email.toLowerCase();
         const user = await this.usersService.createUser({
             name: data.name,
             email,
-            passwordHash: await bcrypt.hash(data.password, 10),
+            passwordHash: await bcrypt.hash(data.password, 12),
             role: role_enum_1.Role.USER,
         });
+        const verifyToken = await this.signEmailVerificationToken(user);
+        const baseUrl = (_a = this.config.get("EMAIL_VERIFICATION_BASE_URL")) !== null && _a !== void 0 ? _a : "http://localhost:4000/api";
+        const verifyLink = `${baseUrl}/auth/verify-email?token=${verifyToken}`;
+        await this.emailService.sendVerificationEmail(user.email, verifyLink);
         const tokens = await this.signTokens(user);
         return {
             user: this.toAuthUser(user),
@@ -113,12 +132,68 @@ let AuthService = class AuthService {
             tokens,
         };
     }
+    async updateProfile(userId, data) {
+        const update = {};
+        if (data.name) {
+            update.name = data.name;
+        }
+        if (Object.keys(update).length === 0) {
+            return this.usersService.ensureExists(userId);
+        }
+        return this.usersService.updateUser(userId, update);
+    }
+    async changePassword(userId, data) {
+        const user = await this.usersService.ensureExists(userId);
+        const ok = await bcrypt.compare(data.currentPassword, user.passwordHash);
+        if (!ok) {
+            throw new common_1.UnauthorizedException("Current password is incorrect");
+        }
+        const newHash = await bcrypt.hash(data.newPassword, 12);
+        await this.usersService.updatePassword(userId, newHash);
+        return { id: userId };
+    }
+    async changeEmail(userId, data) {
+        var _a;
+        const user = await this.usersService.ensureExists(userId);
+        const ok = await bcrypt.compare(data.password, user.passwordHash);
+        if (!ok) {
+            throw new common_1.UnauthorizedException("Password is incorrect");
+        }
+        const newEmail = data.newEmail.toLowerCase();
+        const existing = await this.usersService.findByEmail(newEmail);
+        if (existing && String(existing._id) !== String(user._id)) {
+            throw new common_1.ConflictException("Email already in use");
+        }
+        await this.usersService.updateUser(userId, {
+            ...(user.name ? { name: user.name } : {}),
+        });
+        await this.usersService.setEmailVerified(userId, false);
+        const verifyToken = await this.signEmailVerificationToken({
+            ...user,
+            email: newEmail,
+        });
+        const baseUrl = (_a = this.config.get("EMAIL_VERIFICATION_BASE_URL")) !== null && _a !== void 0 ? _a : "http://localhost:4000/api";
+        const verifyLink = `${baseUrl}/auth/verify-email?token=${verifyToken}`;
+        await this.emailService.sendVerificationEmail(newEmail, verifyLink);
+        return { id: userId, email: newEmail };
+    }
+    async verifyEmailToken(token) {
+        const payload = (await this.jwtService.verifyAsync(token, {
+            secret: this.config.get("JWT_ACCESS_SECRET"),
+        }));
+        if (payload.type && payload.type !== "verify-email") {
+            throw new common_1.UnauthorizedException("Invalid verification token");
+        }
+        await this.usersService.setEmailVerified(payload.sub, true);
+        return { id: payload.sub, emailVerified: true };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         jwt_1.JwtService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        email_service_1.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

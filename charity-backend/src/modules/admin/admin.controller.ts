@@ -7,7 +7,7 @@ import { Role } from "../../common/enums/role.enum";
 import { UsersService } from "../users/users.service";
 import { ProjectsService } from "../projects/projects.service";
 import { PostsService } from "../posts/posts.service";
-import { CommentsService } from "../comments/comments.service";
+import { CommentsService, CommentNode } from "../comments/comments.service";
 
 @ApiTags("admin")
 @ApiBearerAuth()

@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   reactStrictMode: false,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -14,6 +15,8 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@prisma/client'],
 =======
+=======
+>>>>>>> Stashed changes
   images: {
     remotePatterns: [
       {
@@ -28,6 +31,9 @@ const nextConfig: NextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
   },
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 };
 

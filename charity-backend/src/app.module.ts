@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { MongooseConfigModule } from "./db/mongoose.module";
@@ -10,17 +10,35 @@ import { CommentsModule } from "./modules/comments/comments.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { EmailModule } from "./modules/email/email.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { AnalyticsModule } from "./modules/analytics/analytics.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
+import { 
+  RequestIdMiddleware, 
+  PerformanceMiddleware, 
+  MemoryUsageMiddleware,
+  SecurityHeadersMiddleware,
+  CacheControlMiddleware,
+  HealthCheckMiddleware,
+  ApiDocsMiddleware
+} from "./common/middleware/performance.middleware";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      cache: true,
+      expandVariables: true,
     }),
     ThrottlerModule.forRoot([
       {
         name: "global",
         ttl: 60000,
         limit: 100,
+      },
+      {
+        name: "strict",
+        ttl: 60000,
+        limit: 20,
       },
     ]),
     MongooseConfigModule,
@@ -32,7 +50,22 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
     AdminModule,
     EmailModule,
     NotificationsModule,
-    // TODO: import other modules (donations, files, admin)
+    AnalyticsModule,
+    DashboardModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(
+        RequestIdMiddleware,
+        SecurityHeadersMiddleware,
+        CacheControlMiddleware,
+        MemoryUsageMiddleware,
+        PerformanceMiddleware,
+        HealthCheckMiddleware,
+        ApiDocsMiddleware
+      )
+      .forRoutes('*');
+  }
+}
