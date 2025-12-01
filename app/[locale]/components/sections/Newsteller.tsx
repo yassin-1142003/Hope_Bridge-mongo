@@ -1,8 +1,10 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Send, Sparkles } from "lucide-react";
 
-const Newsteller = async ({
+const Newsteller = ({
   params: { locale },
 }: {
   params: { locale: string };

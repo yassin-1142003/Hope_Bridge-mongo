@@ -1,5 +1,4 @@
 "use client";
-import { getTranslations } from "next-intl/server";
 import React, { useState } from "react";
 import DonationModal from "./DonationModal";
 import { Button } from "./ui/button";

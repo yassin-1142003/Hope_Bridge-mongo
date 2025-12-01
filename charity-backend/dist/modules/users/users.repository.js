@@ -28,7 +28,10 @@ let UsersRepository = class UsersRepository {
         return this.userModel.findById(id).exec();
     }
     findAll() {
-        return this.userModel.find().exec();
+        return this.userModel
+            .find()
+            .sort({ createdAt: -1, _id: -1 })
+            .exec();
     }
     create(data) {
         const doc = new this.userModel(data);

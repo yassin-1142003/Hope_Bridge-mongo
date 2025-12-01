@@ -1,19 +1,27 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Delete,
+  Query,
   UseGuards,
+  Request,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { ProjectsService } from "./projects.service";
 import {
-  CreateProjectSchema,
-  UpdateProjectSchema,
-} from "./projects.zod";
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
+import { ThrottlerGuard } from "@nestjs/throttler";
+import { ProjectsService } from "./projects.service";
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { UpdateProjectDto } from "./dto/update-project.dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -28,9 +36,8 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  async create(@Body() body: any) {
-    const dto = CreateProjectSchema.parse(body);
-    const created = await this.projectsService.create(dto);
+  async create(@Body() createProjectDto: CreateProjectDto) {
+    const created = await this.projectsService.create(createProjectDto);
     return { message: "Project created", details: created };
   }
 
@@ -47,9 +54,8 @@ export class ProjectsController {
   }
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() body: any) {
-    const dto = UpdateProjectSchema.parse(body);
-    const updated = await this.projectsService.update(id, dto);
+  async update(@Param("id") id: string, @Body() updateProjectDto: UpdateProjectDto) {
+    const updated = await this.projectsService.update(id, updateProjectDto);
     return { message: "Project updated", details: updated };
   }
 

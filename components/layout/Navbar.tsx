@@ -25,6 +25,10 @@ import DonationModal from "../DonationModal";
 import { usePWA } from "@/components/PWAContext";
 import { Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+<<<<<<< Updated upstream
+=======
+import AlertButton from "@/components/AlertButton";
+>>>>>>> Stashed changes
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,6 +156,8 @@ export default function Header() {
               <Download size={14} className="text-primary" />
             </Button>
           )}
+          {/* Alert Button */}
+          <AlertButton locale={locale} />
           {/* <Button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="p-2 rounded    cursor-pointer bg-background border border-primary/30 dark:bg-[#1d1616]"

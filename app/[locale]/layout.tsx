@@ -5,20 +5,14 @@ import "../globals.css";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import Navbar from "@/components/layout/Navbar";
+import { getMessages } from "next-intl/server";
+import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 import Footer4Col from "@/components/layout/Footer";
 import AOSWrapper from "@/components/AOSWrapper";
 import { Toaster } from "sonner";
 import { getServerSession } from "@/lib/auth";
 import { authOptions } from "@/lib/auth";
-import { ThemeProvider } from "next-themes";
-import ClientWrapper from "@/components/ClientWrapper";
-import AddToHomePrompt from "@/components/AddToHomePrompt";
-import ServiceworkerWrapper from "@/components/ServiceworkerWrapper";
-import { PWAProvider } from "@/components/PWAContext";
 import AddToHomeIOS from "@/components/AddToHomeIOS";
-import TurnstileWrapper from "@/components/TurnstileWrapper";
-import VisitorTracker from "@/components/VisitorTracker";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -117,6 +111,10 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   const session = await getServerSession();
+<<<<<<< Updated upstream
+=======
+  const messages = await getMessages();
+>>>>>>> Stashed changes
 
   if (!hasLocale(routing.locales, locale)) notFound();
 
@@ -134,6 +132,7 @@ export default async function LocaleLayout({
         <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
 
         {/* Additional PWA meta tags */}
+        {/* Note: theme-color has limited browser support but is essential for PWA functionality */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#d23e3e" />
         <meta name="msapplication-TileColor" content="#d23e3e" />
@@ -158,6 +157,7 @@ export default async function LocaleLayout({
       <body
         className={`${almarai.variable} font-almarai bg-background antialiased`}
       >
+<<<<<<< Updated upstream
         <NextIntlClientProvider>
           {/* <TurnstileWrapper> */}
           <ThemeProvider attribute="class" defaultTheme="light">
@@ -177,6 +177,16 @@ export default async function LocaleLayout({
           </ThemeProvider>
           {/* </TurnstileWrapper> */}
         </NextIntlClientProvider>
+=======
+        <ClientLayoutWrapper locale={locale} session={session} messages={messages}>
+          <AOSWrapper>
+            <main className="main-pattern pt-18">{children}</main>
+            <AddToHomeIOS />
+            <Toaster richColors position="bottom-right" />
+          </AOSWrapper>
+          <Footer4Col />
+        </ClientLayoutWrapper>
+>>>>>>> Stashed changes
       </body>
     </html>
   );

@@ -1,21 +1,23 @@
+"use client";
+
 import HeroDonate from "@/components/HeroDonate";
 import { highlightWord } from "../../../../components/highlightWord";
 import { Button } from "../../../../components/ui/button";
 //import RollingGallery from "../../../../components/RollingGallery";
 import { Baby, BriefcaseMedical, CookingPot, HandHeart } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { lazy } from "react";
 import RollerComponent from "@/components/RollerComponent";
 
-const Hero = async ({ params: { locale } }: { params: { locale: string } }) => {
-  const t = await getTranslations({ locale, namespace: "HomePage" });
+const Hero = ({ params: { locale } }: { params: { locale: string } }) => {
+  const t = useTranslations("HomePage");
+  const statics = useTranslations("statics");
   const isArabic = locale === "ar";
   const highlightTargetUpper = isArabic ? "الأمل" : " hope ";
   const highlightTargetSub = isArabic ? "بالأمل" : " hope ";
   const upperText = t("uppertext");
   const subText = t("subtext");
-  const statics = await getTranslations({ locale, namespace: "statics" });
   return (
     <section
       className="relative flex flex-col overflow-hidden text-accent-foreground text-center items-center px-4 "

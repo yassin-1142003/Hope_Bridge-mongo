@@ -1,3 +1,8 @@
+<<<<<<< Updated upstream
+=======
+'use client';
+
+>>>>>>> Stashed changes
 import React, { useState, useEffect } from 'react';
 import DatabaseConnectedDashboard from '@/components/professional/DatabaseConnectedDashboard';
 
@@ -225,7 +230,11 @@ export default function DatabaseVerificationPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {Object.entries(verification.database.counts).map(([table, count]) => (
                   <div key={table} className="text-center">
+<<<<<<< Updated upstream
                     <div className="text-2xl font-bold text-gray-900">{count}</div>
+=======
+                    <div className="text-2xl font-bold text-gray-900">{String(count)}</div>
+>>>>>>> Stashed changes
                     <div className="text-sm text-gray-600 capitalize">{table}</div>
                   </div>
                 ))}

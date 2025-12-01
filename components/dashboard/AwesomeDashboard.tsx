@@ -11,6 +11,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import TaskAlertSystem from '@/components/notifications/TaskAlertSystem';
+<<<<<<< Updated upstream
+=======
+import RoleBasedTaskDashboard from './RoleBasedTaskDashboard';
+>>>>>>> Stashed changes
 import { 
   Bell, 
   CheckCircle, 
@@ -460,6 +464,31 @@ const TaskAlertDashboard: React.FC<TaskAlertDashboardProps> = ({
             </div>
           </motion.div>
 
+<<<<<<< Updated upstream
+=======
+          {/* 🎯 Role-Based Task Management */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="col-span-full"
+          >
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              className="p-8 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl backdrop-blur-xl border border-white/20"
+            >
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <Shield className="w-6 h-6 text-indigo-400" />
+                Role-Based Task Management
+              </h3>
+              
+              <div className="bg-black/20 rounded-2xl p-4">
+                <RoleBasedTaskDashboard className="min-h-[600px]" />
+              </div>
+            </motion.div>
+          </motion.div>
+
+>>>>>>> Stashed changes
           {/* 🏆 Achievements */}
           <motion.div
             whileHover={{ scale: 1.02 }}

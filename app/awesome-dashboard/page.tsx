@@ -1,3 +1,8 @@
+<<<<<<< Updated upstream
+=======
+'use client';
+
+>>>>>>> Stashed changes
 import React, { useState } from 'react';
 import AwesomeDashboardForm from '@/components/ui/AwesomeDashboardForm';
 import '../styles/awesome-dashboard.css';
@@ -66,7 +71,11 @@ export default function AwesomeDashboardPage() {
                   <div key={key} className="text-sm">
                     <span className="font-medium text-gray-700">{key}:</span>
                     <span className="ml-2 text-blue-600">
+<<<<<<< Updated upstream
                       {Array.isArray(value) ? value.join(', ') : value}
+=======
+                      {Array.isArray(value) ? value.join(', ') : String(value)}
+>>>>>>> Stashed changes
                     </span>
                   </div>
                 ))

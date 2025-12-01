@@ -1,15 +1,17 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
-import { Project, ProjectSchema } from "../../db/schemas/project.schema";
+import { EnhancedProject, EnhancedProjectSchema } from "../../db/schemas/enhanced-project.schema";
+import { EnhancedProjectService } from "./enhanced-project.service";
+import { EnhancedProjectController } from "./enhanced-project.controller";
 import { ProjectsService } from "./projects.service";
 import { ProjectsController } from "./projects.controller";
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Project.name, schema: ProjectSchema }]),
+    MongooseModule.forFeature([{ name: EnhancedProject.name, schema: EnhancedProjectSchema }]),
   ],
-  controllers: [ProjectsController],
-  providers: [ProjectsService],
-  exports: [ProjectsService],
+  controllers: [EnhancedProjectController, ProjectsController],
+  providers: [EnhancedProjectService, ProjectsService],
+  exports: [EnhancedProjectService, ProjectsService],
 })
 export class ProjectsModule {}

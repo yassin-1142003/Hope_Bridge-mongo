@@ -83,7 +83,11 @@ export default function RegisterPage() {
   };
 
   return (
+<<<<<<< Updated upstream
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-linear-to-br from-background via-background to-muted/20">
+=======
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-background to-muted/20">
+>>>>>>> Stashed changes
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -97,10 +101,17 @@ export default function RegisterPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-center"
         >
+<<<<<<< Updated upstream
           <div className="mx-auto h-20 w-20 bg-linear-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 backdrop-blur-sm">
             <UserPlus className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-3 bg-linear-to-r from-primary to-primary/60 bg-clip-text ">
+=======
+          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 backdrop-blur-sm">
+            <UserPlus className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text ">
+>>>>>>> Stashed changes
             Create Account
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -421,7 +432,11 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
+<<<<<<< Updated upstream
                 className="w-full py-4 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-foreground font-bold rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 border-0"
+=======
+                className="w-full py-4 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-foreground font-bold rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 border-0"
+>>>>>>> Stashed changes
               >
                 {isLoading ? (
                   <div className="flex text-background items-center justify-center gap-3">

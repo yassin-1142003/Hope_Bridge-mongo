@@ -40,10 +40,20 @@ export function useVisitTracking() {
         locale: locale || window.location.pathname.split('/')[1] || 'en',
         referrer: document.referrer,
         userAgent: navigator.userAgent,
+<<<<<<< Updated upstream
         timestamp: new Date().toISOString(),
         userType: status === 'authenticated' ? 'user' : 'guest',
         userId: session?.user?.id || null,
         ...additionalData
+=======
+        userType: status === 'authenticated' ? 'user' : 'guest',
+        userId: session?.user?.id || null,
+        sessionId: getSessionId(),
+        metadata: {
+          timestamp: new Date().toISOString(),
+          ...additionalData
+        },
+>>>>>>> Stashed changes
       };
 
       // Use sendBeacon for better performance (doesn't block page unload)
@@ -70,6 +80,7 @@ export function useVisitTracking() {
     }
   }, [session, status]);
 
+<<<<<<< Updated upstream
   // Track page visit (general)
   const trackPageVisit = useCallback(async (options: VisitTrackingOptions = {}) => {
     const { projectId, path, locale, referrer } = options;
@@ -84,6 +95,23 @@ export function useVisitTracking() {
         timestamp: new Date().toISOString(),
         userType: status === 'authenticated' ? 'user' : 'guest',
         userId: session?.user?.id || null
+=======
+  // Track page view (general visit tracking)
+  const trackPageView = useCallback(async (path?: string, additionalData?: Record<string, any>) => {
+    try {
+      const payload = {
+        path: path || window.location.pathname,
+        referrer: document.referrer,
+        locale: window.location.pathname.split('/')[1] || 'en',
+        userAgent: navigator.userAgent,
+        userType: status === 'authenticated' ? 'user' : 'guest',
+        userId: session?.user?.id || null,
+        sessionId: getSessionId(),
+        metadata: {
+          timestamp: new Date().toISOString(),
+          ...additionalData
+        },
+>>>>>>> Stashed changes
       };
 
       // Use sendBeacon for better performance
@@ -103,17 +131,41 @@ export function useVisitTracking() {
         });
       }
 
+<<<<<<< Updated upstream
       console.log(`📊 Page visit tracked: ${path || window.location.pathname} (${status === 'authenticated' ? 'user' : 'guest'})`);
     } catch (error) {
       console.error('Failed to track page visit:', error);
+=======
+      console.log(`📊 Page view tracked: ${path || window.location.pathname} (${status === 'authenticated' ? 'user' : 'guest'})`);
+    } catch (error) {
+      console.error('Failed to track page view:', error);
+>>>>>>> Stashed changes
     }
   }, [session, status]);
 
   return {
     trackProjectVisit,
+<<<<<<< Updated upstream
     trackPageVisit,
     isTrackingEnabled: true,
     userType: status === 'authenticated' ? 'user' : 'guest',
     userId: session?.user?.id || null
   };
 }
+=======
+    trackPageView,
+    isAuthenticated: status === 'authenticated',
+    user: session?.user,
+  };
+}
+
+// Helper function to get or create session ID
+function getSessionId(): string {
+  let sessionId = sessionStorage.getItem('visit_session_id');
+  if (!sessionId) {
+    sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    sessionStorage.setItem('visit_session_id', sessionId);
+  }
+  return sessionId;
+}
+>>>>>>> Stashed changes
