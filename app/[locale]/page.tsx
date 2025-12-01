@@ -9,7 +9,6 @@ import Hero from "@/app/[locale]/components/sections/Hero";
 import Projects from "@/app/[locale]/components/sections/Projects";
 import type { PageProps } from "@/types/next";
 import { lazy } from "react";
-
 export default async function HomePage({
   params,
 }: PageProps<{ locale: string }>) {
