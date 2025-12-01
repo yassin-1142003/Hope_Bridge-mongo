@@ -5,8 +5,14 @@
 import ProjectSliderClient from "@/components/projectSlider";
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { getTranslations } from "next-intl/server";
 import { getCollection } from "@/lib/mongodb";
+=======
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import axios from "axios";
+>>>>>>> Stashed changes
 =======
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -44,6 +50,7 @@ export default function ProjectSlider({
 }: {
   params: { locale: string };
 }) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
   try {
@@ -99,6 +106,12 @@ export default function ProjectSlider({
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
+=======
+  const t = useTranslations("HomePage");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+>>>>>>> Stashed changes
 =======
   const t = useTranslations("HomePage");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -167,6 +180,9 @@ export default function ProjectSlider({
           </h1>
           <div className="h-1 flex-1 bg-gradient-to-l w-full  from-transparent to-gray-400" />
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

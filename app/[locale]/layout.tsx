@@ -113,6 +113,10 @@ export default async function LocaleLayout({
   const session = await getServerSession();
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+  const messages = await getMessages();
+>>>>>>> Stashed changes
 =======
   const messages = await getMessages();
 >>>>>>> Stashed changes
@@ -163,6 +167,7 @@ export default async function LocaleLayout({
       >
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <NextIntlClientProvider>
           {/* <TurnstileWrapper> */}
           <ThemeProvider attribute="class" defaultTheme="light">
@@ -185,6 +190,8 @@ export default async function LocaleLayout({
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         <ClientLayoutWrapper locale={locale} session={session} messages={messages}>
           <AOSWrapper>
             <main className="main-pattern pt-18">{children}</main>
@@ -194,6 +201,9 @@ export default async function LocaleLayout({
           <Footer4Col />
         </ClientLayoutWrapper>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

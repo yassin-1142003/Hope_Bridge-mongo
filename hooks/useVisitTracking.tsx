@@ -42,11 +42,14 @@ export function useVisitTracking() {
         userAgent: navigator.userAgent,
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         timestamp: new Date().toISOString(),
         userType: status === 'authenticated' ? 'user' : 'guest',
         userId: session?.user?.id || null,
         ...additionalData
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         userType: status === 'authenticated' ? 'user' : 'guest',
@@ -57,6 +60,9 @@ export function useVisitTracking() {
           ...additionalData
         },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -88,6 +94,7 @@ export function useVisitTracking() {
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Track page visit (general)
   const trackPageVisit = useCallback(async (options: VisitTrackingOptions = {}) => {
     const { projectId, path, locale, referrer } = options;
@@ -103,6 +110,8 @@ export function useVisitTracking() {
         userType: status === 'authenticated' ? 'user' : 'guest',
         userId: session?.user?.id || null
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   // Track page view (general visit tracking)
@@ -121,6 +130,9 @@ export function useVisitTracking() {
           ...additionalData
         },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -145,9 +157,15 @@ export function useVisitTracking() {
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       console.log(`📊 Page visit tracked: ${path || window.location.pathname} (${status === 'authenticated' ? 'user' : 'guest'})`);
     } catch (error) {
       console.error('Failed to track page visit:', error);
+=======
+      console.log(`📊 Page view tracked: ${path || window.location.pathname} (${status === 'authenticated' ? 'user' : 'guest'})`);
+    } catch (error) {
+      console.error('Failed to track page view:', error);
+>>>>>>> Stashed changes
 =======
       console.log(`📊 Page view tracked: ${path || window.location.pathname} (${status === 'authenticated' ? 'user' : 'guest'})`);
     } catch (error) {
@@ -165,6 +183,7 @@ export function useVisitTracking() {
     trackProjectVisit,
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     trackPageVisit,
     isTrackingEnabled: true,
     userType: status === 'authenticated' ? 'user' : 'guest',
@@ -172,6 +191,8 @@ export function useVisitTracking() {
   };
 }
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     trackPageView,
@@ -190,6 +211,9 @@ function getSessionId(): string {
   return sessionId;
 }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

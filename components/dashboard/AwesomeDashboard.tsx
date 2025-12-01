@@ -13,6 +13,10 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import TaskAlertSystem from '@/components/notifications/TaskAlertSystem';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+import RoleBasedTaskDashboard from './RoleBasedTaskDashboard';
+>>>>>>> Stashed changes
 =======
 import RoleBasedTaskDashboard from './RoleBasedTaskDashboard';
 >>>>>>> Stashed changes
@@ -470,7 +474,10 @@ const TaskAlertDashboard: React.FC<TaskAlertDashboardProps> = ({
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
           {/* 🎯 Role-Based Task Management */}
@@ -496,6 +503,9 @@ const TaskAlertDashboard: React.FC<TaskAlertDashboardProps> = ({
           </motion.div>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
