@@ -25,30 +25,7 @@ import DonationModal from "../DonationModal";
 import { usePWA } from "@/components/PWAContext";
 import { Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
-=======
-import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
-=======
-import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
-=======
-import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
-=======
-import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
-=======
-import AlertButton from "@/components/AlertButton";
->>>>>>> Stashed changes
 import {
   DropdownMenu,
   DropdownMenuContent,

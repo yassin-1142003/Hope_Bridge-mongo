@@ -4,6 +4,11 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+'use client';
+
+>>>>>>> Stashed changes
 =======
 'use client';
 
@@ -261,7 +266,11 @@ export default function DatabaseVerificationPage() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     <div className="text-2xl font-bold text-gray-900">{count}</div>
+=======
+                    <div className="text-2xl font-bold text-gray-900">{String(count)}</div>
+>>>>>>> Stashed changes
 =======
                     <div className="text-2xl font-bold text-gray-900">{String(count)}</div>
 >>>>>>> Stashed changes

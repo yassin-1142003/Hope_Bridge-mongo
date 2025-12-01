@@ -111,30 +111,7 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   const session = await getServerSession();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
   const messages = await getMessages();
->>>>>>> Stashed changes
-=======
-  const messages = await getMessages();
->>>>>>> Stashed changes
-=======
-  const messages = await getMessages();
->>>>>>> Stashed changes
-=======
-  const messages = await getMessages();
->>>>>>> Stashed changes
-=======
-  const messages = await getMessages();
->>>>>>> Stashed changes
-=======
-  const messages = await getMessages();
->>>>>>> Stashed changes
 
   if (!hasLocale(routing.locales, locale)) notFound();
 
@@ -177,42 +154,6 @@ export default async function LocaleLayout({
       <body
         className={`${almarai.variable} font-almarai bg-background antialiased`}
       >
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        <NextIntlClientProvider>
-          {/* <TurnstileWrapper> */}
-          <ThemeProvider attribute="class" defaultTheme="light">
-            {/* <ClientWrapper> */}
-            <VisitorTracker locale={locale} />
-            <PWAProvider>
-              <Navbar />
-              <AOSWrapper>
-                <main className="main-pattern pt-18">{children}</main>
-                <AddToHomeIOS />
-                {/* <AddToHomePrompt /> */}
-                <Toaster richColors position="bottom-right" />
-              </AOSWrapper>
-              <Footer4Col />
-            </PWAProvider>
-            {/* </ClientWrapper> */}
-          </ThemeProvider>
-          {/* </TurnstileWrapper> */}
-        </NextIntlClientProvider>
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         <ClientLayoutWrapper locale={locale} session={session} messages={messages}>
           <AOSWrapper>
             <main className="main-pattern pt-18">{children}</main>
@@ -221,22 +162,6 @@ export default async function LocaleLayout({
           </AOSWrapper>
           <Footer4Col />
         </ClientLayoutWrapper>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
       </body>
     </html>
   );
