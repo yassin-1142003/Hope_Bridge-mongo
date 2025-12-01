@@ -135,7 +135,6 @@ const nextConfig: NextConfig = {
   },
 
   reactStrictMode: false,
-<<<<<<< Updated upstream
   output: 'standalone',
 
   async rewrites() {
@@ -146,21 +145,11 @@ const nextConfig: NextConfig = {
         locale: false,
       },
     ];
-=======
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
   },
+
   // Next-intl configuration
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
->>>>>>> Stashed changes
   },
 };
 

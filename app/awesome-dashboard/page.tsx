@@ -1,4 +1,9 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+'use client';
+
+>>>>>>> Stashed changes
 =======
 'use client';
 
@@ -72,7 +77,11 @@ export default function AwesomeDashboardPage() {
                     <span className="font-medium text-gray-700">{key}:</span>
                     <span className="ml-2 text-blue-600">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                       {Array.isArray(value) ? value.join(', ') : value}
+=======
+                      {Array.isArray(value) ? value.join(', ') : String(value)}
+>>>>>>> Stashed changes
 =======
                       {Array.isArray(value) ? value.join(', ') : String(value)}
 >>>>>>> Stashed changes
