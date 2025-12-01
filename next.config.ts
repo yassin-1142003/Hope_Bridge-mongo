@@ -14,13 +14,7 @@ const withPWA = withPWAInit({
   register: true,
   skipWaiting: true,
   disable: !isProd,
-  fallbacks: {
-    document: '/offline',
-    image: '/logo.webp',
-    font: '/fonts/font.woff2',
-    audio: '/fallback-audio.mp3',
-    video: '/fallback-video.mp4',
-  },
+
   runtimeCaching: [
     {
       urlPattern: /^https?:\/\/.*/,
