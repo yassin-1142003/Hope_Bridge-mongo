@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Plus, Printer, Download } from "lucide-react";
+import { Plus, Printer, Download, Mail, Send, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useLocale } from "next-intl";
 
 interface InvoiceItem {
   id: number;
@@ -18,7 +19,82 @@ interface ExchangeRates {
   [currency: string]: number;
 }
 
+// Arabic translations
+const translations = {
+  en: {
+    invoiceTitle: "Invoice Generator",
+    invoiceTo: "Invoice To",
+    invoiceDate: "Invoice Date",
+    invoiceNo: "Invoice No",
+    projectName: "Project Name",
+    emergencyProject: "Emergency Project",
+    managerName: "Manager Name",
+    selectBank: "Select Bank",
+    selectCurrency: "Select Currency",
+    itemName: "Item Name",
+    unitPrice: "Unit Price",
+    quantity: "Quantity",
+    total: "Total",
+    addItem: "Add Item",
+    removeItem: "Remove",
+    downloadPDF: "Download PDF",
+    sendEmail: "Send Email",
+    emailAddress: "Email Address",
+    sendInvoice: "Send Invoice",
+    bankAccount: "Bank account",
+    swiftCode: "SWIFT CODE",
+    bankAccountNumber: "Bank account number / IBAN",
+    address: "Address",
+    telephone: "Telephone",
+    mobile: "Mobile",
+    grandTotal: "Grand Total",
+    totalUSD: "Total (USD)",
+    sending: "Sending...",
+    sendSuccess: "Invoice sent successfully!",
+    sendError: "Failed to send invoice. Please try again.",
+    enterEmail: "Enter recipient email",
+  },
+  ar: {
+    invoiceTitle: "مولد الفواتير",
+    invoiceTo: "الفاتورة إلى",
+    invoiceDate: "تاريخ الفاتورة",
+    invoiceNo: "رقم الفاتورة",
+    projectName: "اسم المشروع",
+    emergencyProject: "مشروع طارئ",
+    managerName: "اسم المدير",
+    selectBank: "اختر البنك",
+    selectCurrency: "اختر العملة",
+    itemName: "اسم الصنف",
+    unitPrice: "سعر الوحدة",
+    quantity: "الكمية",
+    total: "الإجمالي",
+    addItem: "إضافة صنف",
+    removeItem: "إزالة",
+    downloadPDF: "تحميل PDF",
+    sendEmail: "إرسال بالبريد",
+    emailAddress: "البريد الإلكتروني",
+    sendInvoice: "إرسال الفاتورة",
+    bankAccount: "الحساب البنكي",
+    swiftCode: "رمز SWIFT",
+    bankAccountNumber: "رقم الحساب البنكي / IBAN",
+    address: "العنوان",
+    telephone: "الهاتف",
+    mobile: "الجوال",
+    grandTotal: "الإجمالي الكلي",
+    totalUSD: "الإجمالي (دولار أمريكي)",
+    sending: "جاري الإرسال...",
+    sendSuccess: "تم إرسال الفاتورة بنجاح!",
+    sendError: "فشل في إرسال الفاتورة. حاول مرة أخرى.",
+    enterEmail: "أدخل البريد الإلكتروني للمستلم",
+  },
+};
+
 const InvoiceForm = () => {
+  const locale = useLocale() as "en" | "ar";
+  const t = translations[locale];
+  const isRTL = locale === "ar";
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [invoiceTo, setInvoiceTo] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(
@@ -29,11 +105,30 @@ const InvoiceForm = () => {
 
   const [projectName, setProjectName] = useState("");
   const [emergencyProject, setEmergencyProject] = useState("");
-  const [managerName, setManagerName] = useState("Mohammed Zohd");
+  const [managerName, setManagerName] = useState(
+    locale === "ar" ? "محمد زهد" : "Mohammed Zohd"
+  );
   const [selectedBank, setSelectedBank] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("EUR");
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({});
   const [isLoadingRates, setIsLoadingRates] = useState(false);
+
+  // Email functionality states
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  );
+  const [showEmailInput, setShowEmailInput] = useState(false);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
 
   const invoiceToOptions = ["OneNation", "Our Umma", "Ummah", "Dudley"];
 
@@ -190,6 +285,172 @@ const InvoiceForm = () => {
     0
   );
   const grandTotalUSD = items.reduce((sum, item) => sum + item.totalUSD, 0);
+
+  // Email sending functionality
+  const sendEmailWithPDF = async () => {
+    if (!emailAddress) {
+      setEmailStatus("error");
+      return;
+    }
+
+    setIsSendingEmail(true);
+    setEmailStatus("idle");
+
+    try {
+      // Generate PDF first
+      const pdfBlob = await generatePDFBlob();
+
+      // Create form data for email sending
+      const formData = new FormData();
+      formData.append("to", emailAddress);
+      formData.append("from", "motaz.mostafa99@gmail.com");
+      formData.append(
+        "subject",
+        locale === "ar"
+          ? "فاتورة من Hope Bridge Association"
+          : "Invoice from Hope Bridge Association"
+      );
+      formData.append(
+        "text",
+        locale === "ar"
+          ? `مرحباً،\n\nمرفقة لكم الفاتورة المطلوبة من Hope Bridge Association.\n\nمع أطيب التحيات،\n${managerName}`
+          : `Hello,\n\nPlease find attached the invoice from Hope Bridge Association.\n\nBest regards,\n${managerName}`
+      );
+      formData.append(
+        "attachment",
+        pdfBlob,
+        `invoice-${invoiceNo || "draft"}.pdf`
+      );
+
+      // Send email using Resend API or similar service
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        setEmailStatus("success");
+        setTimeout(() => {
+          setShowEmailInput(false);
+          setEmailAddress("");
+          setEmailStatus("idle");
+        }, 3000);
+      } else {
+        setEmailStatus("error");
+      }
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setEmailStatus("error");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const generatePDFBlob = async (): Promise<Blob> => {
+    return new Promise((resolve) => {
+      // Generate PDF using existing handlePrint logic but return as blob
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Brand Colors
+      const primaryRed = [199, 42, 42];
+      const darkRed = [159, 32, 32];
+      const lightGray = [245, 245, 245];
+      const darkGray = [51, 51, 51];
+
+      // Header
+      doc.setFillColor(...primaryRed);
+      doc.rect(0, 0, pageWidth, 66, "F");
+
+      // Logo
+      doc.setFillColor(255, 255, 255);
+      doc.circle(pageWidth / 2, 25, 21, "F");
+
+      // Organization name
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("HOPE BRIDGE ASSOCIATION", pageWidth / 2, 54, {
+        align: "center",
+      });
+
+      // Invoice details
+      let yPosition = 90;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(...darkGray);
+
+      doc.text(
+        `${locale === "ar" ? "الفاتورة إلى" : "Invoice To"}: ${invoiceTo}`,
+        20,
+        yPosition
+      );
+      yPosition += 10;
+      doc.text(
+        `${locale === "ar" ? "التاريخ" : "Date"}: ${invoiceDate}`,
+        20,
+        yPosition
+      );
+      yPosition += 10;
+      doc.text(
+        `${locale === "ar" ? "رقم الفاتورة" : "Invoice No"}: ${invoiceNo}`,
+        20,
+        yPosition
+      );
+
+      // Items table
+      yPosition += 20;
+      doc.setFillColor(...lightGray);
+      doc.rect(20, yPosition, pageWidth - 40, 10, "F");
+      doc.setFont("helvetica", "bold");
+      doc.text(locale === "ar" ? "الصنف" : "Item", 25, yPosition + 7);
+      doc.text(locale === "ar" ? "السعر" : "Price", 80, yPosition + 7);
+      doc.text(locale === "ar" ? "الكمية" : "Qty", 120, yPosition + 7);
+      doc.text(locale === "ar" ? "الإجمالي" : "Total", 150, yPosition + 7);
+
+      // Add items
+      yPosition += 15;
+      items.forEach((item) => {
+        if (item.itemName) {
+          doc.setFont("helvetica", "normal");
+          doc.text(item.itemName, 25, yPosition);
+          doc.text(
+            `${item.unitPrice} ${currentCurrency.symbol}`,
+            80,
+            yPosition
+          );
+          doc.text(item.quantity.toString(), 120, yPosition);
+          doc.text(
+            `${item.totalSelectedCurrency} ${currentCurrency.symbol}`,
+            150,
+            yPosition
+          );
+          yPosition += 10;
+        }
+      });
+
+      // Total
+      yPosition += 10;
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        `${locale === "ar" ? "الإجمالي الكلي" : "Grand Total"}: ${grandTotalSelectedCurrency} ${currentCurrency.symbol}`,
+        150,
+        yPosition
+      );
+
+      // Return as blob
+      const pdfBlob = new Blob([doc.output("blob")], {
+        type: "application/pdf",
+      });
+      resolve(pdfBlob);
+    });
+  };
 
   const handlePrint = () => {
     try {
@@ -515,15 +776,35 @@ const InvoiceForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-primary/10 via-primary/5 to-background p-4 md:p-8">
+    <div
+      className={`min-h-screen ${isDarkMode ? "dark:bg-gray-900" : "bg-linear-to-br from-primary/10 via-primary/5 to-background"} p-4 md:p-8`}
+    >
       <div
         ref={invoiceRef}
-        className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className={`max-w-6xl mx-auto ${isDarkMode ? "dark:bg-gray-800" : "bg-white"} rounded-2xl shadow-2xl overflow-hidden`}
       >
         {/* Header */}
-        <div className="bg-linear-to-r from-primary to-primary/80 p-8 print:hidden">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex items-center gap-4">
+        <div
+          className={`bg-linear-to-r from-primary to-primary/80 p-8 print:hidden relative`}
+        >
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5 text-white" />
+            ) : (
+              <Moon className="w-5 h-5 text-white" />
+            )}
+          </button>
+
+          <div
+            className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-6 ${isRTL ? "md:flex-row-reverse" : ""}`}
+          >
+            <div
+              className={`flex items-center gap-4 ${isRTL ? "flex-row-reverse" : ""}`}
+            >
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
                 <Image
                   className="w-20 h-20 object-contain"
@@ -535,11 +816,11 @@ const InvoiceForm = () => {
               </div>
               <div className="text-white">
                 <h1 className="text-sm font-semibold mb-1">
-                  جمعية جسر الأمل الخيرية الفلسطينية
+                  {locale === "ar"
+                    ? "جمعية جسر الأمل الخيرية الفلسطينية"
+                    : "Palestinian Hope Bridge Charitable Association"}
                 </h1>
-                <h2 className="text-lg font-bold">
-                  Palestinian Hope Bridge Charitable Association
-                </h2>
+                <h2 className="text-lg font-bold">{t.invoiceTitle}</h2>
               </div>
             </div>
             <div className="bg-white text-primary px-8 py-3 rounded-full shadow-lg">
