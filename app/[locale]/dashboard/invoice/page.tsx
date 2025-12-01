@@ -10,8 +10,12 @@ interface InvoiceItem {
   itemName: string;
   unitPrice: number;
   quantity: number;
-  totalGBP: number;
+  totalSelectedCurrency: number;
   totalUSD: number;
+}
+
+interface ExchangeRates {
+  [currency: string]: number;
 }
 
 const InvoiceForm = () => {
@@ -27,6 +31,9 @@ const InvoiceForm = () => {
   const [emergencyProject, setEmergencyProject] = useState("");
   const [managerName, setManagerName] = useState("Mohammed Zohd");
   const [selectedBank, setSelectedBank] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("EUR");
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({});
+  const [isLoadingRates, setIsLoadingRates] = useState(false);
 
   const invoiceToOptions = ["OneNation", "Our Umma", "Ummah", "Dudley"];
 
@@ -56,13 +63,30 @@ const InvoiceForm = () => {
 
   const currentBank =
     banks.find((bank) => bank.name === selectedBank) || banks[0];
+
+  const currencies = [
+    { code: "EUR", symbol: "€", name: "Euro" },
+    { code: "USD", symbol: "$", name: "US Dollar" },
+    { code: "GBP", symbol: "£", name: "British Pound" },
+    { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+    { code: "CHF", symbol: "Fr", name: "Swiss Franc" },
+    { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+    { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+    { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+    { code: "ILS", symbol: "₪", name: "Israeli Shekel" },
+    { code: "SAR", symbol: "SR", name: "Saudi Riyal" },
+    { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
+  ];
+
+  const currentCurrency =
+    currencies.find((c) => c.code === selectedCurrency) || currencies[0];
   const [items, setItems] = useState<InvoiceItem[]>([
     {
       id: 1,
       itemName: "",
       unitPrice: 0,
       quantity: 1,
-      totalGBP: 0,
+      totalSelectedCurrency: 0,
       totalUSD: 0,
     },
     {
@@ -70,17 +94,60 @@ const InvoiceForm = () => {
       itemName: "",
       unitPrice: 0,
       quantity: 1,
-      totalGBP: 0,
+      totalSelectedCurrency: 0,
       totalUSD: 0,
     },
   ]);
 
-  const exchangeRate = 1.27; // 1 GBP = 1.27 USD
+  // Fetch exchange rates on component mount and when currency changes
+  useEffect(() => {
+    fetchExchangeRates();
+  }, []);
+
+  const fetchExchangeRates = async () => {
+    setIsLoadingRates(true);
+    try {
+      const response = await fetch("/api/currency");
+      const data = await response.json();
+      setExchangeRates(data.rates);
+    } catch (error) {
+      console.error("Failed to fetch exchange rates:", error);
+      // Fallback rates if API fails
+      setExchangeRates({
+        USD: 1.08,
+        GBP: 0.86,
+        EUR: 1.0,
+        JPY: 160.5,
+        CHF: 0.94,
+        CAD: 1.47,
+        AUD: 1.65,
+        CNY: 7.85,
+        ILS: 3.95,
+        SAR: 4.05,
+        AED: 3.97,
+      });
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
 
   const calculateItemTotal = (item: InvoiceItem) => {
-    const totalGBP = item.unitPrice * item.quantity;
-    const totalUSD = totalGBP * exchangeRate;
-    return { totalGBP, totalUSD };
+    const totalSelectedCurrency = item.unitPrice * item.quantity;
+    // Convert from selected currency to USD
+    let totalUSD = totalSelectedCurrency;
+
+    if (
+      selectedCurrency !== "USD" &&
+      exchangeRates[selectedCurrency] &&
+      exchangeRates["USD"]
+    ) {
+      // Convert selected currency to EUR (base), then to USD
+      const amountInEUR =
+        totalSelectedCurrency / exchangeRates[selectedCurrency];
+      totalUSD = amountInEUR * exchangeRates["USD"];
+    }
+
+    return { totalSelectedCurrency, totalUSD };
   };
 
   const updateItem = (id: number, field: string, value: any) => {
@@ -88,8 +155,9 @@ const InvoiceForm = () => {
       prevItems.map((item) => {
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
-          const { totalGBP, totalUSD } = calculateItemTotal(updatedItem);
-          return { ...updatedItem, totalGBP, totalUSD };
+          const { totalSelectedCurrency, totalUSD } =
+            calculateItemTotal(updatedItem);
+          return { ...updatedItem, totalSelectedCurrency, totalUSD };
         }
         return item;
       })
@@ -105,7 +173,7 @@ const InvoiceForm = () => {
         itemName: "",
         unitPrice: 0,
         quantity: 1,
-        totalGBP: 0,
+        totalSelectedCurrency: 0,
         totalUSD: 0,
       },
     ]);
@@ -117,7 +185,10 @@ const InvoiceForm = () => {
     }
   };
 
-  const grandTotalGBP = items.reduce((sum, item) => sum + item.totalGBP, 0);
+  const grandTotalSelectedCurrency = items.reduce(
+    (sum, item) => sum + item.totalSelectedCurrency,
+    0
+  );
   const grandTotalUSD = items.reduce((sum, item) => sum + item.totalUSD, 0);
 
   const handlePrint = () => {
@@ -130,134 +201,310 @@ const InvoiceForm = () => {
 
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      let y = 15;
 
-      // Header (Arabic + English names)
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      // Removed problematic Arabic text - add it back properly if needed
-      doc.text("Hope Bridge  Association", pageWidth / 2, y, {
+      // Brand Colors
+      const primaryRed = [199, 42, 42]; // #c72a2a
+      const darkRed = [159, 32, 32];
+      const lightGray = [245, 245, 245];
+      const darkGray = [51, 51, 51];
+
+      // ELEGANT HEADER SECTION WITH GRADIENT EFFECT
+      // Top red banner with decorative elements
+      doc.setFillColor(...primaryRed);
+      doc.rect(0, 0, pageWidth, 66, "B");
+
+      // Decorative corner triangles
+      doc.setFillColor(...darkRed);
+      doc.triangle(0, 0, 30, 0, 0, 30, "F");
+      doc.triangle(pageWidth, 0, pageWidth - 30, 0, pageWidth, 30, "F");
+
+      // Logo placement with white border
+      const logoUrl = "/logo.png";
+      const logoWidth = 40;
+      const logoHeight = 40;
+
+      // White circle background for logo
+      doc.setFillColor(255, 255, 255);
+      doc.circle(pageWidth / 2, 25, 21, "F");
+
+      doc.addImage(
+        logoUrl,
+        "PNG",
+        pageWidth / 2 - logoWidth / 2,
+        3,
+        logoWidth,
+        logoHeight
+      );
+
+      // Organization name in white on red background
+      doc.setFont("cairo", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("HOPE BRIDGE ASSOCIATION", pageWidth / 2, 54, {
         align: "center",
       });
 
-      // INVOICE label
-      y += 10;
-      doc.setFillColor(255, 153, 102);
-      doc.rect(pageWidth / 2 - 25, y - 6, 50, 8, "F");
+      // Decorative line under header
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.5);
+      doc.line(20, 56, pageWidth - 20, 56);
+
+      // INVOICE TITLE SECTION - Modern box design
+      let y = 68;
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(pageWidth / 2 - 35, y - 8, 70, 16, 3, 3, "F");
+
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(pageWidth / 2 - 33, y - 7, 66, 14, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(12);
-      doc.text("INVOICE", pageWidth / 2, y, { align: "center" });
+      doc.text("INVOICE", pageWidth / 2, y + 2, { align: "center" });
       doc.setTextColor(0, 0, 0);
 
-      // Invoice to / Date row
-      y += 12;
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Invoice to: ${invoiceTo || "-"}`, 20, y);
-      const formattedDate = invoiceDate || "";
-      doc.text(`Date: ${formattedDate}`, pageWidth - 20, y, { align: "right" });
+      // INVOICE DETAILS SECTION - Two-column elegant layout
+      y = 92;
 
-      // Invoice number
-      y += 10;
-      doc.setFontSize(11);
+      // Left column box
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(15, y - 5, 85, 24, 2, 2, "F");
+
       doc.setFont("helvetica", "bold");
-      doc.text(`Invoice No: ${invoiceNumber}`, pageWidth / 2, y, {
-        align: "center",
-      });
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE TO:", 20, y + 3);
 
-      // Project title + emergency line
-      y += 12;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceTo || "-", 43, y + 3);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE NO:", 20, y + 8);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceNo || "-", 43, y + 8);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE Number:", 20, y + 13);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceNumber || "-", 50, y + 13);
+
+      // Right column box
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(110, y - 5, 85, 24, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("DATE:", 115, y);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      const formattedDate = invoiceDate || "";
+      doc.text(formattedDate, 115, y + 6);
+
+      // PROJECT INFORMATION - Styled box
+      y = 124;
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(15, y - 5, pageWidth - 30, 20, 2, 2, "FD");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(...darkGray);
+      doc.text(
+        projectName || "Gaza Strip Relief Project",
+        pageWidth / 2,
+        y + 4,
+        {
+          align: "center",
+        }
+      );
+
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(12);
-      doc.text(projectName || "Gaza strip Relief project", pageWidth / 2, y, {
-        align: "center",
-      });
-      y += 7;
+      doc.setTextColor(...darkGray);
       doc.text(
         emergencyProject || "Emergency Project War September 2025",
         pageWidth / 2,
-        y,
+        y + 10,
         { align: "center" }
       );
 
-      // Items table header - FIXED ALIGNMENT
-      y += 12;
-      const colX = [15, 45, 110, 140, 165, 185];
-      doc.setFontSize(10);
+      // ITEMS TABLE - Professional design with alternating rows
+      y = 152;
+      const colX = [20, 50, 115, 140, 165, 185];
+
+      // Table header with red background
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(15, y - 7, pageWidth - 20, 10, 1, 1, "F");
+
       doc.setFont("helvetica", "bold");
-      doc.text("No", colX[0], y);
-      doc.text("ITEMS", colX[1], y);
-      doc.text("UNIT P (£)", colX[2], y);
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text("NO", colX[0], y);
+      doc.text("ITEM DESCRIPTION", colX[1], y);
+      doc.text("UNIT PRICE", colX[2], y);
       doc.text("QTY", colX[3], y);
-      doc.text("TOTAL (£)", colX[4], y);
+      doc.text(`TOTAL (${selectedCurrency})`, colX[4], y);
       doc.text("TOTAL ($)", colX[5], y);
 
-      // Horizontal line under header
-      y += 4;
-      doc.line(15, y, pageWidth - 15, y);
-      y += 7;
+      y += 8;
+      doc.setTextColor(0, 0, 0);
 
-      // Items rows - FIXED ALIGNMENT
+      // Items rows with alternating background
       doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
       items.forEach((item, index) => {
         if (!item.itemName && !item.unitPrice && !item.quantity) {
           return;
         }
-        if (y > 240) {
-          // Leave space for bank info at bottom
+        if (y > 235) {
           doc.addPage();
           y = 20;
         }
+
+        // Alternating row background
+        if (index % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(15, y - 4, pageWidth - 20, 7, "F");
+        }
+
+        doc.setTextColor(...darkGray);
         doc.text(String(index + 1), colX[0], y);
         doc.text(item.itemName || "-", colX[1], y);
-        doc.text(String(item.unitPrice.toFixed(2)), colX[2], y);
+        doc.text(
+          `${selectedCurrency} ${item.unitPrice.toFixed(2)}`,
+          colX[2],
+          y
+        );
         doc.text(String(item.quantity), colX[3], y);
-        doc.text(String(item.totalGBP.toFixed(2)), colX[4], y);
-        doc.text(String(item.totalUSD.toFixed(2)), colX[5], y);
-        y += 6;
+        doc.text(
+          `${selectedCurrency} ${item.totalSelectedCurrency.toFixed(2)}`,
+          colX[4],
+          y
+        );
+        doc.text(`$${item.totalUSD.toFixed(2)}`, colX[5], y);
+
+        y += 7;
       });
 
-      // Horizontal line before totals
-      y += 2;
-      doc.line(15, y, pageWidth - 15, y);
-      y += 5;
+      // TOTALS SECTION - Highlighted box
+      y += 15;
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(135, y - 5, 70, 10, 2, 2, "F");
 
-      // Totals row
       doc.setFont("helvetica", "bold");
-      doc.text("Total:", colX[3], y);
-      doc.text(String(grandTotalGBP.toFixed(2)), colX[4], y);
-      doc.text(String(grandTotalUSD.toFixed(2)), colX[5], y);
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.text("TOTAL:", 140, y + 1);
+      doc.text(
+        `${selectedCurrency} ${grandTotalSelectedCurrency.toFixed(2)}`,
+        160,
+        y + 1
+      );
+      doc.text(`$${grandTotalUSD.toFixed(2)}`, 185, y + 1);
 
-      // Manager
-      y += 12;
-      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+
+      // SIGNATURE SECTION
+      y += 18;
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.3);
+      doc.line(20, y + 10, 80, y + 10);
+
       doc.setFont("helvetica", "normal");
-      doc.text("General manager", 20, y);
-      y += 5;
-      doc.text(managerName || "Mohammed Zohd", 20, y);
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("General Manager", 20, y + 15);
 
-      // Bank details - CENTERED AT BOTTOM OF PAGE
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(managerName || "Mohammed Zohd", 20, y + 20);
+
+      // FOOTER SECTION - Elegant design
+      const footerY = pageHeight - 55;
+
+      // Footer background
+      doc.setFillColor(...lightGray);
+      doc.rect(0, footerY - 5, pageWidth, 60, "F");
+
+      // Red accent line
+      doc.setFillColor(...primaryRed);
+      doc.rect(pageWidth / 4, footerY - 5, pageWidth / 2, 1, "F");
+
+      // Organization info
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryRed);
+      doc.text("Palestinian Hope Bridge Charity", pageWidth / 2, footerY + 5, {
+        align: "center",
+      });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(...darkGray);
+      doc.text(
+        "Gaza – Alnasser - Alababidi crossroad in front of Ahshammali center",
+        pageWidth / 2,
+        footerY + 11,
+        { align: "center" }
+      );
+      doc.text(`License No. GA-1123-C`, pageWidth / 2, footerY + 16, {
+        align: "center",
+      });
+      doc.text(
+        "Tel: 082872707 | Mobile: 00970592130200",
+        pageWidth / 2,
+        footerY + 21,
+        { align: "center" }
+      );
+
+      // Bank details with icon-style design
       if (currentBank) {
-        const bankY = pageHeight - 35; // Position from bottom
-        doc.setFontSize(9);
         doc.setFont("helvetica", "bold");
-        doc.text("Bank Details", pageWidth / 2, bankY, { align: "center" });
+        doc.setFontSize(9);
+        doc.setTextColor(...primaryRed);
+        doc.text("BANK DETAILS", pageWidth / 2, footerY + 28, {
+          align: "center",
+        });
 
         doc.setFont("helvetica", "normal");
-        doc.text(`Bank: ${currentBank.name}`, pageWidth / 2, bankY + 5, {
-          align: "center",
-        });
-        doc.text(currentBank.account, pageWidth / 2, bankY + 10, {
-          align: "center",
-        });
-        doc.text(`SWIFT: ${currentBank.swift}`, pageWidth / 2, bankY + 15, {
-          align: "center",
-        });
-        doc.text(`IBAN: ${currentBank.iban}`, pageWidth / 2, bankY + 20, {
-          align: "center",
-        });
+        doc.setFontSize(7.5);
+        doc.setTextColor(...darkGray);
+        doc.text(
+          `${currentBank.name} | Account: ${currentBank.account}`,
+          pageWidth / 2,
+          footerY + 33,
+          {
+            align: "center",
+          }
+        );
+        doc.text(
+          `SWIFT: ${currentBank.swift} | IBAN: ${currentBank.iban}`,
+          pageWidth / 2,
+          footerY + 37,
+          {
+            align: "center",
+          }
+        );
       }
 
-      const filename = `invoice_${invoiceNo || "draft"}_${
+      const filename = `invoice_${invoiceNumber || "draft"}_${
         new Date().toISOString().split("T")[0]
       }.pdf`;
       doc.save(filename);
@@ -304,7 +551,7 @@ const InvoiceForm = () => {
         {/* Form Content */}
         <div className="p-8">
           {/* Top Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-linear-to-br from-primary/5 to-primary/10 p-4 rounded-xl border-l-4 border-primary">
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
                 Invoice To:
@@ -345,6 +592,30 @@ const InvoiceForm = () => {
                 className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-colors"
                 placeholder="e.g., 09/2025"
               />
+            </div>
+            <div className="bg-linear-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border-l-4 border-emerald-500">
+              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                Currency:
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={selectedCurrency}
+                  onChange={(e) => setSelectedCurrency(e.target.value)}
+                  className="flex-1 bg-white border-2 border-emerald-200 rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors"
+                  disabled={isLoadingRates}
+                >
+                  {currencies.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.code} - {currency.name}
+                    </option>
+                  ))}
+                </select>
+                {isLoadingRates && (
+                  <div className="flex items-center px-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500"></div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="bg-linear-to-br from-primary/5 to-primary/10 p-4 rounded-xl border-l-4 border-primary">
               <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
@@ -400,13 +671,13 @@ const InvoiceForm = () => {
                     Items
                   </th>
                   <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                    Unit P (£)
+                    Unit P ({currentCurrency.symbol})
                   </th>
                   <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">
                     QTY
                   </th>
                   <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                    Total (£)
+                    Total ({currentCurrency.symbol})
                   </th>
                   <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider">
                     Total ($)
@@ -450,6 +721,7 @@ const InvoiceForm = () => {
                         }
                         className="w-full bg-white border-2 border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors"
                         step="0.01"
+                        placeholder={`${currentCurrency.symbol}0.00`}
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -471,9 +743,9 @@ const InvoiceForm = () => {
                     <td className="px-4 py-3">
                       <input
                         type="text"
-                        value={`£ ${item.totalGBP.toFixed(2)}`}
+                        value={`${currentCurrency.symbol} ${item.totalSelectedCurrency.toFixed(2)}`}
                         readOnly
-                        className="w-full bg-gray-100 border-2 border-gray-200 rounded-lg px-3 py-2 font-semibold text-gray-700"
+                        className="w-full bg-emerald-50 border-2 border-emerald-200 rounded-lg px-3 py-2 font-semibold text-emerald-700"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -499,14 +771,15 @@ const InvoiceForm = () => {
               <tfoot>
                 <tr className="bg-linear-to-r from-amber-100 to-amber-200">
                   <td
-                    colSpan={4}
+                    colSpan={3}
                     className="px-4 py-4 text-right font-bold text-lg"
                   >
                     TOTAL
                   </td>
                   <td className="px-4 py-4">
-                    <span className="font-bold text-lg text-primary">
-                      £ {grandTotalGBP.toFixed(2)}
+                    <span className="font-bold text-lg text-emerald-600">
+                      {currentCurrency.symbol}{" "}
+                      {grandTotalSelectedCurrency.toFixed(2)}
                     </span>
                   </td>
                   <td className="px-4 py-4">
