@@ -1,875 +1,1021 @@
 "use client";
-import React from "react";
-import { motion, AnimatePresence } from 'framer-motion';
-import EnhancedTaskForm from "@/components/EnhancedTaskForm";
-import EnhancedTaskCard from "@/components/EnhancedTaskCard";
-import { EnhancedTaskService, type TaskFilters, type TaskAnalytics } from '@/lib/services/EnhancedTaskService';
-import { authManager } from '@/lib/auth-enhanced';
-import { notificationManager } from '@/lib/notifications/NotificationManager';
-import { errorHandler } from '@/lib/errorHandling/ErrorHandler';
-import { useLoadingState, useDebouncedValue, useInfiniteScroll } from '@/hooks/usePerformanceOptimizations';
-import { AdvancedSearch, SearchSuggestions } from '@/components/search/AdvancedSearch';
-import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
-import { 
-  EnhancedButton, 
-  EnhancedCard, 
-  EnhancedInput, 
-  LoadingSpinner,
-  EnhancedAlert,
-  EnhancedBadge 
-} from '@/components/ui/enhanced-components';
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Calendar, 
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
   User as UserIcon,
   Clock,
-  RefreshCw,
   CheckCircle,
   AlertCircle,
+  Filter,
+  RefreshCw,
+  X,
+  Bell,
   TrendingUp,
   BarChart3,
-  Bell,
   Settings,
-  X
-} from 'lucide-react';
-import type { User as UserType, UserRole } from '@/lib/roles';
-import { getClientSession } from '@/lib/auth-client';
+  Moon,
+  Sun,
+} from "lucide-react";
+import { useLocale } from "next-intl";
 
-// Static data for employees with roles
-const employees = [
-  { id: "1", name: "Ahmed Hassan", email: "ahmed@company.com", role: "ADMIN" as UserRole },
-  { id: "2", name: "Sara Mohamed", email: "sara@company.com", role: "PROJECT_COORDINATOR" as UserRole },
-  { id: "3", name: "Omar Ali", email: "omar@company.com", role: "FIELD_OFFICER" as UserRole },
-  { id: "4", name: "Fatima Ibrahim", email: "fatima@company.com", role: "HR" as UserRole },
-];
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  priority: "low" | "medium" | "high" | "urgent";
+  assignedTo: string;
+  assignedToName?: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  attachments?: TaskFile[];
+}
 
-const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
-  // Enhanced services
-  const taskService = new EnhancedTaskService();
+interface TaskFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  file?: File;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+}
+
+// Arabic translations
+const translations = {
+  en: {
+    taskManager: "Task Manager",
+    welcomeBack: "Welcome back",
+    notifications: "Notifications",
+    stats: "Stats",
+    totalTasks: "Total Tasks",
+    completed: "Completed",
+    inProgress: "In Progress",
+    pending: "Pending",
+    urgent: "Urgent",
+    searchTasks: "Search tasks...",
+    allStatus: "All Status",
+    pendingStatus: "Pending",
+    inProgressStatus: "In Progress",
+    completedStatus: "Completed",
+    cancelledStatus: "Cancelled",
+    allPriority: "All Priority",
+    lowPriority: "Low",
+    mediumPriority: "Medium",
+    highPriority: "High",
+    urgentPriority: "Urgent",
+    newTask: "New Task",
+    createNewTask: "Create New Task",
+    editTask: "Edit Task",
+    taskTitle: "Task Title",
+    assignedTo: "Assigned To",
+    description: "Description",
+    status: "Status",
+    priority: "Priority",
+    startDate: "Start Date",
+    endDate: "Due Date",
+    selectUser: "Select user",
+    enterTaskTitle: "Enter task title",
+    enterTaskDescription: "Enter task description",
+    attachments: "Attachments",
+    addFiles: "Add Files",
+    dropFiles: "Drop files here or click to browse",
+    supportedFormats: "Supported formats: Images, Videos, Documents, PDFs and more",
+    maxFileSize: "Maximum file size: 10MB",
+    removeFile: "Remove file",
+    fileTooBig: "File size exceeds 10MB limit",
+    cancel: "Cancel",
+    createTask: "Create Task",
+    updateTask: "Update Task",
+    tasks: "Tasks",
+    noTasksFound: "No tasks found",
+    getStarted: "Get started by creating your first task",
+    due: "Due",
+    created: "Created",
+  },
+  ar: {
+    taskManager: "مدير المهام",
+    welcomeBack: "مرحباً بعودتك",
+    notifications: "الإشعارات",
+    stats: "الإحصائيات",
+    totalTasks: "إجمالي المهام",
+    completed: "مكتمل",
+    inProgress: "قيد التنفيذ",
+    pending: "في الانتظار",
+    urgent: "عاجل",
+    searchTasks: "البحث في المهام...",
+    allStatus: "كل الحالات",
+    pendingStatus: "في الانتظار",
+    inProgressStatus: "قيد التنفيذ",
+    completedStatus: "مكتمل",
+    cancelledStatus: "ملغي",
+    allPriority: "كل الأولويات",
+    lowPriority: "منخفض",
+    mediumPriority: "متوسط",
+    highPriority: "مرتفع",
+    urgentPriority: "عاجل",
+    newTask: "مهمة جديدة",
+    createNewTask: "إنشاء مهمة جديدة",
+    editTask: "تعديل المهمة",
+    taskTitle: "عنوان المهمة",
+    assignedTo: "المسند إليه",
+    description: "الوصف",
+    status: "الحالة",
+    priority: "الأولوية",
+    startDate: "تاريخ البدء",
+    endDate: "تاريخ الاستحقاق",
+    selectUser: "اختر المستخدم",
+    enterTaskTitle: "أدخل عنوان المهمة",
+    enterTaskDescription: "أدخل وصف المهمة",
+    attachments: "المرفقات",
+    addFiles: "إضافة ملفات",
+    dropFiles: "اسقط الملفات هنا أو انقر للاختيار",
+    supportedFormats: "التنسيقات المدعومة: صور، فيديو، مستندات، ملفات PDF والمزيد",
+    maxFileSize: "أقصى حجم للملف: 10 ميجابايت",
+    removeFile: "إزالة الملف",
+    fileTooBig: "حجم الملف يتجاوز حد 10 ميجابايت",
+    cancel: "إلغاء",
+    createTask: "إنشاء مهمة",
+    updateTask: "تحديث المهمة",
+    tasks: "المهام",
+    noTasksFound: "لم يتم العثور على مهام",
+    getStarted: "ابدأ بإنشاء أول مهمة لك",
+    due: "استحقاق",
+    created: "إنشاء",
+  },
+};
+
+const TaskManager = () => {
+  const locale = useLocale() as "en" | "ar";
+  const t = translations[locale];
+  const isRTL = locale === "ar";
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   // State management
-  const [tasks, setTasks] = React.useState<any[]>([]);
-  const [totalTasks, setTotalTasks] = React.useState(0);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [hasMoreTasks, setHasMoreTasks] = React.useState(true);
-  const [users, setUsers] = React.useState<UserType[]>([]);
-  const [session, setSession] = React.useState<any>(null);
-  const [showAnalytics, setShowAnalytics] = React.useState(false);
-  const [selectedTask, setSelectedTask] = React.useState<any>(null);
-  const [showTaskDetails, setShowTaskDetails] = React.useState(false);
-  const [notifications, setNotifications] = React.useState<any[]>([]);
-  const [showNotifications, setShowNotifications] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(0);
-  const [newTaskAlert, setNewTaskAlert] = React.useState<any>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
-  // Search and filters
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [filters, setFilters] = React.useState<TaskFilters>({});
-  const [showSuggestions, setShowSuggestions] = React.useState(false);
-  const debouncedQuery = useDebouncedValue(searchQuery, 300);
-  
-  // Loading states
-  const loadingState = useLoadingState('Loading tasks...');
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  
-  // Analytics data
-  const [analytics, setAnalytics] = React.useState<TaskAnalytics | null>(null);
-  
-  // Infinite scroll for large datasets
-  const {
-    data: infiniteTasks,
-    isLoading: isLoadingMore,
-    hasMore,
-    loadMore,
-    reset: resetInfiniteScroll,
-    lastElementRef
-  } = useInfiniteScroll(
-    async (page) => {
-      const result = await taskService.getAllTasks(page, 20);
-      return result.tasks;
-    },
-    { pageSize: 20 }
-  );
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "pending" as Task["status"],
+    priority: "medium" as Task["priority"],
+    assignedTo: "",
+    startDate: "",
+    endDate: "",
+  });
+  const [attachments, setAttachments] = useState<TaskFile[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showStats, setShowStats] = useState(false);
+  const [session, setSession] = useState<any>(null);
 
-  // Reset infinite scroll when filters change
-  React.useEffect(() => {
-    resetInfiniteScroll();
-  }, [filters, debouncedQuery]);
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
-  // Get session on component mount
-  // Initialize session and subscriptions
-  React.useEffect(() => {
-    const currentSession = getClientSession();
-    setSession(currentSession);
+  // Mock data for demonstration
+  useEffect(() => {
+    // Initialize with mock data
+    const mockTasks: Task[] = [
+      {
+        id: "1",
+        title: "Complete project documentation",
+        description: "Write comprehensive documentation for the new feature",
+        status: "in_progress",
+        priority: "high",
+        assignedTo: "john@example.com",
+        assignedToName: "John Doe",
+        startDate: "2024-12-01",
+        endDate: "2024-12-15",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-01",
+      },
+      {
+        id: "2",
+        title: "Review pull requests",
+        description: "Review and approve pending pull requests",
+        status: "pending",
+        priority: "medium",
+        assignedTo: "jane@example.com",
+        assignedToName: "Jane Smith",
+        startDate: "2024-12-01",
+        endDate: "2024-12-10",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-01",
+      },
+      {
+        id: "3",
+        title: "Fix critical bug",
+        description: "Resolve the authentication issue reported by users",
+        status: "completed",
+        priority: "urgent",
+        assignedTo: "bob@example.com",
+        assignedToName: "Bob Johnson",
+        startDate: "2024-12-01",
+        endDate: "2024-12-05",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-03",
+      },
+    ];
+
+    const mockUsers: User[] = [
+      { id: "1", name: "John Doe", email: "john@example.com", role: "developer" },
+      { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
+      { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
+    ];
+
+    setTasks(mockTasks);
+    setUsers(mockUsers);
+    setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
+
+    // Mock notifications
+    setNotifications([
+      {
+        id: "1",
+        title: locale === "ar" ? "مهمة جديدة معينة" : "New task assigned",
+        message: locale === "ar" 
+          ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
+          : "You have been assigned to 'Complete project documentation'",
+        type: "task_assigned",
+        read: false,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setUnreadCount(1);
+  }, []);
+
+  // Filter tasks based on search and filters
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = selectedStatus === "all" || task.status === selectedStatus;
+    const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  // Get status color
+  const getStatusColor = (status: Task["status"]) => {
+    const colors = {
+      pending: "bg-amber-100 text-amber-800 border-amber-200",
+      in_progress: "bg-blue-100 text-blue-800 border-blue-200",
+      completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      cancelled: "bg-red-100 text-red-800 border-red-200",
+    };
+    return colors[status];
+  };
+
+  // Get priority color
+  const getPriorityColor = (priority: Task["priority"]) => {
+    const colors = {
+      low: "bg-gray-100 text-gray-800 border-gray-200",
+      medium: "bg-blue-100 text-blue-800 border-blue-200",
+      high: "bg-orange-100 text-orange-800 border-orange-200",
+      urgent: "bg-red-100 text-red-800 border-red-200",
+    };
+    return colors[priority];
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Subscribe to auth changes
-    const unsubscribeAuth = authManager.subscribe((authState) => {
-      setSession(authState.session);
-      if (!authState.isAuthenticated) {
-        // Handle logout
-        setTasks([]);
-        setUsers([]);
-      }
+    if (editingTask) {
+      // Update existing task
+      setTasks(tasks.map(task => 
+        task.id === editingTask.id 
+          ? { ...task, ...formData, attachments, updatedAt: new Date().toISOString() }
+          : task
+      ));
+    } else {
+      // Create new task
+      const newTask: Task = {
+        id: Date.now().toString(),
+        ...formData,
+        attachments,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setTasks([newTask, ...tasks]);
+    }
+
+    // Reset form
+    setFormData({
+      title: "",
+      description: "",
+      status: "pending",
+      priority: "medium",
+      assignedTo: "",
+      startDate: "",
+      endDate: "",
     });
-  }, []);
+    setAttachments([]);
+    setUploadError(null);
+    setShowCreateForm(false);
+    setEditingTask(null);
+  };
 
-  React.useEffect(() => {
-    fetchTasks();
-    fetchUsers();
-    fetchNotifications();
+  // Handle task deletion
+  const handleDelete = (taskId: string) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+  };
+
+  // Handle task edit
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      assignedTo: task.assignedTo,
+      startDate: task.startDate,
+      endDate: task.endDate,
+    });
+    setAttachments(task.attachments || []);
+    setShowCreateForm(true);
+  };
+
+  // File upload handlers
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return;
     
-    // Set up real-time notification polling
-    const notificationInterval = setInterval(() => {
-      fetchNotifications();
-    }, 30000); // Check every 30 seconds
+    const newFiles: TaskFile[] = [];
+    const maxSize = 10 * 1024 * 1024; // 10MB
     
-    // Close notification dropdown when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.notification-dropdown')) {
-        setShowNotifications(false);
+    Array.from(files).forEach(file => {
+      if (file.size > maxSize) {
+        setUploadError(t.fileTooBig);
+        return;
       }
-    };
+      
+      const taskFile: TaskFile = {
+        id: Date.now().toString() + Math.random().toString(36),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        file: file,
+      };
+      
+      newFiles.push(taskFile);
+    });
     
-    document.addEventListener('mousedown', handleClickOutside);
+    if (newFiles.length > 0) {
+      setAttachments([...attachments, ...newFiles]);
+      setUploadError(null);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
     
-    return () => {
-      clearInterval(notificationInterval);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Fetch notifications for current user
-  const fetchNotifications = async () => {
-    try {
-      if (!session?.user?.email) return;
-      
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const userNotifications = data.data || [];
-        setNotifications(userNotifications);
-        
-        const unread = userNotifications.filter((n: any) => !n.read);
-        setUnreadCount(unread.length);
-        
-        // Show toast for new task assignments
-        const newTaskNotifications = unread.filter((n: any) => 
-          n.type === 'task_assigned' && 
-          new Date(n.timestamp) > new Date(Date.now() - 60000) // Last minute
-        );
-        
-        if (newTaskNotifications.length > 0) {
-          setNewTaskAlert(newTaskNotifications[0]);
-          setTimeout(() => setNewTaskAlert(null), 5000); // Hide after 5 seconds
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files);
     }
   };
 
-  // Mark notification as read
-  const markNotificationAsRead = async (notificationId: string) => {
-    try {
-      await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
-      });
-      
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
+  const removeFile = (fileId: string) => {
+    setAttachments(attachments.filter(file => file.id !== fileId));
   };
 
-  // Mark all notifications as read
-  const markAllAsRead = async () => {
-    try {
-      await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token') || ''}`
-        }
-      });
-      
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-    }
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return '🖼️';
+    if (type.startsWith('video/')) return '🎥';
+    if (type.includes('pdf')) return '📄';
+    if (type.includes('word') || type.includes('document')) return '📝';
+    if (type.includes('excel') || type.includes('spreadsheet')) return '📊';
+    if (type.includes('powerpoint') || type.includes('presentation')) return '📈';
+    if (type.includes('zip') || type.includes('rar') || type.includes('7z')) return '🗜️';
+    return '📎';
   };
 
-  const fetchTasks = async (page: number = 1, append: boolean = false) => {
-    try {
-      setIsLoading(true);
-      const result = await taskService.getAllTasks(page, 20);
-      
-      if (append) {
-        setTasks(prev => [...prev, ...result.tasks]);
-      } else {
-        setTasks(result.tasks);
-      }
-      
-      setTotalTasks(result.total);
-      setHasMoreTasks(result.hasMore);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error);
-      errorHandler.handleError(error as Error, { operation: 'fetchTasks' });
-      setError('Failed to load tasks');
-    } finally {
-      setIsLoading(false);
-    }
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Enhanced data fetching functions
-  const fetchUsers = async () => {
-    try {
-      loadingState.startLoading('Loading users...');
-      const result = await taskService.getUsers({ isActive: true });
-      setUsers(result);
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'fetchUsers' });
-    } finally {
-      loadingState.stopLoading();
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    try {
-      const analyticsData = await taskService.getTaskAnalytics();
-      setAnalytics(analyticsData);
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'fetchAnalytics' });
-    }
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        fetchUsers(),
-        fetchAnalytics(),
-        resetInfiniteScroll()
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const handleSearch = (searchFilters: any) => {
-    // Convert SearchFilters to TaskFilters format
-    const taskFilters: TaskFilters = {
-      search: searchFilters.search,
-      status: searchFilters.status?.[0] as any, // Convert array to single value
-      priority: searchFilters.priority?.[0] as any,
-      assignedTo: searchFilters.assignedTo?.[0],
-      tags: searchFilters.tags,
-      categories: searchFilters.categories
-    };
-    setFilters(taskFilters);
-    resetInfiniteScroll();
-  };
-
-  const handleClearSearch = () => {
-    setFilters({});
-    setSearchQuery('');
-    resetInfiniteScroll();
-  };
-
-  const handleCreateTask = async (taskData: any, files: File[]) => {
-    try {
-      loadingState.startLoading('Creating task...');
-      
-      const newTask = await taskService.createTask({
-        ...taskData,
-        files,
-        createdBy: session?.user?.email || 'unknown'
-      });
-      
-      // Send notification to assigned user
-      if (taskData.assignedTo && taskData.assignedTo !== session?.user?.email) {
-        await notificationManager.notifyTaskAssigned(
-          taskData.title,
-          taskData.assignedTo,
-          users.find(u => u.email === taskData.assignedTo)?.name || 'Unknown'
-        );
-      }
-      
-      resetInfiniteScroll();
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'createTask' });
-    } finally {
-      loadingState.stopLoading();
-    }
-  };
-
-  const handleUpdateTask = async (taskId: string, updates: Partial<any>) => {
-    try {
-      loadingState.startLoading('Updating task...');
-      await taskService.updateTask(taskId, updates);
-      
-      // Send notification for status changes
-      if (updates.status === 'completed') {
-        const task = infiniteTasks.find(t => t._id === taskId);
-        if (task) {
-          await notificationManager.notifyTaskCompleted(
-            task.title,
-            task.assignedTo,
-            users.find(u => u.email === task.assignedTo)?.name || 'Unknown'
-          );
-        }
-      }
-      
-      resetInfiniteScroll();
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'updateTask' });
-    } finally {
-      loadingState.stopLoading();
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      loadingState.startLoading('Deleting task...');
-      await taskService.deleteTask(taskId);
-      resetInfiniteScroll();
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'deleteTask' });
-    } finally {
-      loadingState.stopLoading();
-    }
-  };
-
-  const handleBulkActions = async (action: 'complete' | 'delete', taskIds: string[]) => {
-    try {
-      loadingState.startLoading(`Bulk ${action}...`);
-      
-      if (action === 'complete') {
-        await taskService.bulkUpdateTasks(taskIds, { status: 'completed' });
-      } else {
-        await taskService.bulkDeleteTasks(taskIds);
-      }
-      
-      resetInfiniteScroll();
-    } catch (error) {
-      errorHandler.handleError(error as Error, { operation: 'bulkAction', action, taskIds });
-    } finally {
-      loadingState.stopLoading();
-    }
-  };
-
-  const getTaskStatusColor = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      in_progress: 'bg-blue-100 text-blue-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getPriorityColor = (priority: string) => {
-    const colors = {
-      low: 'bg-gray-100 text-gray-800',
-      medium: 'bg-blue-100 text-blue-800',
-      high: 'bg-orange-100 text-orange-800',
-      urgent: 'bg-red-100 text-red-800'
-    };
-    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  // Calculate stats
+  const stats = {
+    total: tasks.length,
+    completed: tasks.filter(t => t.status === "completed").length,
+    pending: tasks.filter(t => t.status === "pending").length,
+    inProgress: tasks.filter(t => t.status === "in_progress").length,
+    urgent: tasks.filter(t => t.priority === "urgent").length,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Enhanced Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {isArabic ? "إدارة المهام" : "Task Management"}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {isArabic ? "مرحباً" : "Welcome"}, {session?.user?.name || session?.user?.email}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Notifications */}
-            <div className="relative notification-dropdown">
-              <EnhancedButton 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative"
+    <div className={`min-h-screen bg-gradient-to-br ${isDarkMode ? 'dark:bg-gray-900' : 'from-primary/5 via-white to-primary/10'}`}>
+      {/* Header */}
+      <div className={`bg-white ${isDarkMode ? 'dark:bg-gray-800' : ''} shadow-sm border-b border-primary/20`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.taskManager}</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.welcomeBack}, {session?.user?.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
               >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <EnhancedBadge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 min-w-[20px] h-5 text-xs flex items-center justify-center"
-                  >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </EnhancedBadge>
+                {isDarkMode ? (
+                  <Sun className="w-5 h-5 text-yellow-400" />
+                ) : (
+                  <Moon className="w-5 h-5 text-gray-700" />
                 )}
-              </EnhancedButton>
-              
-              {/* Notification Dropdown */}
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden"
+              </button>
+
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={`relative p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
                 >
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900">
-                        {isArabic ? "الإشعارات" : "Notifications"}
-                      </h3>
-                      {unreadCount > 0 && (
-                        <EnhancedButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={markAllAsRead}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          {isArabic ? "تحديد الكل كمقروء" : "Mark all as read"}
-                        </EnhancedButton>
-                      )}
+                  <Bell className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className={`absolute right-0 mt-2 w-80 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'} rounded-lg shadow-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} z-50`}>
+                    <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.notifications}</h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <div key={notification.id} className={`p-4 border-b ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'}`}>
+                          <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{notification.title}</p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{notification.message}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* Stats Toggle */}
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  showStats
+                    ? "bg-primary text-white"
+                    : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                {t.stats}
+              </button>
+
+              {/* Refresh */}
+              <button className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}>
+                <RefreshCw className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <AnimatePresence>
+          {showStats && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8"
+            >
+              <div className={`rounded-lg p-4 shadow-sm border border-primary/20 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.totalTasks}</p>
+                    <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-emerald-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.completed}</p>
+                    <p className="text-2xl font-bold text-emerald-600">{stats.completed}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-blue-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.inProgress}</p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-amber-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.pending}</p>
+                    <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-amber-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-red-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.urgent}</p>
+                    <p className="text-2xl font-bold text-red-600">{stats.urgent}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Search and Filters */}
+        <div className={`rounded-lg shadow-sm border border-primary/20 p-6 mb-8 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+          <div className={`flex flex-col md:flex-row gap-4 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400`} />
+                <input
+                  type="text"
+                  placeholder={t.searchTasks}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                />
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+            >
+              <option value="all">{t.allStatus}</option>
+              <option value="pending">{t.pendingStatus}</option>
+              <option value="in_progress">{t.inProgressStatus}</option>
+              <option value="completed">{t.completedStatus}</option>
+              <option value="cancelled">{t.cancelledStatus}</option>
+            </select>
+
+            {/* Priority Filter */}
+            <select
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+            >
+              <option value="all">{t.allPriority}</option>
+              <option value="low">{t.lowPriority}</option>
+              <option value="medium">{t.mediumPriority}</option>
+              <option value="high">{t.highPriority}</option>
+              <option value="urgent">{t.urgentPriority}</option>
+            </select>
+
+            {/* Create Task Button */}
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              {t.newTask}
+            </button>
+          </div>
+        </div>
+
+        {/* Create/Edit Task Form */}
+        <AnimatePresence>
+          {(showCreateForm || editingTask) && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-lg shadow-sm border border-primary/20 p-6 mb-8 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {editingTask ? t.editTask : t.createNewTask}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setEditingTask(null);
+                    setFormData({
+                      title: "",
+                      description: "",
+                      status: "pending",
+                      priority: "medium",
+                      assignedTo: "",
+                      startDate: "",
+                      endDate: "",
+                    });
+                    setAttachments([]);
+                    setUploadError(null);
+                  }}
+                  className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                >
+                  <X className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'md:grid-cols-2' : ''}`}>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.taskTitle}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                      placeholder={t.enterTaskTitle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.assignedTo}
+                    </label>
+                    <select
+                      required
+                      value={formData.assignedTo}
+                      onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="">{t.selectUser}</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.email}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t.description}
+                  </label>
+                  <textarea
+                    required
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                    className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    placeholder={t.enterTaskDescription}
+                  />
+                </div>
+
+                <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 ${isRTL ? 'md:grid-cols-4' : ''}`}>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.status}
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as Task["status"] })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="pending">{t.pendingStatus}</option>
+                      <option value="in_progress">{t.inProgressStatus}</option>
+                      <option value="completed">{t.completedStatus}</option>
+                      <option value="cancelled">{t.cancelledStatus}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.priority}
+                    </label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task["priority"] })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="low">{t.lowPriority}</option>
+                      <option value="medium">{t.mediumPriority}</option>
+                      <option value="high">{t.highPriority}</option>
+                      <option value="urgent">{t.urgentPriority}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.startDate}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.endDate}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    />
+                  </div>
+                </div>
+
+                {/* File Upload Section */}
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t.attachments}
+                  </label>
                   
-                  <div className="max-h-64 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        {isArabic ? "لا توجد إشعارات" : "No notifications"}
+                  {/* Drop Zone */}
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                      dragActive 
+                        ? 'border-primary bg-primary/5' 
+                        : isDarkMode 
+                          ? 'border-gray-600 hover:border-gray-500' 
+                          : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => handleFileSelect(e.target.files)}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <Plus className="w-6 h-6 text-primary" />
+                        </div>
+                        <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.addFiles}</p>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{t.dropFiles}</p>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mt-2`}>{t.supportedFormats}</p>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{t.maxFileSize}</p>
                       </div>
-                    ) : (
-                      notifications.slice(0, 10).map((notification: any) => (
+                    </label>
+                  </div>
+
+                  {/* Upload Error */}
+                  {uploadError && (
+                    <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">{uploadError}</p>
+                    </div>
+                  )}
+
+                  {/* File List */}
+                  {attachments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {attachments.map((file) => (
                         <div
-                          key={notification.id}
-                          className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                            !notification.read ? 'bg-blue-50' : ''
-                          }`}
-                          onClick={() => markNotificationAsRead(notification.id)}
+                          key={file.id}
+                          className={`flex items-center justify-between p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
                         >
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0">
-                              {notification.type === 'task_assigned' && (
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <Plus className="w-4 h-4 text-blue-600" />
-                                </div>
-                              )}
-                              {notification.type === 'task_completed' && (
-                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
-                                </div>
-                              )}
-                              {notification.type === 'info' && (
-                                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                                  <AlertCircle className="w-4 h-4 text-gray-600" />
-                                </div>
-                              )}
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{getFileIcon(file.type)}</span>
+                            <div>
+                              <p className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{file.name}</p>
+                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{formatFileSize(file.size)}</p>
                             </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {notification.title}
-                              </p>
-                              <p className="text-sm text-gray-500 truncate">
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                {new Date(notification.timestamp).toLocaleString()}
-                              </p>
-                            </div>
-                            
-                            {!notification.read && (
-                              <div className="flex-shrink-0">
-                                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(file.id)}
+                            className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'} transition-colors`}
+                          >
+                            <X className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`flex justify-end gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setEditingTask(null);
+                      setFormData({
+                        title: "",
+                        description: "",
+                        status: "pending",
+                        priority: "medium",
+                        assignedTo: "",
+                        startDate: "",
+                        endDate: "",
+                      });
+                      setAttachments([]);
+                      setUploadError(null);
+                    }}
+                    className={`px-6 py-3 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'text-gray-700'}`}
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    {editingTask ? t.updateTask : t.createTask}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tasks List */}
+        <div className={`rounded-lg shadow-sm border border-primary/20 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+          <div className={`p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {t.tasks} ({filteredTasks.length})
+            </h2>
+          </div>
+
+          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+            {filteredTasks.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className={`w-16 h-16 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  <CheckCircle className={`w-8 h-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                </div>
+                <h3 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>{t.noTasksFound}</h3>
+                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>{t.getStarted}</p>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-5 h-5 inline mr-2" />
+                  {t.createTask}
+                </button>
+              </div>
+            ) : (
+              filteredTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`p-6 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}
+                >
+                  <div className={`flex items-start justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex-1">
+                      <div className={`flex items-center gap-3 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{task.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
+                          {task.status.replace("_", " ")}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
+                          {task.priority}
+                        </span>
+                      </div>
+
+                      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>{task.description}</p>
+
+                      {/* Attachments Display */}
+                      {task.attachments && task.attachments.length > 0 && (
+                        <div className="mb-4">
+                          <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
+                            <span>📎</span>
+                            <span>{task.attachments.length} {locale === 'ar' ? 'ملفات مرفقة' : 'attachments'}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {task.attachments.slice(0, 3).map((file, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-center gap-2 px-2 py-1 rounded-lg text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}
+                              >
+                                <span>{getFileIcon(file.type)}</span>
+                                <span className="truncate max-w-24">{file.name}</span>
+                              </div>
+                            ))}
+                            {task.attachments.length > 3 && (
+                              <div className={`flex items-center px-2 py-1 rounded-lg text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                <span>+{task.attachments.length - 3} more</span>
                               </div>
                             )}
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  {notifications.length > 10 && (
-                    <div className="p-3 border-t border-gray-200 text-center">
-                      <EnhancedButton variant="ghost" size="sm" className="text-blue-600">
-                        {isArabic ? "عرض جميع الإشعارات" : "View all notifications"}
-                      </EnhancedButton>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </div>
-            
-            {/* Analytics Toggle */}
-            <EnhancedButton
-              variant={showAnalytics ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-            >
-              <BarChart3 className="w-4 h-4" />
-              {showAnalytics ? "Tasks" : "Analytics"}
-            </EnhancedButton>
-            
-            {/* Refresh */}
-            <EnhancedButton
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              loading={isRefreshing}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </EnhancedButton>
-          </div>
-        </div>
+                      )}
 
-        {/* Error Display */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mb-6"
-            >
-              <EnhancedAlert
-                variant="destructive"
-                title="Error"
-                description={error}
-                closable
-                onClose={() => setError(null)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* New Task Alert Toast */}
-        <AnimatePresence>
-          {newTaskAlert && (
-            <motion.div
-              initial={{ opacity: 0, y: -50, x: '-50%' }}
-              animate={{ opacity: 1, y: 0, x: '-50%' }}
-              exit={{ opacity: 0, y: -50, x: '-50%' }}
-              className="fixed top-4 left-1/2 z-50 bg-white rounded-lg shadow-lg border border-blue-200 p-4 min-w-[300px] max-w-md"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-blue-600" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">
-                    {isArabic ? "مهمة جديدة!" : "New Task Assigned!"}
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {newTaskAlert.message}
-                  </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <EnhancedButton
-                      size="sm"
-                      onClick={() => {
-                        setShowNotifications(true);
-                        setNewTaskAlert(null);
-                      }}
-                    >
-                      {isArabic ? "عرض" : "View"}
-                    </EnhancedButton>
-                    <EnhancedButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setNewTaskAlert(null)}
-                    >
-                      {isArabic ? "تجاهل" : "Dismiss"}
-                    </EnhancedButton>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setNewTaskAlert(null)}
-                  className="flex-shrink-0 text-gray-400 hover:text-gray-600 p-1 rounded"
-                  title={isArabic ? "إغلاق" : "Close"}
-                  aria-label={isArabic ? "إغلاق التنبيه" : "Dismiss notification"}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Analytics Dashboard */}
-        {showAnalytics && analytics && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mb-8"
-          >
-            <AnalyticsDashboard
-              data={{
-                overview: {
-                  totalTasks: analytics.totalTasks,
-                  completedTasks: analytics.completedTasks,
-                  pendingTasks: analytics.pendingTasks,
-                  overdueTasks: analytics.overdueTasks,
-                  completionRate: analytics.completionRate,
-                  averageCompletionTime: analytics.averageCompletionTime,
-                  activeUsers: users.length,
-                  totalUsers: users.length
-                },
-                tasksByStatus: Object.entries(analytics.tasksByStatus).map(([status, count]: [string, number]) => ({
-                  name: status,
-                  value: count,
-                  color: status === 'completed' ? '#10b981' : 
-                         status === 'pending' ? '#f59e0b' : 
-                         status === 'in_progress' ? '#3b82f6' : '#ef4444'
-                })),
-                tasksByPriority: Object.entries(analytics.tasksByPriority).map(([priority, count]: [string, number]) => ({
-                  name: priority,
-                  value: count,
-                  color: priority === 'low' ? '#10b981' : 
-                         priority === 'medium' ? '#3b82f6' : 
-                         priority === 'high' ? '#f59e0b' : '#ef4444'
-                })),
-                tasksByUser: users.slice(0, 5).map(user => ({
-                  name: user.name,
-                  completed: Math.floor(Math.random() * 20) + 5,
-                  pending: Math.floor(Math.random() * 10) + 1,
-                  overdue: Math.floor(Math.random() * 3)
-                })),
-                completionTrend: [],
-                productivityMetrics: [],
-                departmentPerformance: []
-              }}
-              onRefresh={handleRefresh}
-            />
-          </motion.div>
-        )}
-
-        {/* Search and Filters */}
-        <AdvancedSearch
-          onSearch={handleSearch}
-          onClear={handleClearSearch}
-          placeholder={isArabic ? "البحث في المهام..." : "Search tasks..."}
-          options={{
-            status: [
-              { value: 'pending', label: 'Pending', count: analytics?.pendingTasks || 0 },
-              { value: 'in_progress', label: 'In Progress', count: 0 },
-              { value: 'completed', label: 'Completed', count: analytics?.completedTasks || 0 },
-              { value: 'cancelled', label: 'Cancelled', count: 0 }
-            ],
-            priority: [
-              { value: 'low', label: 'Low', count: analytics?.tasksByPriority.low || 0 },
-              { value: 'medium', label: 'Medium', count: analytics?.tasksByPriority.medium || 0 },
-              { value: 'high', label: 'High', count: analytics?.tasksByPriority.high || 0 },
-              { value: 'urgent', label: 'Urgent', count: analytics?.tasksByPriority.urgent || 0 }
-            ],
-            users: users.map(user => ({
-              value: user.email,
-              label: user.name,
-              count: 0
-            })),
-            tags: [],
-            categories: []
-          }}
-          isArabic={isArabic}
-        />
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Task Creation Form */}
-          <div className="lg:col-span-1">
-            <EnhancedCard hover={false} className="p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Plus className="w-5 h-5" />
-                {isArabic ? "إنشاء مهمة جديدة" : "Create New Task"}
-              </h2>
-              
-              <EnhancedTaskForm
-                onSubmit={handleCreateTask}
-                isLoading={loadingState.isLoading}
-                isArabic={isArabic}
-                employees={users}
-                currentUserRole={(session?.user?.role as UserRole) || 'USER'}
-              />
-            </EnhancedCard>
-
-            {/* Quick Stats */}
-            {analytics && (
-              <EnhancedCard hover={false} className="p-6 mt-6">
-                <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Tasks</span>
-                    <span className="font-semibold">{analytics.totalTasks}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Completion Rate</span>
-                    <span className="font-semibold">{analytics.completionRate.toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Overdue Tasks</span>
-                    <span className="font-semibold text-red-600">{analytics.overdueTasks}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Active Users</span>
-                    <span className="font-semibold">{users.length}</span>
-                  </div>
-                </div>
-              </EnhancedCard>
-            )}
-          </div>
-
-          {/* Tasks List */}
-          <div className="lg:col-span-2">
-            <EnhancedCard hover={false} className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  {isArabic ? "قائمة المهام" : "Tasks List"}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    {infiniteTasks.length} of {totalTasks} tasks
-                  </span>
-                  {loadingState.isLoading && (
-                    <LoadingSpinner size="sm" />
-                  )}
-                </div>
-              </div>
-
-              {/* Tasks Grid */}
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {infiniteTasks.length === 0 && !loadingState.isLoading ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <p className="text-gray-600 mb-2">
-                      {isArabic ? "لا توجد مهام حالياً" : "No tasks available"}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {isArabic 
-                        ? "قم بإنشاء مهمة جديدة للبدء" 
-                        : "Create a new task to get started"
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  infiniteTasks.map((task, index) => (
-                    <motion.div
-                      key={task._id}
-                      ref={index === infiniteTasks.length - 1 ? lastElementRef : undefined}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-gray-900">{task.title}</h3>
-                            <EnhancedBadge size="sm" className={getTaskStatusColor(task.status)}>
-                              {task.status}
-                            </EnhancedBadge>
-                            <EnhancedBadge size="sm" className={getPriorityColor(task.priority)}>
-                              {task.priority}
-                            </EnhancedBadge>
-                          </div>
-                          
-                          <p className="text-gray-600 text-sm mb-3">{task.description}</p>
-                          
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <UserIcon className="w-3 h-3" />
-                              {task.assignedToName || task.assignedTo}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(task.endDate).toLocaleDateString()}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              Created {new Date(task.createdAt).toLocaleDateString()}
-                            </div>
-                          </div>
+                      <div className={`flex items-center gap-6 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <UserIcon className="w-4 h-4" />
+                          <span>{task.assignedToName || task.assignedTo}</span>
                         </div>
-                        
-                        <div className="flex items-center gap-2 ml-4">
-                          <EnhancedButton size="sm" variant="ghost">
-                            <Edit2 className="w-4 h-4" />
-                          </EnhancedButton>
-                          <EnhancedButton size="sm" variant="ghost" className="text-red-600">
-                            <Trash2 className="w-4 h-4" />
-                          </EnhancedButton>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Calendar className="w-4 h-4" />
+                          <span>{t.due} {new Date(task.endDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Clock className="w-4 h-4" />
+                          <span>{t.created} {new Date(task.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
-                    </motion.div>
-                  ))
-                )}
-                
-                {/* Load More */}
-                {hasMore && (
-                  <div className="text-center py-4">
-                    <EnhancedButton
-                      variant="outline"
-                      onClick={loadMore}
-                      loading={isLoadingMore}
-                      disabled={isLoadingMore}
-                      className="min-w-[120px]"
-                    >
-                      {isLoadingMore 
-                        ? (isArabic ? "جاري التحميل..." : "Loading...")
-                        : (isArabic ? "تحميل المزيد" : "Load More")
-                      }
-                    </EnhancedButton>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {isArabic 
-                        ? `عرض ${infiniteTasks.length} من ${totalTasks} مهمة`
-                        : `Showing ${infiniteTasks.length} of ${totalTasks} tasks`
-                      }
-                    </p>
+                    </div>
+
+                    <div className={`flex items-center gap-2 ${isRTL ? 'mr-6' : 'ml-6'}`}>
+                      <button
+                        onClick={() => handleEdit(task)}
+                        className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                      >
+                        <Edit2 className={`w-4 h-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        className={`p-2 rounded-lg ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900' : 'bg-red-100 hover:bg-red-200'} transition-colors`}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
                   </div>
-                )}
-                
-                {/* End of tasks indicator */}
-                {!hasMore && infiniteTasks.length > 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">
-                      {isArabic 
-                        ? `تم عرض جميع ${infiniteTasks.length} مهمة`
-                        : `All ${infiniteTasks.length} tasks loaded`
-                      }
-                    </p>
-                  </div>
-                )}
-              </div>
-            </EnhancedCard>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -877,8 +1023,4 @@ const TaskManagerClient = ({ isArabic }: { isArabic: boolean }) => {
   );
 };
 
-const page = ({ params }: { params: Promise<{ locale: string }> }) => {
-  return <TaskManagerClient isArabic={false} />;
-};
-
-export default page;
+export default TaskManager;
