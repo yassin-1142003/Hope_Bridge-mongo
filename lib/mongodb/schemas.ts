@@ -89,6 +89,10 @@ export interface Project {
   category: 'education' | 'healthcare' | 'infrastructure' | 'social_welfare' | 'emergency_relief' | 'environment';
   impact?: string;
   challenges?: string[];
+  // Media fields at main schema level
+  bannerPhotoUrl?: string;
+  imageGallery?: string[];
+  videoGallery?: string[];
 }
 
 export interface ProjectFile {
@@ -330,6 +334,17 @@ export const SCHEMA_VALIDATION = {
           bsonType: 'array', 
           items: { bsonType: 'string' },
           description: 'Project challenges'
+        },
+        bannerPhotoUrl: { bsonType: 'string', description: 'URL to project banner photo' },
+        imageGallery: { 
+          bsonType: 'array', 
+          items: { bsonType: 'string' },
+          description: 'Array of project image URLs'
+        },
+        videoGallery: { 
+          bsonType: 'array', 
+          items: { bsonType: 'string' },
+          description: 'Array of project video URLs'
         }
       }
     }
