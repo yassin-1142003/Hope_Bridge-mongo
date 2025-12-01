@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 // Configure Nodemailer transporter
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false, // true for 465, false for other ports
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Prepare email options
-        const mailOptions = {
+        const mailOptions: nodemailer.SendMailOptions = {
             from: from,
             to: to,
             subject: subject,
