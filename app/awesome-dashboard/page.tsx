@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState } from 'react';
 import AwesomeDashboardForm from '@/components/ui/AwesomeDashboardForm';
 import '../styles/awesome-dashboard.css';
 
 export default function AwesomeDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<Record<string, string | string[]>>({});
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

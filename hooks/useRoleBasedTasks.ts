@@ -60,10 +60,9 @@ export const useRoleBasedTasks = (): UseRoleBasedTasksReturn => {
 
       const response = await fetch(`/api/tasks/user/${user.id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Include cookies
+        credentials: 'include', // Include cookies for authentication
       });
       
       if (!response.ok) {

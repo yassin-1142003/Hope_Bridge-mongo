@@ -8,22 +8,14 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get token from cookie first (preferred method) - same as auth/me
+    // Get token from cookie only (same as auth/me endpoint)
     const cookieStore = await cookies();
-    const cookieToken = cookieStore.get('auth-token')?.value || '';
+    const token = cookieStore.get('auth-token')?.value || '';
     
-    // Fallback to Authorization header if no cookie
-    const authHeader = request.headers.get('authorization');
-    const headerToken = authHeader?.replace('Bearer ', '') || '';
-    
-    // Use cookie token first, then fallback to header token
-    const token = cookieToken || headerToken;
-    
-    console.log('DEBUG - Cookie token:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'none');
-    console.log('DEBUG - Header token:', headerToken ? headerToken.substring(0, 20) + '...' : 'none');
-    console.log('DEBUG - Using token:', token ? token.substring(0, 20) + '...' : 'none');
+    console.log('DEBUG - Cookie token:', token ? token.substring(0, 20) + '...' : 'none');
 
     if (!token) {
+      console.log('DEBUG - No token found in cookies');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
