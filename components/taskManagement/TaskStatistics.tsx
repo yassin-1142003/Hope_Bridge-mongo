@@ -129,6 +129,7 @@ const TaskStatistics: React.FC<TaskStatisticsProps> = ({ statistics }) => {
                 <div
                   className={`${stat.color} h-1.5 rounded-full transition-all duration-300`}
                   style={{ width: `${(stat.value / statistics.total) * 100}%` }}
+                  aria-label={`${stat.title}: ${stat.value} tasks, ${Math.round((stat.value / statistics.total) * 100)}% of total`}
                 ></div>
               </div>
               <div className="text-xs text-gray-500 mt-1">

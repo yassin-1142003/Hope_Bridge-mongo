@@ -241,6 +241,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                   value={assignedTo}
                   onChange={(e) => setAssignedTo(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label="Select user to assign task to"
+                  title="Select user to assign task to"
                 >
                   <option value="">Select user...</option>
                   {availableUsers.map(user => (
@@ -278,6 +280,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                           ? 'border-blue-500 bg-blue-50' 
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
+                      aria-label={`Set priority to ${pri.label}`}
+                      title={`Set priority to ${pri.label}`}
                     >
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${pri.color}`}>
                         {pri.label}
@@ -295,6 +299,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label="Select task category"
+                  title="Select task category"
                 >
                   <option value="">Select category...</option>
                   {categories.map(cat => (
@@ -314,6 +320,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label="Select due date"
+                  title="Select due date"
                 />
               </div>
               
@@ -437,6 +445,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                       <button
                         onClick={() => removeFormField(field.id)}
                         className="p-1 text-red-600 hover:text-red-700 transition-colors"
+                        aria-label="Remove form field"
+                        title="Remove form field"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -451,6 +461,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                           value={field.type}
                           onChange={(e) => updateFormField(field.id, { type: e.target.value as any })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          aria-label="Select field type"
+                          title="Select field type"
                         >
                           {fieldTypes.map(type => (
                             <option key={type.value} value={type.value}>
@@ -568,6 +580,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                     <button
                       onClick={() => removeAttachment(index)}
                       className="p-1 text-red-600 hover:text-red-700 transition-colors"
+                      aria-label="Remove attachment"
+                      title="Remove attachment"
                     >
                       <X className="w-4 h-4" />
                     </button>

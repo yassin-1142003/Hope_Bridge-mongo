@@ -1,7 +1,7 @@
 /**
- * General Manager Dashboard
+ * Employee Dashboard
  * 
- * Complete task management interface for GM with full organization view
+ * Task management interface for regular users/employees
  */
 
 'use client';
@@ -10,33 +10,25 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Briefcase, 
-  Users, 
-  CheckCircle, 
   Clock, 
+  CheckCircle, 
+  FileText, 
   AlertCircle, 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  RefreshCw,
-  Eye,
-  FileText,
+  Eye, 
+  Upload,
   Calendar,
-  TrendingUp,
-  BarChart3,
-  UserCheck,
-  UserX,
-  ChevronDown,
-  Edit,
-  Trash2,
-  Star,
-  Target
+  User,
+  Target,
+  RefreshCw,
+  Filter,
+  Search,
+  Download,
+  Star
 } from 'lucide-react';
 
-import { UserRole } from '@/lib/roles';
-import TaskCreationPanel from './TaskCreationPanel';
+import TaskFormSubmission from './TaskFormSubmission';
 import TaskDetailView from './TaskDetailView';
-import TaskStatistics from './TaskStatistics';
+import { UserRole } from '@/lib/roles';
 
 interface Task {
   _id: string;
@@ -67,14 +59,7 @@ interface Task {
   tags: string[];
   estimatedHours?: number;
   actualHours?: number;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department?: string;
+  employeeResponse?: any;
 }
 
 interface Statistics {
@@ -87,29 +72,26 @@ interface Statistics {
   overdue: number;
 }
 
-const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole }) => {
+const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: string }> = ({ 
+  currentUserRole, 
+  currentUserId 
+}) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, selectedTask] = useState<Task | null>(null);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
-  const [assignedToFilter, setAssignedToFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
 
   useEffect(() => {
-    if (currentUserRole === 'GENERAL_MANAGER' || currentUserRole === 'SUPER_ADMIN' || currentUserRole === 'ADMIN') {
-      fetchTasks();
-      fetchStatistics();
-      fetchAvailableUsers();
-    }
-  }, [currentUserRole, currentPage, sortBy, sortOrder, statusFilter, priorityFilter, assignedToFilter, searchQuery]);
+    fetchTasks();
+    fetchStatistics();
+  }, [currentPage, sortBy, sortOrder, statusFilter, priorityFilter, searchQuery]);
 
   const fetchTasks = async () => {
     try {
@@ -121,7 +103,6 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
         sortOrder,
         ...(statusFilter && { status: statusFilter }),
         ...(priorityFilter && { priority: priorityFilter }),
-        ...(assignedToFilter && { assignedTo: assignedToFilter }),
         ...(searchQuery && { search: searchQuery })
       });
 
@@ -150,54 +131,45 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
     }
   };
 
-  const fetchAvailableUsers = async () => {
+  const handleTaskSubmit = async (taskId: string, response: any, files: any[]) => {
     try {
-      const response = await fetch('/api/task-management/users/available');
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableUsers(data.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch available users:', error);
-    }
-  };
-
-  const handleTaskCreate = async (taskData: any) => {
-    try {
-      const response = await fetch('/api/task-management', {
-        method: 'POST',
+      const submitResponse = await fetch(`/api/task-management/${taskId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData)
+        body: JSON.stringify({
+          operation: 'submit_response',
+          response,
+          uploadedFiles: files
+        })
       });
 
-      if (response.ok) {
-        setShowCreatePanel(false);
+      if (submitResponse.ok) {
+        selectedTask(null);
         fetchTasks();
         fetchStatistics();
       }
     } catch (error) {
-      console.error('Failed to create task:', error);
+      console.error('Failed to submit task:', error);
     }
   };
 
-  const handleTaskReview = async (taskId: string, reviewComment: string) => {
+  const handleStatusUpdate = async (taskId: string, status: 'PENDING' | 'IN_PROGRESS' | 'CANCELLED') => {
     try {
       const response = await fetch(`/api/task-management/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          operation: 'review_and_complete',
-          reviewComment
+          operation: 'update_status',
+          status
         })
       });
 
       if (response.ok) {
-        setSelectedTask(null);
         fetchTasks();
         fetchStatistics();
       }
     } catch (error) {
-      console.error('Failed to review task:', error);
+      console.error('Failed to update task status:', error);
     }
   };
 
@@ -217,7 +189,7 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
       IN_PROGRESS: <RefreshCw className="w-4 h-4 animate-spin" />,
       SUBMITTED: <FileText className="w-4 h-4" />,
       COMPLETED: <CheckCircle className="w-4 h-4" />,
-      CANCELLED: <UserX className="w-4 h-4" />
+      CANCELLED: <AlertCircle className="w-4 h-4" />
     };
     return icons[status as keyof typeof icons] || icons.PENDING;
   };
@@ -238,15 +210,13 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
     return new Date(task.dueDate) < new Date() && task.status !== 'COMPLETED';
   };
 
-  if (currentUserRole !== 'GENERAL_MANAGER' && currentUserRole !== 'SUPER_ADMIN' && currentUserRole !== 'ADMIN') {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-        <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Restricted</h3>
-        <p className="text-gray-600">Only General Manager can access this dashboard.</p>
-      </div>
-    );
-  }
+  const canSubmitTask = (task: Task) => {
+    return task.status === 'PENDING' || task.status === 'IN_PROGRESS';
+  };
+
+  const activeTasks = tasks.filter(task => 
+    task.status !== 'COMPLETED' && task.status !== 'CANCELLED'
+  );
 
   return (
     <div className="space-y-6">
@@ -254,10 +224,13 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Briefcase className="w-6 h-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Task Management Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="text-sm text-gray-600">
+            {activeTasks.length} active tasks
+          </div>
           <button
             onClick={fetchTasks}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
@@ -265,25 +238,53 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
-          
-          <button
-            onClick={() => setShowCreatePanel(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Task
-          </button>
         </div>
       </div>
 
       {/* Statistics Cards */}
       {statistics && (
-        <TaskStatistics statistics={statistics} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+              <Briefcase className="w-6 h-6 text-blue-600" />
+              <span className="text-2xl font-bold text-gray-900">{statistics.total}</span>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Total Tasks</h3>
+            <p className="text-xs text-gray-600">All assigned tasks</p>
+          </div>
+          
+          <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+            <div className="flex items-center justify-between mb-2">
+              <Clock className="w-6 h-6 text-yellow-600" />
+              <span className="text-2xl font-bold text-gray-900">{statistics.pending}</span>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Pending</h3>
+            <p className="text-xs text-gray-600">Tasks to start</p>
+          </div>
+          
+          <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+            <div className="flex items-center justify-between mb-2">
+              <FileText className="w-6 h-6 text-purple-600" />
+              <span className="text-2xl font-bold text-gray-900">{statistics.submitted}</span>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Submitted</h3>
+            <p className="text-xs text-gray-600">Awaiting review</p>
+          </div>
+          
+          <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+            <div className="flex items-center justify-between mb-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <span className="text-2xl font-bold text-gray-900">{statistics.completed}</span>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Completed</h3>
+            <p className="text-xs text-gray-600">Successfully finished</p>
+          </div>
+        </div>
       )}
 
       {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
             <input
@@ -299,8 +300,6 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            aria-label="Filter by task status"
-            title="Filter by task status"
           >
             <option value="">All Status</option>
             <option value="PENDING">Pending</option>
@@ -314,8 +313,6 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            aria-label="Filter by task priority"
-            title="Filter by task priority"
           >
             <option value="">All Priorities</option>
             <option value="low">Low</option>
@@ -324,28 +321,11 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
             <option value="urgent">Urgent</option>
           </select>
           
-          <select
-            value={assignedToFilter}
-            onChange={(e) => setAssignedToFilter(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            aria-label="Filter by assigned user"
-            title="Filter by assigned user"
-          >
-            <option value="">All Users</option>
-            {availableUsers.map(user => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
-          
           <div className="flex items-center gap-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              aria-label="Sort tasks by"
-              title="Sort tasks by"
             >
               <option value="createdAt">Created Date</option>
               <option value="updatedAt">Updated Date</option>
@@ -376,19 +356,11 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
             <div className="p-8 text-center">
               <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No tasks found</h3>
-              <p className="text-gray-600 mb-4">
-                {searchQuery || statusFilter || priorityFilter || assignedToFilter 
+              <p className="text-gray-600">
+                {searchQuery || statusFilter || priorityFilter 
                   ? 'Try adjusting your filters' 
-                  : 'Create your first task to get started'}
+                  : 'No tasks have been assigned to you yet'}
               </p>
-              {!searchQuery && !statusFilter && !priorityFilter && !assignedToFilter && (
-                <button
-                  onClick={() => setShowCreatePanel(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Create Task
-                </button>
-              )}
             </div>
           ) : (
             <table className="w-full">
@@ -398,7 +370,7 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
                     Task
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assigned To
+                    Assigned By
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -427,7 +399,7 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600"
-                             onClick={() => setSelectedTask(task)}>
+                             onClick={() => selectedTask(task)}>
                           {task.title}
                         </div>
                         <div className="text-sm text-gray-500 truncate max-w-xs">
@@ -435,14 +407,14 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
                         </div>
                         {task.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {task.tags.slice(0, 3).map(tag => (
+                            {task.tags.slice(0, 2).map(tag => (
                               <span key={tag} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
                                 {tag}
                               </span>
                             ))}
-                            {task.tags.length > 3 && (
+                            {task.tags.length > 2 && (
                               <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
-                                +{task.tags.length - 3}
+                                +{task.tags.length - 2}
                               </span>
                             )}
                           </div>
@@ -453,15 +425,10 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                          {task.assignedToName.charAt(0).toUpperCase()}
+                          {task.assignedByName.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {task.assignedToName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {task.assignedToRole}
-                          </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {task.assignedByName}
                         </div>
                       </div>
                     </td>
@@ -500,20 +467,30 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setSelectedTask(task)}
+                          onClick={() => selectedTask(task)}
                           className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                           title="View task details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         
-                        {task.status === 'SUBMITTED' && (
+                        {task.status === 'PENDING' && (
                           <button
-                            onClick={() => handleTaskReview(task._id, 'Task reviewed and completed')}
-                            className="p-1 text-green-600 hover:text-green-700 transition-colors"
-                            title="Review and complete"
+                            onClick={() => handleStatusUpdate(task._id, 'IN_PROGRESS')}
+                            className="p-1 text-blue-600 hover:text-blue-700 transition-colors"
+                            title="Start task"
                           >
-                            <CheckCircle className="w-4 h-4" />
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                        )}
+                        
+                        {canSubmitTask(task) && (
+                          <button
+                            onClick={() => selectedTask(task)}
+                            className="p-1 text-green-600 hover:text-green-700 transition-colors"
+                            title="Submit task"
+                          >
+                            <Upload className="w-4 h-4" />
                           </button>
                         )}
                       </div>
@@ -559,20 +536,19 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
         {selectedTask && (
           <TaskDetailView
             task={selectedTask}
-            onClose={() => setSelectedTask(null)}
-            onReview={handleTaskReview}
+            onClose={() => selectedTask(null)}
             currentUserRole={currentUserRole}
           />
         )}
       </AnimatePresence>
 
-      {/* Create Task Panel */}
+      {/* Task Form Submission */}
       <AnimatePresence>
-        {showCreatePanel && (
-          <TaskCreationPanel
-            availableUsers={availableUsers}
-            onClose={() => setShowCreatePanel(false)}
-            onSubmit={handleTaskCreate}
+        {selectedTask && canSubmitTask(selectedTask) && (
+          <TaskFormSubmission
+            task={selectedTask}
+            onClose={() => selectedTask(null)}
+            onSubmit={handleTaskSubmit}
           />
         )}
       </AnimatePresence>
@@ -580,4 +556,4 @@ const GMDashboard: React.FC<{ currentUserRole: UserRole }> = ({ currentUserRole 
   );
 };
 
-export default GMDashboard;
+export default EmployeeDashboard;
