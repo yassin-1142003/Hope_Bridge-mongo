@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { highlightWord } from "../../../../components/highlightWord";
+import styles from './Overview.module.css';
 
 const Overview = async ({
   params: { locale },
@@ -49,30 +50,18 @@ const Overview = async ({
         {/* Decorative glow behind pills */}
         <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-150 opacity-50" />
 
-        <div className="relative -rotate-[20deg]  transition-transform duration-700 ease-out">
+        <div className={`relative ${styles.pillContainer}  transition-transform duration-700 ease-out`}>
           <div className="flex gap-3 md:gap-5 items-center justify-center p-4">
             {/* Left pill */}
             <div
-              className="group relative w-20 h-40 md:w-32 md:h-64 rounded-full overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105"
-              style={{
-                backgroundImage: "url('/homepage/06.webp')",
-                backgroundPosition: "0% center",
-                backgroundSize: "300% auto",
-                backgroundRepeat: "no-repeat",
-              }}
+              className={`group relative ${styles.pill} ${styles.pillLeft} ${styles.pillShadow} ${styles.pillHoverShadow}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
 
             {/* Middle pill - taller */}
             <div
-              className="group relative w-20 h-60 md:w-32 md:h-96 rounded-full overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105"
-              style={{
-                backgroundImage: "url('/homepage/06.webp')",
-                backgroundPosition: "50% center",
-                backgroundSize: "300% auto",
-                backgroundRepeat: "no-repeat",
-              }}
+              className={`group relative ${styles.pill} ${styles.pillMiddle} ${styles.pillShadowLarge} ${styles.pillHoverShadowLarge}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               {/* Highlight border on center pill */}
@@ -81,13 +70,7 @@ const Overview = async ({
 
             {/* Right pill */}
             <div
-              className="group relative w-20 h-40 md:w-32 md:h-64 rounded-full overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105"
-              style={{
-                backgroundImage: "url('/homepage/06.webp')",
-                backgroundPosition: "100% center",
-                backgroundSize: "300% auto",
-                backgroundRepeat: "no-repeat",
-              }}
+              className={`group relative ${styles.pill} ${styles.pillRight} ${styles.pillShadow} ${styles.pillHoverShadow}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>

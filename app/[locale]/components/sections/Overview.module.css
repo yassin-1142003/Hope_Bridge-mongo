@@ -1,0 +1,76 @@
+.pillContainer {
+  position: relative;
+  transform: rotate(-20deg);
+  transition: transform 700ms ease-out;
+}
+
+.pill {
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: all 500ms ease;
+}
+
+.pill:hover {
+  transform: scale(1.05);
+}
+
+.pillLeft {
+  width: 5rem;
+  height: 10rem;
+  background-image: url('/homepage/06.webp');
+  background-position: 0% center;
+  background-size: 300% auto;
+  background-repeat: no-repeat;
+}
+
+.pillMiddle {
+  width: 5rem;
+  height: 15rem;
+  background-image: url('/homepage/06.webp');
+  background-position: 50% center;
+  background-size: 300% auto;
+  background-repeat: no-repeat;
+}
+
+.pillRight {
+  width: 5rem;
+  height: 10rem;
+  background-image: url('/homepage/06.webp');
+  background-position: 100% center;
+  background-size: 300% auto;
+  background-repeat: no-repeat;
+}
+
+@media (min-width: 768px) {
+  .pillLeft {
+    width: 8rem;
+    height: 16rem;
+  }
+  
+  .pillMiddle {
+    width: 8rem;
+    height: 24rem;
+  }
+  
+  .pillRight {
+    width: 8rem;
+    height: 16rem;
+  }
+}
+
+.pillShadow {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.pillShadowLarge {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.pillHoverShadow:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.pillHoverShadowLarge:hover {
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+}

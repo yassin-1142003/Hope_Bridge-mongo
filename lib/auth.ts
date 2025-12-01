@@ -15,8 +15,21 @@ interface User {
 
 // NextAuth configuration for compatibility
 export const authOptions = {
-  // Empty config since we're using JWT directly
-  // This is just for compatibility with existing code
+  providers: [], // Empty providers array since we're using JWT directly
+  session: {
+    strategy: 'jwt' as const,
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
+  },
+  callbacks: {
+    async jwt({ token, user }: any) {
+      return token;
+    },
+    async session({ session, token }: any) {
+      return session;
+    },
+  },
 };
 
 // Custom session function to replace getServerSession
