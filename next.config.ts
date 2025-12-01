@@ -1,8 +1,6 @@
 // next.config.ts
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-<<<<<<< HEAD
-=======
 import withPWAInit from 'next-pwa';
 import runtimeCaching from 'next-pwa/cache';
 import { config } from 'dotenv';
@@ -71,18 +69,10 @@ const withPWA = withPWAInit({
     ...runtimeCaching,
   ],
 });
->>>>>>> 2efbb4e38f6799641e973bb9be8bca702baa4001
 
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-<<<<<<< HEAD
-  reactStrictMode: false,
-  // Minimal configuration with next-intl
-};
-
-export default withNextIntl(nextConfig);
-=======
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -158,6 +148,5 @@ export default withNextIntl(nextConfig);
   },
 };
 
-// ✅ FIX: Apply plugins in correct order
+// Apply plugins in correct order
 export default withPWA(withNextIntl(nextConfig));
->>>>>>> 2efbb4e38f6799641e973bb9be8bca702baa4001
