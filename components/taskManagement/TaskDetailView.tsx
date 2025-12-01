@@ -283,7 +283,9 @@ const TaskDetailView: React.FC<TaskDetailViewProps> = ({
             
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors ml-4"
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close task details"
+              title="Close task details"
             >
               <X className="w-5 h-5" />
             </button>
