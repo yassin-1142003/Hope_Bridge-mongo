@@ -427,7 +427,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           dir="rtl"
           className={`${
             isMobile ? "w-full order-2" : "w-1/3"
-          } relative rounded-2xl p-[1px] bg-gradient-to-r w-fit  from-red-500 via-pink-500 to-orange-400 shadow-lg`}
+          } relative rounded-2xl p-[1px] bg-linear-to-r w-fit  from-red-500 via-pink-500 to-orange-400 shadow-lg`}
         >
           <div className="bg-white h-full dark:bg-gray-900 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
@@ -455,7 +455,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
                   <Link
                     key={proj.id}
                     href={`/projects/${proj.id}`}
-                    className="flex-1 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-2 text-xs text-center hover:shadow-md"
+                    className="flex-1 rounded-lg bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-2 text-xs text-center hover:shadow-md"
                   >
                     {proj.contents[0]?.name}
                   </Link>
@@ -490,7 +490,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
                   onClick={() => handleCountryClick(c)}
                   className={`w-full px-2 py-2 cursor-pointer hover:bg-primary/50 rounded-lg text-xs font-semibold transition-all text-center ${
                     activeCountry === c
-                      ? "bg-gradient-to-r from-red-600 to-red-500 text-white"
+                      ? "bg-linear-to-r from-red-600 to-red-500 text-white"
                       : theme === "dark"
                         ? "bg-gray-800 text-gray-200"
                         : "bg-gray-100 text-accent-foreground"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from 'jsonwebtoken';
 import { getCollection } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
@@ -36,7 +37,7 @@ export async function GET(
     // Try to find by ObjectId first, then by slug
     let post;
     try {
-      post = await postsCollection.findOne({ _id: id });
+      post = await postsCollection.findOne({ _id: new ObjectId(id) });
     } catch {
       // If ObjectId fails, try by slug
       post = await postsCollection.findOne({ slug: id });
@@ -53,7 +54,7 @@ export async function GET(
       success: true,
       message: "Post retrieved successfully",
       data: post
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching post:", error);
     return NextResponse.json(
@@ -86,7 +87,7 @@ export async function PATCH(
     // Try to find by ObjectId first, then by slug
     let existingPost;
     try {
-      existingPost = await postsCollection.findOne({ _id: id });
+      existingPost = await postsCollection.findOne({ _id: new ObjectId(id) });
     } catch {
       existingPost = await postsCollection.findOne({ slug: id });
     }
@@ -123,7 +124,7 @@ export async function PATCH(
       success: true,
       message: "Post updated successfully",
       data: returnedPost
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error updating post:", error);
     return NextResponse.json(
@@ -155,7 +156,7 @@ export async function DELETE(
     // Try to find by ObjectId first, then by slug
     let existingPost;
     try {
-      existingPost = await postsCollection.findOne({ _id: id });
+      existingPost = await postsCollection.findOne({ _id: new ObjectId(id) });
     } catch {
       existingPost = await postsCollection.findOne({ slug: id });
     }

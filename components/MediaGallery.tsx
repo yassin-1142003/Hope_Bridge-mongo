@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X, Play, Fullscreen, Film } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Play,
+  Fullscreen,
+  Film,
+} from "lucide-react";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { getDriveImageUrl, getDriveVideoUrl } from "@/lib/driveUtils";
@@ -35,20 +42,16 @@ function CreativeVideoLoader() {
   const locale = useLocale();
   const isArabic = locale === "ar";
   return (
-    <div className="absolute inset-0 flex flex-col justify-center items-center bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a] z-20 overflow-hidden">
+    <div className="absolute inset-0 flex flex-col justify-center items-center bg-linear-to-br from-[#1a1a1a] to-[#2a2a2a] z-20 overflow-hidden">
       {/* Main loader container */}
       <div className="relative z-10 flex flex-col justify-center items-center gap-8">
         {/* Film reel animation */}
         <div className="relative">
           {/* Rotating outer ring */}
-          <div
-            className="w-24 h-24 border-4 border-amber-500/30 rounded-full animate-spin-slow"
-          />
+          <div className="w-24 h-24 border-4 border-amber-500/30 rounded-full animate-spin-slow" />
 
           {/* Counter-rotating inner ring */}
-          <div
-            className="absolute inset-2 border-4 border-t-primary/70 border-r-primary border-b-primary/70 border-l-primary rounded-full animate-spin-reverse"
-          />
+          <div className="absolute inset-2 border-4 border-t-primary/70 border-r-primary border-b-primary/70 border-l-primary rounded-full animate-spin-reverse" />
 
           {/* Center icon */}
           <div className="absolute inset-0 flex items-center justify-center">
@@ -58,7 +61,7 @@ function CreativeVideoLoader() {
 
         {/* Loading text with gradient */}
         <div className="flex flex-col items-center gap-2">
-          <h1 className=" text-xl md:text-3xl font-bold bg-gradient-to-b from-[#f5f5f5] to-white bg-clip-text text-transparent animate-pulse">
+          <h1 className=" text-xl md:text-3xl font-bold bg-linear-to-b from-[#f5f5f5] to-white bg-clip-text text-transparent animate-pulse">
             {isArabic ? "جاري التحميل..." : "Loading..."}
           </h1>
         </div>
@@ -189,7 +192,7 @@ export default function MediaGallery({
               setIsLoading(false);
               // Try to load with a different format
               const img = e.target as HTMLImageElement;
-              if (img.src.includes('export=view')) {
+              if (img.src.includes("export=view")) {
                 // Fallback to direct link
                 const fileId = img.src.match(/id=([^&]+)/)?.[1];
                 if (fileId) {
@@ -213,7 +216,10 @@ export default function MediaGallery({
               }}
               onError={() => {
                 setIsLoading(false);
-                console.error("Video failed to load:", selectedMedia.displayUrl);
+                console.error(
+                  "Video failed to load:",
+                  selectedMedia.displayUrl
+                );
               }}
             />
             {/* Video play indicator overlay - shows on hover */}
@@ -291,9 +297,12 @@ export default function MediaGallery({
                   referrerPolicy="no-referrer"
                   unoptimized={true} // Important for Google Drive images
                   onError={(e) => {
-                    console.warn("Failed to load thumbnail:", item.thumbnailUrl);
+                    console.warn(
+                      "Failed to load thumbnail:",
+                      item.thumbnailUrl
+                    );
                     const img = e.target as HTMLImageElement;
-                    if (img.src.includes('export=view')) {
+                    if (img.src.includes("export=view")) {
                       // Fallback to direct link
                       const fileId = img.src.match(/id=([^&]+)/)?.[1];
                       if (fileId) {
@@ -340,11 +349,14 @@ export default function MediaGallery({
                 <Image
                   fill
                   alt={`Fullscreen ${selectedIndex + 1}`}
-                      src={selectedMedia.displayUrl}
+                  src={selectedMedia.displayUrl}
                   className="object-contain max-h-full"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    console.error("Image failed to load:", selectedMedia.displayUrl);
+                    console.error(
+                      "Image failed to load:",
+                      selectedMedia.displayUrl
+                    );
                   }}
                   onLoad={() => console.log("Image loaded successfully")}
                 />

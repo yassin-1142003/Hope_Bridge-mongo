@@ -87,7 +87,7 @@ export default function TriggerRSSButton({
           className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-200 ${
             isLoading
               ? "bg-gray-400 cursor-not-allowed transform scale-95"
-              : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+              : "bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
           }`}
         >
           {isLoading ? (

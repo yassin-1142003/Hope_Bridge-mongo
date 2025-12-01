@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       success: true,
       message: "Posts retrieved successfully",
       data: posts
-    });
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(

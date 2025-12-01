@@ -1,0 +1,215 @@
+/* Analytics Dashboard Styles */
+
+.analytics-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.analytics-card-blue {
+  border-left-color: #3b82f6;
+}
+
+.analytics-card-green {
+  border-left-color: #10b981;
+}
+
+.analytics-card-purple {
+  border-left-color: #8b5cf6;
+}
+
+.analytics-card-orange {
+  border-left-color: #f97316;
+}
+
+.analytics-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.analytics-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.analytics-card-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.daily-chart-bar {
+  width: 8rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.daily-chart-fill {
+  background-color: #3b82f6;
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.project-performance-card {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e5e7eb;
+  padding-bottom: 1rem;
+}
+
+.project-performance-card:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.project-performance-bar {
+  width: 100%;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  height: 0.5rem;
+}
+
+.project-performance-fill {
+  background: linear-gradient(to right, #3b82f6, #10b981);
+  height: 0.5rem;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.top-project-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.top-project-rank {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.top-project-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.top-project-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.filter-info {
+  background-color: #eff6ff;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #bfdbfe;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.filter-info-text {
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.filter-info-highlight {
+  font-weight: 600;
+}
+
+.loading-skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-skeleton-header {
+  height: 1rem;
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+  width: 25%;
+  margin-bottom: 1rem;
+}
+
+.loading-skeleton-line {
+  height: 0.75rem;
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+.loading-skeleton-line-short {
+  height: 0.75rem;
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+  width: 83.333%;
+}
+
+.error-container {
+  padding: 1.5rem;
+  background-color: #fef2f2;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #fecaca;
+  border-radius: 0.5rem;
+}
+
+.error-title {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.error-message {
+  color: #dc2626;
+}
+
+.no-data-container {
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.no-data-message {
+  color: #6b7280;
+}
+
+/* Dynamic width classes for charts */
+.daily-chart-fill-width-0 { width: 0%; }
+.daily-chart-fill-width-10 { width: 10%; }
+.daily-chart-fill-width-20 { width: 20%; }
+.daily-chart-fill-width-30 { width: 30%; }
+.daily-chart-fill-width-40 { width: 40%; }
+.daily-chart-fill-width-50 { width: 50%; }
+.daily-chart-fill-width-60 { width: 60%; }
+.daily-chart-fill-width-70 { width: 70%; }
+.daily-chart-fill-width-80 { width: 80%; }
+.daily-chart-fill-width-90 { width: 90%; }
+.daily-chart-fill-width-100 { width: 100%; }
+
+.project-performance-fill-width-0 { width: 0%; }
+.project-performance-fill-width-10 { width: 10%; }
+.project-performance-fill-width-20 { width: 20%; }
+.project-performance-fill-width-30 { width: 30%; }
+.project-performance-fill-width-40 { width: 40%; }
+.project-performance-fill-width-50 { width: 50%; }
+.project-performance-fill-width-60 { width: 60%; }
+.project-performance-fill-width-70 { width: 70%; }
+.project-performance-fill-width-80 { width: 80%; }
+.project-performance-fill-width-90 { width: 90%; }
+.project-performance-fill-width-100 { width: 100%; }

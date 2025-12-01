@@ -1,370 +1,1020 @@
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "@/lib/auth";
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Calendar,
+  User as UserIcon,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Filter,
+  RefreshCw,
+  X,
+  Bell,
+  TrendingUp,
+  BarChart3,
+  Settings,
+  Moon,
+  Sun,
+} from "lucide-react";
+import { useLocale } from "next-intl";
 
-// Static data for employees
-const employees = [
-  { id: 1, name: "Ahmed Hassan", email: "ahmed@company.com" },
-  { id: 2, name: "Sara Mohamed", email: "sara@company.com" },
-  { id: 3, name: "Omar Ali", email: "omar@company.com" },
-  { id: 4, name: "Fatima Ibrahim", email: "fatima@company.com" },
-];
-
-interface tasks {
-  id: number;
-  task: string;
-  sender: string;
-  senderEmail: string;
-  date: string;
-  //   priority: Priority;
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  priority: "low" | "medium" | "high" | "urgent";
+  assignedTo: string;
+  assignedToName?: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
+  attachments?: TaskFile[];
 }
 
-// Static data for received tasks
-const receivedTasks: tasks[] = [
-  {
-    id: 1,
-    task: "Review the Q4 financial report and provide feedback by end of week",
-    sender: "Ahmed Hassan",
-    senderEmail: "ahmed@company.com",
-    date: "2025-09-28",
-    // priority: "high",
+interface TaskFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  file?: File;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+}
+
+// Arabic translations
+const translations = {
+  en: {
+    taskManager: "Task Manager",
+    welcomeBack: "Welcome back",
+    notifications: "Notifications",
+    stats: "Stats",
+    totalTasks: "Total Tasks",
+    completed: "Completed",
+    inProgress: "In Progress",
+    pending: "Pending",
+    urgent: "Urgent",
+    searchTasks: "Search tasks...",
+    allStatus: "All Status",
+    pendingStatus: "Pending",
+    inProgressStatus: "In Progress",
+    completedStatus: "Completed",
+    cancelledStatus: "Cancelled",
+    allPriority: "All Priority",
+    lowPriority: "Low",
+    mediumPriority: "Medium",
+    highPriority: "High",
+    urgentPriority: "Urgent",
+    newTask: "New Task",
+    createNewTask: "Create New Task",
+    editTask: "Edit Task",
+    taskTitle: "Task Title",
+    assignedTo: "Assigned To",
+    description: "Description",
+    status: "Status",
+    priority: "Priority",
+    startDate: "Start Date",
+    endDate: "Due Date",
+    selectUser: "Select user",
+    enterTaskTitle: "Enter task title",
+    enterTaskDescription: "Enter task description",
+    attachments: "Attachments",
+    addFiles: "Add Files",
+    dropFiles: "Drop files here or click to browse",
+    supportedFormats: "Supported formats: Images, Videos, Documents, PDFs and more",
+    maxFileSize: "Maximum file size: 10MB",
+    removeFile: "Remove file",
+    fileTooBig: "File size exceeds 10MB limit",
+    cancel: "Cancel",
+    createTask: "Create Task",
+    updateTask: "Update Task",
+    tasks: "Tasks",
+    noTasksFound: "No tasks found",
+    getStarted: "Get started by creating your first task",
+    due: "Due",
+    created: "Created",
   },
-  {
-    id: 2,
-    task: "Update the employee handbook with new policies",
-    sender: "Sara Mohamed",
-    senderEmail: "sara@company.com",
-    date: "2025-09-29",
-    // priority: "medium",
+  ar: {
+    taskManager: "مدير المهام",
+    welcomeBack: "مرحباً بعودتك",
+    notifications: "الإشعارات",
+    stats: "الإحصائيات",
+    totalTasks: "إجمالي المهام",
+    completed: "مكتمل",
+    inProgress: "قيد التنفيذ",
+    pending: "في الانتظار",
+    urgent: "عاجل",
+    searchTasks: "البحث في المهام...",
+    allStatus: "كل الحالات",
+    pendingStatus: "في الانتظار",
+    inProgressStatus: "قيد التنفيذ",
+    completedStatus: "مكتمل",
+    cancelledStatus: "ملغي",
+    allPriority: "كل الأولويات",
+    lowPriority: "منخفض",
+    mediumPriority: "متوسط",
+    highPriority: "مرتفع",
+    urgentPriority: "عاجل",
+    newTask: "مهمة جديدة",
+    createNewTask: "إنشاء مهمة جديدة",
+    editTask: "تعديل المهمة",
+    taskTitle: "عنوان المهمة",
+    assignedTo: "المسند إليه",
+    description: "الوصف",
+    status: "الحالة",
+    priority: "الأولوية",
+    startDate: "تاريخ البدء",
+    endDate: "تاريخ الاستحقاق",
+    selectUser: "اختر المستخدم",
+    enterTaskTitle: "أدخل عنوان المهمة",
+    enterTaskDescription: "أدخل وصف المهمة",
+    attachments: "المرفقات",
+    addFiles: "إضافة ملفات",
+    dropFiles: "اسقط الملفات هنا أو انقر للاختيار",
+    supportedFormats: "التنسيقات المدعومة: صور، فيديو، مستندات، ملفات PDF والمزيد",
+    maxFileSize: "أقصى حجم للملف: 10 ميجابايت",
+    removeFile: "إزالة الملف",
+    fileTooBig: "حجم الملف يتجاوز حد 10 ميجابايت",
+    cancel: "إلغاء",
+    createTask: "إنشاء مهمة",
+    updateTask: "تحديث المهمة",
+    tasks: "المهام",
+    noTasksFound: "لم يتم العثور على مهام",
+    getStarted: "ابدأ بإنشاء أول مهمة لك",
+    due: "استحقاق",
+    created: "إنشاء",
   },
-  {
-    id: 3,
-    task: "Prepare presentation slides for next team meeting",
-    sender: "Omar Ali",
-    senderEmail: "omar@company.com",
-    date: "2025-09-30",
-    // priority: "low",
-  },
-  {
-    id: 4,
-    task: "Test the new features in the staging environment",
-    sender: "Fatima Ibrahim",
-    senderEmail: "fatima@company.com",
-    date: "2025-09-27",
-    // priority: "high",
-  },
-];
-
-// type Priority = "high" | "medium" | "low";
-
-// type Task = Omit<(typeof receivedTasks)[0], "priority"> & {
-//   priority: Priority;
-// };
-
-const TaskCard = ({ task, isArabic }: { task: tasks; isArabic: boolean }) => {
-  //   const priorityColors: Record<Priority, string> = {
-  //     high: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700",
-  //     medium:
-  //       "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700",
-  //     low: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700",
-  //   };
-
-  //   const priorityLabels: Record<Priority, string> = {
-  //     high: isArabic ? "عاجل" : "High Priority",
-  //     medium: isArabic ? "متوسط" : "Medium Priority",
-  //     low: isArabic ? "عادي" : "Low Priority",
-  //   };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border border-gray-200 dark:border-gray-700">
-      {/* Priority Badge */}
-      {/* <div className="flex items-center justify-between mb-3">
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-            priorityColors[task.priority]
-          }`}
-        >
-          {priorityLabels[task.priority]}
-        </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {task.date}
-        </span>
-      </div> */}
-
-      {/* Task Content */}
-      <p
-        className={`text-accent-foreground dark:text-gray-200 mb-4 leading-relaxed ${
-          isArabic ? "text-right" : "text-left"
-        }`}
-      >
-        {task.task}
-      </p>
-
-      {/* Sender Info */}
-      <div
-        className={`flex items-center justify-between ${
-          isArabic ? "flex-row" : ""
-        }`}
-      >
-        <div className={`flex items-center gap-2 `}>
-          {/* <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-semibold text-sm">
-            {task.sender.charAt(0)}
-          </div> */}
-          <div className={isArabic ? "text-right" : ""}>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {task.sender}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {task.senderEmail}
-            </p>
-          </div>
-        </div>
-
-        {/* Done Button */}
-        <button className="px-4 group py-2 cursor-pointer bg-none border border-primary hover:bg-primary text-primary hover:text-white rounded-lg transition-colors duration-200 font-medium text-sm flex items-center gap-2">
-          {/* <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 group-hover:-translate-y-1 duration-500 ease-in-out"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg> */}
-          {isArabic ? "تم" : "Done"}
-        </button>
-      </div>
-    </div>
-  );
 };
 
-const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
-  const { locale } = await params;
-  const isArabic = locale === "ar";
-  const session = await getServerSession(authOptions);
+const TaskManager = () => {
+  const locale = useLocale() as "en" | "ar";
+  const t = translations[locale];
+  const isRTL = locale === "ar";
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // State management
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "pending" as Task["status"],
+    priority: "medium" as Task["priority"],
+    assignedTo: "",
+    startDate: "",
+    endDate: "",
+  });
+  const [attachments, setAttachments] = useState<TaskFile[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showStats, setShowStats] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Mock data for demonstration
+  useEffect(() => {
+    // Initialize with mock data
+    const mockTasks: Task[] = [
+      {
+        id: "1",
+        title: "Complete project documentation",
+        description: "Write comprehensive documentation for the new feature",
+        status: "in_progress",
+        priority: "high",
+        assignedTo: "john@example.com",
+        assignedToName: "John Doe",
+        startDate: "2024-12-01",
+        endDate: "2024-12-15",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-01",
+      },
+      {
+        id: "2",
+        title: "Review pull requests",
+        description: "Review and approve pending pull requests",
+        status: "pending",
+        priority: "medium",
+        assignedTo: "jane@example.com",
+        assignedToName: "Jane Smith",
+        startDate: "2024-12-01",
+        endDate: "2024-12-10",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-01",
+      },
+      {
+        id: "3",
+        title: "Fix critical bug",
+        description: "Resolve the authentication issue reported by users",
+        status: "completed",
+        priority: "urgent",
+        assignedTo: "bob@example.com",
+        assignedToName: "Bob Johnson",
+        startDate: "2024-12-01",
+        endDate: "2024-12-05",
+        createdAt: "2024-12-01",
+        updatedAt: "2024-12-03",
+      },
+    ];
+
+    const mockUsers: User[] = [
+      { id: "1", name: "John Doe", email: "john@example.com", role: "developer" },
+      { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
+      { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
+    ];
+
+    setTasks(mockTasks);
+    setUsers(mockUsers);
+    setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
+
+    // Mock notifications
+    setNotifications([
+      {
+        id: "1",
+        title: locale === "ar" ? "مهمة جديدة معينة" : "New task assigned",
+        message: locale === "ar" 
+          ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
+          : "You have been assigned to 'Complete project documentation'",
+        type: "task_assigned",
+        read: false,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setUnreadCount(1);
+  }, []);
+
+  // Filter tasks based on search and filters
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = selectedStatus === "all" || task.status === selectedStatus;
+    const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  // Get status color
+  const getStatusColor = (status: Task["status"]) => {
+    const colors = {
+      pending: "bg-amber-100 text-amber-800 border-amber-200",
+      in_progress: "bg-blue-100 text-blue-800 border-blue-200",
+      completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      cancelled: "bg-red-100 text-red-800 border-red-200",
+    };
+    return colors[status];
+  };
+
+  // Get priority color
+  const getPriorityColor = (priority: Task["priority"]) => {
+    const colors = {
+      low: "bg-gray-100 text-gray-800 border-gray-200",
+      medium: "bg-blue-100 text-blue-800 border-blue-200",
+      high: "bg-orange-100 text-orange-800 border-orange-200",
+      urgent: "bg-red-100 text-red-800 border-red-200",
+    };
+    return colors[priority];
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingTask) {
+      // Update existing task
+      setTasks(tasks.map(task => 
+        task.id === editingTask.id 
+          ? { ...task, ...formData, attachments, updatedAt: new Date().toISOString() }
+          : task
+      ));
+    } else {
+      // Create new task
+      const newTask: Task = {
+        id: Date.now().toString(),
+        ...formData,
+        attachments,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setTasks([newTask, ...tasks]);
+    }
+
+    // Reset form
+    setFormData({
+      title: "",
+      description: "",
+      status: "pending",
+      priority: "medium",
+      assignedTo: "",
+      startDate: "",
+      endDate: "",
+    });
+    setAttachments([]);
+    setUploadError(null);
+    setShowCreateForm(false);
+    setEditingTask(null);
+  };
+
+  // Handle task deletion
+  const handleDelete = (taskId: string) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+  };
+
+  // Handle task edit
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      assignedTo: task.assignedTo,
+      startDate: task.startDate,
+      endDate: task.endDate,
+    });
+    setAttachments(task.attachments || []);
+    setShowCreateForm(true);
+  };
+
+  // File upload handlers
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return;
+    
+    const newFiles: TaskFile[] = [];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    
+    Array.from(files).forEach(file => {
+      if (file.size > maxSize) {
+        setUploadError(t.fileTooBig);
+        return;
+      }
+      
+      const taskFile: TaskFile = {
+        id: Date.now().toString() + Math.random().toString(36),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        file: file,
+      };
+      
+      newFiles.push(taskFile);
+    });
+    
+    if (newFiles.length > 0) {
+      setAttachments([...attachments, ...newFiles]);
+      setUploadError(null);
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files);
+    }
+  };
+
+  const removeFile = (fileId: string) => {
+    setAttachments(attachments.filter(file => file.id !== fileId));
+  };
+
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return '🖼️';
+    if (type.startsWith('video/')) return '🎥';
+    if (type.includes('pdf')) return '📄';
+    if (type.includes('word') || type.includes('document')) return '📝';
+    if (type.includes('excel') || type.includes('spreadsheet')) return '📊';
+    if (type.includes('powerpoint') || type.includes('presentation')) return '📈';
+    if (type.includes('zip') || type.includes('rar') || type.includes('7z')) return '🗜️';
+    return '📎';
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Calculate stats
+  const stats = {
+    total: tasks.length,
+    completed: tasks.filter(t => t.status === "completed").length,
+    pending: tasks.filter(t => t.status === "pending").length,
+    inProgress: tasks.filter(t => t.status === "in_progress").length,
+    urgent: tasks.filter(t => t.priority === "urgent").length,
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#1d1616] dark:to-[#1d1616] p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex w-full my-5 items-center justify-center flex-col">
-          <h1 className="text-3xl font-bold text-primary dark:text-white mb-2">
-            {isArabic ? "إدارة المهام" : "Task Management"}
-          </h1>
-          <p
-            dir={isArabic ? "rtl" : "ltr"}
-            className="text-accent-foreground font-semibold dark:text-gray-400"
-          >
-            {isArabic ? "مرحباً" : "Welcome"}, {session?.user?.email}
-          </p>
+    <div className={`min-h-screen bg-gradient-to-br ${isDarkMode ? 'dark:bg-gray-900' : 'from-primary/5 via-white to-primary/10'}`}>
+      {/* Header */}
+      <div className={`bg-white ${isDarkMode ? 'dark:bg-gray-800' : ''} shadow-sm border-b border-primary/20`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.taskManager}</h1>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.welcomeBack}, {session?.user?.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+              >
+                {isDarkMode ? (
+                  <Sun className="w-5 h-5 text-yellow-400" />
+                ) : (
+                  <Moon className="w-5 h-5 text-gray-700" />
+                )}
+              </button>
+
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className={`relative p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                >
+                  <Bell className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className={`absolute right-0 mt-2 w-80 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'} rounded-lg shadow-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} z-50`}>
+                    <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.notifications}</h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <div key={notification.id} className={`p-4 border-b ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-100 hover:bg-gray-50'}`}>
+                          <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{notification.title}</p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{notification.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats Toggle */}
+              <button
+                onClick={() => setShowStats(!showStats)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  showStats
+                    ? "bg-primary text-white"
+                    : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 inline mr-2" />
+                {t.stats}
+              </button>
+
+              {/* Refresh */}
+              <button className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}>
+                <RefreshCw className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div
-          dir={isArabic ? "rtl" : "ltr"}
-          className="grid lg:grid-cols-2 gap-8"
-        >
-          {/* Send Task Section */}
-          <div className="bg-white h-fit dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className={`mb-6 ${isArabic ? "text-right" : ""}`}>
-              <h2 className="text-2xl font-bold text-accent-foreground dark:text-white mb-2 flex items-center gap-3">
-                {!isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                )}
-                {isArabic ? "إرسال مهمة جديدة" : "Send New Task"}
-                {isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                )}
-              </h2>
-              <p className="text-accent-foreground dark:text-gray-400 text-sm">
-                {isArabic
-                  ? "اكتب المهمة واختر الموظف المستلم"
-                  : "Write a task and select the recipient"}
-              </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <AnimatePresence>
+          {showStats && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8"
+            >
+              <div className={`rounded-lg p-4 shadow-sm border border-primary/20 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.totalTasks}</p>
+                    <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-emerald-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.completed}</p>
+                    <p className="text-2xl font-bold text-emerald-600">{stats.completed}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-blue-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.inProgress}</p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-amber-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.pending}</p>
+                    <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-amber-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-lg p-4 shadow-sm border border-red-200 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{t.urgent}</p>
+                    <p className="text-2xl font-bold text-red-600">{stats.urgent}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Search and Filters */}
+        <div className={`rounded-lg shadow-sm border border-primary/20 p-6 mb-8 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+          <div className={`flex flex-col md:flex-row gap-4 ${isRTL ? 'md:flex-row-reverse' : ''}`}>
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400`} />
+                <input
+                  type="text"
+                  placeholder={t.searchTasks}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                />
+              </div>
             </div>
 
-            {/* Task Input */}
-            <div className="mb-6">
-              <label
-                className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ${
-                  isArabic ? "text-right" : ""
-                }`}
-              >
-                {isArabic ? "وصف المهمة" : "Task Description"}
-              </label>
-              <textarea
-                className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-accent-foreground dark:text-gray-200 resize-none transition-all ${
-                  isArabic ? "text-right" : ""
-                }`}
-                rows={6}
-                placeholder={
-                  isArabic
-                    ? "اكتب وصف المهمة بالتفصيل..."
-                    : "Describe the task in detail..."
-                }
-              />
-            </div>
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+            >
+              <option value="all">{t.allStatus}</option>
+              <option value="pending">{t.pendingStatus}</option>
+              <option value="in_progress">{t.inProgressStatus}</option>
+              <option value="completed">{t.completedStatus}</option>
+              <option value="cancelled">{t.cancelledStatus}</option>
+            </select>
 
-            {/* Priority Selection */}
-            {/* <div className="mb-6">
-              <label
-                className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ${
-                  isArabic ? "text-right" : ""
-                }`}
-              >
-                {isArabic ? "الأولوية" : "Priority"}
-              </label>
-              <select
-                className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-accent-foreground dark:text-gray-200 cursor-pointer ${
-                  isArabic ? "text-right" : ""
-                }`}
-              >
-                <option value="low">{isArabic ? "عادي" : "Low"}</option>
-                <option value="medium">{isArabic ? "متوسط" : "Medium"}</option>
-                <option value="high">{isArabic ? "عاجل" : "High"}</option>
-              </select>
-            </div> */}
+            {/* Priority Filter */}
+            <select
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+            >
+              <option value="all">{t.allPriority}</option>
+              <option value="low">{t.lowPriority}</option>
+              <option value="medium">{t.mediumPriority}</option>
+              <option value="high">{t.highPriority}</option>
+              <option value="urgent">{t.urgentPriority}</option>
+            </select>
 
-            {/* Employee Selection */}
-            <div className="mb-6">
-              <label
-                className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ${
-                  isArabic ? "text-right" : ""
-                }`}
-              >
-                {isArabic ? "إرسال إلى" : "Send to"}
-              </label>
-              <select
-                className={`w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-accent-foreground dark:text-gray-200 cursor-pointer ${
-                  isArabic ? "text-right" : ""
-                }`}
-              >
-                <option value="">
-                  {isArabic ? "اختر موظف" : "Select an employee"}
-                </option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} - {emp.email}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Send Button */}
-            <button className="w-full group cursor-pointer py-3 bg-gradient-to-r from-primary to-[#8e1616] hover:from-primary/90 hover:to-[#8e1616]/90 text-white rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5  transform duration-300 ease-in-out group-hover:rotate-45"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-              </svg>
-
-              {isArabic ? "إرسال المهمة" : "Send Task"}
+            {/* Create Task Button */}
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              {t.newTask}
             </button>
           </div>
+        </div>
 
-          {/* Received Tasks Section */}
-          <div className="">
-            <div className={`mb-6 ${isArabic ? "text-right" : ""}`}>
-              <h2 className="text-2xl font-bold text-accent-foreground dark:text-white mb-2 flex items-center gap-3">
-                {!isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                )}
-                {isArabic ? "المهام المستلمة" : "Received Tasks"}
-                {isArabic && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-7 w-7 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                )}
-              </h2>
-              <p className="text-accent-foreground dark:text-gray-400 text-sm">
-                {isArabic
-                  ? `لديك ${receivedTasks.length} مهام قيد الانتظار`
-                  : `You have ${receivedTasks.length} pending tasks`}
-              </p>
-            </div>
-
-            {/* Tasks Grid */}
-            <div className="space-y-4 max-h-[800px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-              {receivedTasks.map((task: tasks) => (
-                <TaskCard key={task.id} task={task} isArabic={isArabic} />
-              ))}
-            </div>
-
-            {receivedTasks.length === 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 mx-auto text-gray-400 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+        {/* Create/Edit Task Form */}
+        <AnimatePresence>
+          {(showCreateForm || editingTask) && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`rounded-lg shadow-sm border border-primary/20 p-6 mb-8 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {editingTask ? t.editTask : t.createNewTask}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setEditingTask(null);
+                    setFormData({
+                      title: "",
+                      description: "",
+                      status: "pending",
+                      priority: "medium",
+                      assignedTo: "",
+                      startDate: "",
+                      endDate: "",
+                    });
+                    setAttachments([]);
+                    setUploadError(null);
+                  }}
+                  className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {isArabic ? "لا توجد مهام حالياً" : "No tasks yet"}
-                </p>
+                  <X className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                </button>
               </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'md:grid-cols-2' : ''}`}>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.taskTitle}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                      placeholder={t.enterTaskTitle}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.assignedTo}
+                    </label>
+                    <select
+                      required
+                      value={formData.assignedTo}
+                      onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="">{t.selectUser}</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.email}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t.description}
+                  </label>
+                  <textarea
+                    required
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                    className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    placeholder={t.enterTaskDescription}
+                  />
+                </div>
+
+                <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 ${isRTL ? 'md:grid-cols-4' : ''}`}>
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.status}
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as Task["status"] })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="pending">{t.pendingStatus}</option>
+                      <option value="in_progress">{t.inProgressStatus}</option>
+                      <option value="completed">{t.completedStatus}</option>
+                      <option value="cancelled">{t.cancelledStatus}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.priority}
+                    </label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task["priority"] })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    >
+                      <option value="low">{t.lowPriority}</option>
+                      <option value="medium">{t.mediumPriority}</option>
+                      <option value="high">{t.highPriority}</option>
+                      <option value="urgent">{t.urgentPriority}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.startDate}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t.endDate}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white' : ''}`}
+                    />
+                  </div>
+                </div>
+
+                {/* File Upload Section */}
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t.attachments}
+                  </label>
+                  
+                  {/* Drop Zone */}
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                      dragActive 
+                        ? 'border-primary bg-primary/5' 
+                        : isDarkMode 
+                          ? 'border-gray-600 hover:border-gray-500' 
+                          : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => handleFileSelect(e.target.files)}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <Plus className="w-6 h-6 text-primary" />
+                        </div>
+                        <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t.addFiles}</p>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>{t.dropFiles}</p>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mt-2`}>{t.supportedFormats}</p>
+                        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{t.maxFileSize}</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Upload Error */}
+                  {uploadError && (
+                    <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">{uploadError}</p>
+                    </div>
+                  )}
+
+                  {/* File List */}
+                  {attachments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {attachments.map((file) => (
+                        <div
+                          key={file.id}
+                          className={`flex items-center justify-between p-3 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{getFileIcon(file.type)}</span>
+                            <div>
+                              <p className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{file.name}</p>
+                              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(file.id)}
+                            className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'} transition-colors`}
+                          >
+                            <X className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`flex justify-end gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setEditingTask(null);
+                      setFormData({
+                        title: "",
+                        description: "",
+                        status: "pending",
+                        priority: "medium",
+                        assignedTo: "",
+                        startDate: "",
+                        endDate: "",
+                      });
+                      setAttachments([]);
+                      setUploadError(null);
+                    }}
+                    className={`px-6 py-3 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors ${isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'text-gray-700'}`}
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    {editingTask ? t.updateTask : t.createTask}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tasks List */}
+        <div className={`rounded-lg shadow-sm border border-primary/20 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'}`}>
+          <div className={`p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {t.tasks} ({filteredTasks.length})
+            </h2>
+          </div>
+
+          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+            {filteredTasks.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className={`w-16 h-16 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  <CheckCircle className={`w-8 h-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                </div>
+                <h3 className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}>{t.noTasksFound}</h3>
+                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>{t.getStarted}</p>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-5 h-5 inline mr-2" />
+                  {t.createTask}
+                </button>
+              </div>
+            ) : (
+              filteredTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`p-6 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}
+                >
+                  <div className={`flex items-start justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex-1">
+                      <div className={`flex items-center gap-3 mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{task.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
+                          {task.status.replace("_", " ")}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
+                          {task.priority}
+                        </span>
+                      </div>
+
+                      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-4`}>{task.description}</p>
+
+                      {/* Attachments Display */}
+                      {task.attachments && task.attachments.length > 0 && (
+                        <div className="mb-4">
+                          <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
+                            <span>📎</span>
+                            <span>{task.attachments.length} {locale === 'ar' ? 'ملفات مرفقة' : 'attachments'}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {task.attachments.slice(0, 3).map((file, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-center gap-2 px-2 py-1 rounded-lg text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}
+                              >
+                                <span>{getFileIcon(file.type)}</span>
+                                <span className="truncate max-w-24">{file.name}</span>
+                              </div>
+                            ))}
+                            {task.attachments.length > 3 && (
+                              <div className={`flex items-center px-2 py-1 rounded-lg text-xs ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                <span>+{task.attachments.length - 3} more</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className={`flex items-center gap-6 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <UserIcon className="w-4 h-4" />
+                          <span>{task.assignedToName || task.assignedTo}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Calendar className="w-4 h-4" />
+                          <span>{t.due} {new Date(task.endDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Clock className="w-4 h-4" />
+                          <span>{t.created} {new Date(task.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`flex items-center gap-2 ${isRTL ? 'mr-6' : 'ml-6'}`}>
+                      <button
+                        onClick={() => handleEdit(task)}
+                        className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                      >
+                        <Edit2 className={`w-4 h-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(task.id)}
+                        className={`p-2 rounded-lg ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900' : 'bg-red-100 hover:bg-red-200'} transition-colors`}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
             )}
           </div>
         </div>
@@ -373,4 +1023,4 @@ const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
   );
 };
 
-export default page;
+export default TaskManager;

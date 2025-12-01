@@ -55,20 +55,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        cache: 'no-store' // Prevent caching to ensure fresh data
       });
 
       if (!response.ok) {
-        // Token is invalid, clear auth
-        logout();
-        return;
+        console.log('Token verification failed, status:', response.status);
+        
+        // Only logout on 401 (invalid token), not on server errors
+        if (response.status === 401) {
+          console.log('Token is invalid, logging out...');
+          logout();
+          return;
+        } else {
+          // For other errors (500, 404, etc.), don't logout automatically
+          console.log('Server error during token verification, keeping user logged in');
+          return;
+        }
       }
 
       const data = await response.json();
-      setUser(data.details);
+      if (data.success && data.user) {
+        setUser(data.user);
+        console.log('Token verified successfully for user:', data.user.email);
+      } else {
+        console.log('Invalid response format from auth/me endpoint');
+        // Don't logout automatically, let the user decide
+      }
     } catch (error) {
-      console.error('Token verification failed:', error);
-      logout();
+      console.error('Token verification failed due to network error:', error);
+      // Don't logout on network errors, keep user logged in
     }
   };
 
@@ -94,16 +110,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
+      
+      console.log('Login successful for user:', userData.email);
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
 
   const logout = () => {
+    console.log('Manual logout initiated');
+    
+    // Clear client-side state immediately
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Call logout API asynchronously (don't wait for it)
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).catch(error => {
+      console.warn('Logout API call failed:', error);
+    });
   };
 
   return (

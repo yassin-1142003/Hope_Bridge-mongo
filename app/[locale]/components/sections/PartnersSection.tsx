@@ -110,7 +110,7 @@ const PartnersSection = ({ params }: { params: { locale: string } }) => {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <h2 className="text-4xl md:text-6xl font-bold text-primary mb-6">
+          <h2 className="text-4xl md:text-6xl font-bold text-[#2c2c2b] dark:text-background mb-6">
             {isArabic ? "شركاؤنا في التغيير" : "Our Partners in Change"}
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto">
@@ -181,7 +181,7 @@ const PartnersSection = ({ params }: { params: { locale: string } }) => {
               >
                 {/* Logo */}
                 <div className="relative w-full h-24 mb-4 flex items-center justify-center">
-                  <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl flex items-center justify-center">
+                  <div className="w-full h-full bg-linear-to-br from-primary/10 to-primary/5 rounded-xl flex items-center justify-center">
                     <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
                       <GlobeIcon className="w-8 h-8 text-primary" />
                     </div>

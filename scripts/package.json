@@ -1,0 +1,1 @@
+{"name": "init-database", "description": "Initialize MongoDB database with schemas and sample data", "scripts": {"init": "npx tsx init-database.ts"}, "dependencies": {"mongodb": "^6.0.0", "tsx": "^4.0.0"}}

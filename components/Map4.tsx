@@ -403,7 +403,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
                 onClick={() => handleCountryClick(c)}
                 className={`px-3 py-2 cursor-pointer rounded-lg text-xs md:text-sm font-semibold transition-all ${
                   activeCountry === c
-                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white"
+                    ? "bg-linear-to-r from-red-600 to-red-500 text-white"
                     : theme === "dark"
                       ? "bg-gray-800 text-gray-200"
                       : "bg-gray-100 text-accent-foreground"
@@ -444,7 +444,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
             </span>
           </div>
 
-          <h2 className="text-lg md:text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent mb-3">
+          <h2 className="text-lg md:text-xl font-bold bg-linear-to-r from-red-600 to-red-500 bg-clip-text text-transparent mb-3">
             {currentProject.title}
           </h2>
 
@@ -453,7 +453,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           </p>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-3 text-center">
+            <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
                 {currentProject.projects}
               </div>
@@ -461,7 +461,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
                 مشروع
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-3 text-center">
+            <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-green-600 dark:text-green-400">
                 {currentProject.beneficiaries.toLocaleString()}
               </div>
@@ -472,7 +472,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           </div>
 
           <div className="bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-2">
-            <div className="bg-gradient-to-r from-red-500 to-red-400 h-2 rounded-full w-3/4"></div>
+            <div className="bg-linear-to-r from-red-500 to-red-400 h-2 rounded-full w-3/4"></div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
             تقدم المشاريع: 75%

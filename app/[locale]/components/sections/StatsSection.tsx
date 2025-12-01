@@ -12,21 +12,21 @@ const StatsSection = async ({
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-transparent to-muted/20" />
+      <div className="absolute inset-0 bg-linear-to-b from-muted/20 via-transparent to-muted/20" />
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary/5 rounded-full blur-3xl" />
 
       <div className="relative max-w-6xl mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-primary mb-8">
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-[#2c2c2b] dark:text-background mb-8">
             {isArabic ? "أثرنا بالأرقام" : "Our Impact in Numbers"}
           </h2>
-          <p className="text-xl md:text-2xl lg:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+          {/* <p className="text-xl md:text-2xl lg:text-3xl text-black/70 max-w-4xl mx-auto leading-relaxed">
             {isArabic
               ? "كل رقم يحكي قصة أمل وتغيير إيجابي في حياة الآخرين. شاهد كيف نحقق فرقاً حقيقياً في مجتمعنا."
               : "Every number tells a story of hope and positive change in people's lives. See how we're making a real difference in our community."}
-          </p>
+          </p> */}
         </div>
 
         {/* Stats Grid */}
@@ -73,11 +73,11 @@ const StatsSection = async ({
             ({ icon: Icon, label, value, description, color, bgColor }, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105"
+                className="group relative overflow-hidden rounded-3xl border border-border/50 bg-linear-to-br from-card to-card/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105"
               >
                 {/* Subtle gradient overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                  className={`absolute inset-0 bg-linear-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
                 />
 
                 {/* Content */}
@@ -88,7 +88,7 @@ const StatsSection = async ({
                       className={`inline-flex p-3 rounded-2xl ${bgColor} shadow-md group-hover:shadow-lg transition-all duration-300`}
                     >
                       <div
-                        className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
+                        className={`p-3 rounded-xl bg-linear-to-br ${color} shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
                       >
                         <Icon
                           strokeWidth={1.5}
@@ -101,7 +101,7 @@ const StatsSection = async ({
 
                   {/* Value with enhanced styling */}
                   <div className="mb-2">
-                    <h3 className="text-3xl md:text-4xl font-black bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent leading-none">
+                    <h3 className="text-3xl md:text-4xl font-black bg-linear-to-br from-foreground to-foreground/80 bg-clip-text text-transparent leading-none">
                       {value}
                     </h3>
                   </div>
@@ -118,10 +118,29 @@ const StatsSection = async ({
 
                   {/* Decorative elements */}
                   <div
+<<<<<<< HEAD
                     className={`absolute -top-2 -right-2 w-16 h-16 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${color}`}
                   />
                   <div
                     className={`absolute -bottom-1 -left-1 w-12 h-12 rounded-full opacity-5 group-hover:opacity-15 transition-opacity duration-500 bg-gradient-to-tl ${color}`}
+=======
+                    className="absolute -top-2 -right-2 w-16 h-16 rounded-full bg-linear-to-br opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+                    style={{
+                      backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
+                      ...color
+                        .split(" ")
+                        .reduce((acc, c) => ({ ...acc, [c]: c }), {}),
+                    }}
+                  />
+                  <div
+                    className="absolute -bottom-1 -left-1 w-12 h-12 rounded-full bg-linear-to-tl opacity-5 group-hover:opacity-15 transition-opacity duration-500"
+                    style={{
+                      backgroundImage: `linear-gradient(to top left, var(--tw-gradient-stops))`,
+                      ...color
+                        .split(" ")
+                        .reduce((acc, c) => ({ ...acc, [c]: c }), {}),
+                    }}
+>>>>>>> 2efbb4e38f6799641e973bb9be8bca702baa4001
                   />
                 </div>
               </div>
