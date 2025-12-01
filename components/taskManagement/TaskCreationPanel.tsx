@@ -205,6 +205,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close task creation panel"
+              title="Close task creation panel"
             >
               <X className="w-5 h-5" />
             </button>
@@ -356,6 +358,8 @@ const TaskCreationPanel: React.FC<TaskCreationPanelProps> = ({
                   <button
                     onClick={addTag}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    aria-label="Add tag"
+                    title="Add tag"
                   >
                     Add
                   </button>

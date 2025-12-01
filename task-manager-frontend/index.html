@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-check2-square me-2"></i>Task Manager
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" id="userInfo"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Alert Section -->
+        <div class="row mb-4" id="alertSection" class="hidden">
+            <div class="col-12">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>New Tasks Received!</strong> You have <span id="newTaskCount">0</span> new task(s).
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Dismiss alert"></button>
+                    <button type="button" class="btn btn-sm btn-warning ms-2" onclick="showNewTasksModal()">
+                        <i class="bi bi-list-ul me-1"></i>View New Tasks
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Task Form -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-send me-2"></i>Send New Task
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="sendTaskForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="taskTitle" class="form-label">Title *</label>
+                                    <input type="text" class="form-control" id="taskTitle" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="taskReceiver" class="form-label">Send To *</label>
+                                    <select class="form-select" id="taskReceiver" required>
+                                        <option value="">Select a user...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDescription" class="form-label">Description *</label>
+                                <textarea class="form-control" id="taskDescription" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskAttachment" class="form-label">Attachment (Optional)</label>
+                                <input type="file" class="form-control" id="taskAttachment" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.zip">
+                                <div class="form-text">Max file size: 5MB. Allowed: Images, Documents, ZIP</div>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-send me-1"></i>Send Task
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Lists -->
+        <div class="row">
+            <!-- Sent Tasks -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-outbox me-2"></i>Tasks I Sent
+                        </h5>
+                        <span class="badge bg-light text-dark" id="sentTaskCount">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="sentTasksList" class="task-list">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-1"></i>
+                                <p>No sent tasks yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Received Tasks -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-inbox me-2"></i>Tasks I Received
+                        </h5>
+                        <span class="badge bg-dark" id="receivedTaskCount">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="receivedTasksList" class="task-list">
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-1"></i>
+                                <p>No received tasks yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalTitle">Task Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="taskModalBody">
+                    <!-- Task details will be loaded here -->
+                </div>
+                <div class="modal-footer" id="taskModalFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Tasks Modal -->
+    <div class="modal fade" id="newTasksModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>New Tasks
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="newTasksModalBody">
+                    <!-- New tasks will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login to Task Manager</h5>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" id="authTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-selected="true">Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-selected="false">Register</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="authTabContent">
+                        <div class="tab-pane fade show active" id="login">
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label for="loginEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="loginEmail" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="loginPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Login</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="register">
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label for="registerName" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="registerName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registerEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="registerEmail" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registerPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="registerPassword" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registerRole" class="form-label">Role</label>
+                                    <select class="form-select" id="registerRole" required>
+                                        <option value="employee">Employee</option>
+                                        <option value="manager">Manager</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Register</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

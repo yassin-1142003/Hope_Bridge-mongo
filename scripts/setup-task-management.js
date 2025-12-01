@@ -1,15 +1,11 @@
-#!/usr/bin/env ts-node
-
 /**
- * Task Management System Setup Script
+ * Task Management System Setup Script (JavaScript version)
  * 
  * This script sets up the MongoDB collections and indexes for the task management system
  */
 
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-
-dotenv.config();
+require('dotenv').config();
+const mongoose = require('mongoose');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

@@ -77,7 +77,9 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
   currentUserId 
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [selectedTask, selectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
+  const [showTaskForm, setShowTaskForm] = useState<Task | null>(null);
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,7 +146,7 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
       });
 
       if (submitResponse.ok) {
-        selectedTask(null);
+        setShowTaskForm(null);
         fetchTasks();
         fetchStatistics();
       }
@@ -315,6 +317,8 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-label="Filter by task priority"
+            title="Filter by task priority"
           >
             <option value="">All Priorities</option>
             <option value="low">Low</option>
@@ -328,6 +332,8 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Sort tasks by"
+              title="Sort tasks by"
             >
               <option value="createdAt">Created Date</option>
               <option value="updatedAt">Updated Date</option>
@@ -401,7 +407,7 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600"
-                             onClick={() => selectedTask(task)}>
+                             onClick={() => setShowTaskDetail(task)}>
                           {task.title}
                         </div>
                         <div className="text-sm text-gray-500 truncate max-w-xs">
@@ -469,7 +475,7 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => selectedTask(task)}
+                          onClick={() => setShowTaskDetail(task)}
                           className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                           title="View task details"
                         >
@@ -488,7 +494,7 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
                         
                         {canSubmitTask(task) && (
                           <button
-                            onClick={() => selectedTask(task)}
+                            onClick={() => setShowTaskForm(task)}
                             className="p-1 text-green-600 hover:text-green-700 transition-colors"
                             title="Submit task"
                           >
@@ -535,10 +541,10 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
 
       {/* Task Detail View */}
       <AnimatePresence>
-        {selectedTask && (
+        {showTaskDetail && (
           <TaskDetailView
-            task={selectedTask}
-            onClose={() => selectedTask(null)}
+            task={showTaskDetail}
+            onClose={() => setShowTaskDetail(null)}
             currentUserRole={currentUserRole}
           />
         )}
@@ -546,10 +552,10 @@ const EmployeeDashboard: React.FC<{ currentUserRole: UserRole; currentUserId: st
 
       {/* Task Form Submission */}
       <AnimatePresence>
-        {selectedTask && canSubmitTask(selectedTask) && (
+        {showTaskForm && canSubmitTask(showTaskForm) && (
           <TaskFormSubmission
-            task={selectedTask}
-            onClose={() => selectedTask(null)}
+            task={showTaskForm}
+            onClose={() => setShowTaskForm(null)}
             onSubmit={handleTaskSubmit}
           />
         )}

@@ -249,6 +249,8 @@ const TaskFormSubmission: React.FC<TaskFormSubmissionProps> = ({
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               hasError ? 'border-red-500' : 'border-gray-300'
             }`}
+            aria-label={`Select date for ${field.label}`}
+            title={`Select date for ${field.label}`}
           />
         );
       
@@ -260,6 +262,8 @@ const TaskFormSubmission: React.FC<TaskFormSubmissionProps> = ({
             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               hasError ? 'border-red-500' : 'border-gray-300'
             }`}
+            aria-label={`Select option for ${field.label}`}
+            title={`Select option for ${field.label}`}
           >
             <option value="">Select an option</option>
             {field.options?.map((option: string) => (
@@ -389,6 +393,8 @@ const TaskFormSubmission: React.FC<TaskFormSubmissionProps> = ({
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close task submission"
+              title="Close task submission"
             >
               <X className="w-5 h-5" />
             </button>
@@ -473,6 +479,8 @@ const TaskFormSubmission: React.FC<TaskFormSubmissionProps> = ({
                     <button
                       onClick={() => removeUploadedFile(index)}
                       className="p-1 text-red-600 hover:text-red-700 transition-colors"
+                      aria-label="Remove uploaded file"
+                      title="Remove uploaded file"
                     >
                       <X className="w-4 h-4" />
                     </button>
