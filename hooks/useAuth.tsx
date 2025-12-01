@@ -6,7 +6,7 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'GENERAL_MANAGER' | 'PROGRAM_MANAGER' | 'PROJECT_COORDINATOR' | 'HR' | 'FINANCE' | 'PROCUREMENT' | 'STOREKEEPER' | 'ME' | 'FIELD_OFFICER' | 'ACCOUNTANT' | 'USER';
   isActive: boolean;
   emailVerified: boolean;
 }

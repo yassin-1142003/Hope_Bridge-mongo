@@ -19,6 +19,8 @@ import { PWAProvider } from "@/components/PWAContext";
 import AddToHomeIOS from "@/components/AddToHomeIOS";
 import TurnstileWrapper from "@/components/TurnstileWrapper";
 import VisitorTracker from "@/components/VisitorTracker";
+import ChatWidget from "@/components/chat/ChatWidget";
+import { AuthProvider } from "@/hooks/useAuth";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -159,11 +161,10 @@ export default async function LocaleLayout({
         className={`${almarai.variable} font-almarai bg-background antialiased`}
       >
         <NextIntlClientProvider>
-          {/* <TurnstileWrapper> */}
           <ThemeProvider attribute="class" defaultTheme="light">
-            {/* <ClientWrapper> */}
-            <VisitorTracker locale={locale} />
-            <PWAProvider>
+            <AuthProvider>
+              <VisitorTracker locale={locale} />
+              <PWAProvider>
               <Navbar />
               <AOSWrapper>
                 <main className="main-pattern pt-18">{children}</main>
@@ -172,7 +173,10 @@ export default async function LocaleLayout({
                 <Toaster richColors position="bottom-right" />
               </AOSWrapper>
               <Footer4Col />
+              <ChatWidget />
             </PWAProvider>
+            </AuthProvider>
+          </ThemeProvider>
             {/* </ClientWrapper> */}
           </ThemeProvider>
           {/* </TurnstileWrapper> */}
