@@ -177,9 +177,6 @@ export default async function LocaleLayout({
             </PWAProvider>
             </AuthProvider>
           </ThemeProvider>
-            {/* </ClientWrapper> */}
-          </ThemeProvider>
-          {/* </TurnstileWrapper> */}
         </NextIntlClientProvider>
       </body>
     </html>

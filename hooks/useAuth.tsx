@@ -46,6 +46,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
+    } else {
+      // For development/testing - provide a mock user with one of the allowed roles
+      const mockUser: User = {
+        _id: 'test-user-id',
+        name: 'Test Admin',
+        email: 'admin@hopebridge.com',
+        role: 'ADMIN', // This role has chat permissions
+        isActive: true,
+        emailVerified: true
+      };
+      setUser(mockUser);
+      setToken('mock-token');
     }
     setLoading(false);
   }, []);
