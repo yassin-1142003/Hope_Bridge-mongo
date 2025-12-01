@@ -348,7 +348,7 @@ const InvoiceForm = () => {
 
   const generatePDFBlob = async (): Promise<Blob> => {
     return new Promise((resolve) => {
-      // Generate PDF using existing handlePrint logic but return as blob
+      // Use identical layout to handlePrint
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -359,90 +359,306 @@ const InvoiceForm = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
 
       // Brand Colors
-      const primaryRed = [199, 42, 42];
+      const primaryRed = [199, 42, 42]; // #c72a2a
       const darkRed = [159, 32, 32];
       const lightGray = [245, 245, 245];
       const darkGray = [51, 51, 51];
 
-      // Header
+      // ELEGANT HEADER SECTION WITH GRADIENT EFFECT
+      // Top red banner with decorative elements
       doc.setFillColor(...primaryRed);
-      doc.rect(0, 0, pageWidth, 66, "F");
+      doc.rect(0, 0, pageWidth, 66, "B");
 
-      // Logo
+      // Decorative corner triangles
+      doc.setFillColor(...darkRed);
+      doc.triangle(0, 0, 30, 0, 0, 30, "F");
+      doc.triangle(pageWidth, 0, pageWidth - 30, 0, pageWidth, 30, "F");
+
+      // Logo placement with white border
+      const logoUrl = "/logo.png";
+      const logoWidth = 40;
+      const logoHeight = 40;
+
+      // White circle background for logo
       doc.setFillColor(255, 255, 255);
       doc.circle(pageWidth / 2, 25, 21, "F");
 
-      // Organization name
-      doc.setFont("helvetica", "bold");
+      doc.addImage(
+        logoUrl,
+        "PNG",
+        pageWidth / 2 - logoWidth / 2,
+        3,
+        logoWidth,
+        logoHeight
+      );
+
+      // Organization name in white on red background
+      doc.setFont("cairo", "bold");
       doc.setFontSize(16);
       doc.setTextColor(255, 255, 255);
       doc.text("HOPE BRIDGE ASSOCIATION", pageWidth / 2, 54, {
         align: "center",
       });
 
-      // Invoice details
-      let yPosition = 90;
+      // Decorative line under header
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.5);
+      doc.line(20, 56, pageWidth - 20, 56);
+
+      // INVOICE TITLE SECTION - Modern box design
+      let y = 68;
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(pageWidth / 2 - 35, y - 8, 70, 16, 3, 3, "F");
+
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(pageWidth / 2 - 33, y - 7, 66, 14, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(255, 255, 255);
+      doc.text("INVOICE", pageWidth / 2, y + 2, { align: "center" });
+      doc.setTextColor(0, 0, 0);
+
+      // INVOICE DETAILS SECTION - Two-column elegant layout
+      y = 92;
+
+      // Left column box
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(15, y - 5, 85, 24, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE TO:", 20, y + 3);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceTo || "-", 43, y + 3);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE NO:", 20, y + 8);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceNo || "-", 43, y + 8);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("INVOICE Number:", 20, y + 13);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      doc.text(invoiceNumber || "-", 50, y + 13);
+
+      // Right column box
+      doc.setFillColor(...lightGray);
+      doc.roundedRect(110, y - 5, 85, 24, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("DATE:", 115, y);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(...primaryRed);
+      const formattedDate = invoiceDate || "";
+      doc.text(formattedDate, 115, y + 6);
+
+      // PROJECT INFORMATION - Styled box
+      y = 124;
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(15, y - 5, pageWidth - 30, 20, 2, 2, "FD");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(...darkGray);
+      doc.text(
+        projectName || "Gaza Strip Relief Project",
+        pageWidth / 2,
+        y + 4,
+        {
+          align: "center",
+        }
+      );
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(12);
       doc.setTextColor(...darkGray);
-
       doc.text(
-        `${locale === "ar" ? "الفاتورة إلى" : "Invoice To"}: ${invoiceTo}`,
-        20,
-        yPosition
-      );
-      yPosition += 10;
-      doc.text(
-        `${locale === "ar" ? "التاريخ" : "Date"}: ${invoiceDate}`,
-        20,
-        yPosition
-      );
-      yPosition += 10;
-      doc.text(
-        `${locale === "ar" ? "رقم الفاتورة" : "Invoice No"}: ${invoiceNo}`,
-        20,
-        yPosition
+        emergencyProject || "Emergency Project War September 2025",
+        pageWidth / 2,
+        y + 10,
+        { align: "center" }
       );
 
-      // Items table
-      yPosition += 20;
-      doc.setFillColor(...lightGray);
-      doc.rect(20, yPosition, pageWidth - 40, 10, "F");
+      // ITEMS TABLE - Professional design with alternating rows
+      y = 152;
+      const colX = [20, 50, 115, 140, 165, 185];
+
+      // Table header with red background
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(15, y - 7, pageWidth - 20, 10, 1, 1, "F");
+
       doc.setFont("helvetica", "bold");
-      doc.text(locale === "ar" ? "الصنف" : "Item", 25, yPosition + 7);
-      doc.text(locale === "ar" ? "السعر" : "Price", 80, yPosition + 7);
-      doc.text(locale === "ar" ? "الكمية" : "Qty", 120, yPosition + 7);
-      doc.text(locale === "ar" ? "الإجمالي" : "Total", 150, yPosition + 7);
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text("NO", colX[0], y);
+      doc.text("ITEM DESCRIPTION", colX[1], y);
+      doc.text("UNIT PRICE", colX[2], y);
+      doc.text("QTY", colX[3], y);
+      doc.text(`TOTAL (${selectedCurrency})`, colX[4], y);
+      doc.text("TOTAL ($)", colX[5], y);
 
-      // Add items
-      yPosition += 15;
-      items.forEach((item) => {
-        if (item.itemName) {
-          doc.setFont("helvetica", "normal");
-          doc.text(item.itemName, 25, yPosition);
-          doc.text(
-            `${item.unitPrice} ${currentCurrency.symbol}`,
-            80,
-            yPosition
-          );
-          doc.text(item.quantity.toString(), 120, yPosition);
-          doc.text(
-            `${item.totalSelectedCurrency} ${currentCurrency.symbol}`,
-            150,
-            yPosition
-          );
-          yPosition += 10;
+      y += 8;
+      doc.setTextColor(0, 0, 0);
+
+      // Items rows with alternating background
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+
+      items.forEach((item, index) => {
+        if (!item.itemName && !item.unitPrice && !item.quantity) {
+          return;
         }
+        if (y > 235) {
+          doc.addPage();
+          y = 20;
+        }
+
+        // Alternating row background
+        if (index % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(15, y - 4, pageWidth - 20, 7, "F");
+        }
+
+        doc.setTextColor(...darkGray);
+        doc.text(String(index + 1), colX[0], y);
+        doc.text(item.itemName || "-", colX[1], y);
+        doc.text(
+          `${selectedCurrency} ${item.unitPrice.toFixed(2)}`,
+          colX[2],
+          y
+        );
+        doc.text(String(item.quantity), colX[3], y);
+        doc.text(
+          `${selectedCurrency} ${item.totalSelectedCurrency.toFixed(2)}`,
+          colX[4],
+          y
+        );
+        doc.text(`$${item.totalUSD.toFixed(2)}`, colX[5], y);
+
+        y += 7;
       });
 
-      // Total
-      yPosition += 10;
+      // TOTALS SECTION - Highlighted box
+      y += 15;
+      doc.setFillColor(...primaryRed);
+      doc.roundedRect(135, y - 5, 70, 10, 2, 2, "F");
+
       doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.text("TOTAL:", 140, y + 1);
       doc.text(
-        `${locale === "ar" ? "الإجمالي الكلي" : "Grand Total"}: ${grandTotalSelectedCurrency} ${currentCurrency.symbol}`,
-        150,
-        yPosition
+        `${selectedCurrency} ${grandTotalSelectedCurrency.toFixed(2)}`,
+        160,
+        y + 1
       );
+      doc.text(`$${grandTotalUSD.toFixed(2)}`, 185, y + 1);
+
+      doc.setTextColor(0, 0, 0);
+
+      // SIGNATURE SECTION
+      y += 18;
+      doc.setDrawColor(...primaryRed);
+      doc.setLineWidth(0.3);
+      doc.line(20, y + 10, 80, y + 10);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...darkGray);
+      doc.text("General Manager", 20, y + 15);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(managerName || "Mohammed Zohd", 20, y + 20);
+
+      // FOOTER SECTION - Elegant design
+      const footerY = pageHeight - 55;
+
+      // Footer background
+      doc.setFillColor(...lightGray);
+      doc.rect(0, footerY - 5, pageWidth, 60, "F");
+
+      // Red accent line
+      doc.setFillColor(...primaryRed);
+      doc.rect(pageWidth / 4, footerY - 5, pageWidth / 2, 1, "F");
+
+      // Organization info
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryRed);
+      doc.text("Palestinian Hope Bridge Charity", pageWidth / 2, footerY + 5, {
+        align: "center",
+      });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(...darkGray);
+      doc.text(
+        "Gaza – Alnasser - Alababidi crossroad in front of Ahshammali center",
+        pageWidth / 2,
+        footerY + 11,
+        { align: "center" }
+      );
+      doc.text(`License No. GA-1123-C`, pageWidth / 2, footerY + 16, {
+        align: "center",
+      });
+      doc.text(
+        "Tel: 082872707 | Mobile: 00970592130200",
+        pageWidth / 2,
+        footerY + 21,
+        { align: "center" }
+      );
+
+      // Bank details with icon-style design
+      if (currentBank) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(...primaryRed);
+        doc.text("BANK DETAILS", pageWidth / 2, footerY + 28, {
+          align: "center",
+        });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...darkGray);
+        doc.text(
+          `${currentBank.name} | Account: ${currentBank.account}`,
+          pageWidth / 2,
+          footerY + 33,
+          {
+            align: "center",
+          }
+        );
+        doc.text(
+          `SWIFT: ${currentBank.swift} | IBAN: ${currentBank.iban}`,
+          pageWidth / 2,
+          footerY + 37,
+          {
+            align: "center",
+          }
+        );
+      }
 
       // Return as blob
       const pdfBlob = new Blob([doc.output("blob")], {
@@ -1075,21 +1291,84 @@ const InvoiceForm = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 justify-center mb-8 print:hidden">
-            <button
-              onClick={addRow}
-              className="flex items-center gap-2 bg-linear-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-full font-bold hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg"
-            >
-              <Plus className="w-5 h-5" />
-              Add Row
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 bg-linear-to-r from-primary to-primary/80 text-white px-8 py-3 rounded-full font-bold hover:from-primary/90 hover:to-primary transition-all transform hover:scale-105 shadow-lg"
-            >
-              <Download className="w-5 h-5" />
-              Generate PDF
-            </button>
+          <div className="flex flex-col gap-4 items-center mb-8 print:hidden">
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button
+                onClick={addRow}
+                className="flex items-center gap-2 bg-linear-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-full font-bold hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg"
+              >
+                <Plus className="w-5 h-5" />
+                Add Row
+              </button>
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 bg-linear-to-r from-primary to-primary/80 text-white px-8 py-3 rounded-full font-bold hover:from-primary/90 hover:to-primary transition-all transform hover:scale-105 shadow-lg"
+              >
+                <Download className="w-5 h-5" />
+                {t.downloadPDF}
+              </button>
+            </div>
+
+            {/* Email Invoice */}
+            <div className="w-full max-w-xl bg-linear-to-br from-primary/5 to-primary/10 p-4 rounded-xl border border-primary/30 shadow-md">
+              <button
+                type="button"
+                onClick={() => setShowEmailInput(!showEmailInput)}
+                className="w-full flex items-center justify-center gap-2 bg-white text-primary px-4 py-2 rounded-full font-semibold border border-primary/40 hover:bg-primary/5 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                {t.sendEmail}
+              </button>
+
+              {showEmailInput && (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">
+                      {t.emailAddress}
+                    </label>
+                    <input
+                      type="email"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      placeholder={t.enterEmail}
+                      className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={sendEmailWithPDF}
+                      disabled={isSendingEmail || !emailAddress}
+                      className="flex items-center gap-2 bg-linear-to-r from-primary to-primary/80 text-white px-6 py-2 rounded-full font-semibold disabled:opacity-50 hover:from-primary/90 hover:to-primary transition-all"
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <Send className="w-4 h-4 animate-pulse" />
+                          {t.sending}
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          {t.sendInvoice}
+                        </>
+                      )}
+                    </button>
+
+                    {emailStatus === "success" && (
+                      <span className="text-sm text-emerald-600">
+                        {t.sendSuccess}
+                      </span>
+                    )}
+                    {emailStatus === "error" && (
+                      <span className="text-sm text-red-600">
+                        {t.sendError}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer */}

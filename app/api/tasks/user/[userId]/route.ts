@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getCollection } from '@/lib/mongodb';
+import { cookies } from 'next/headers';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get token from Authorization header or cookie
+    // Get token from cookie first (preferred method) - same as auth/me
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('auth-token')?.value || '';
+    
+    // Fallback to Authorization header if no cookie
     const authHeader = request.headers.get('authorization');
     const headerToken = authHeader?.replace('Bearer ', '') || '';
-    const cookieToken = request.cookies.get('auth-token')?.value || '';
     
-    // Use header token first, then fallback to cookie
-    const token = headerToken || cookieToken;
+    // Use cookie token first, then fallback to header token
+    const token = cookieToken || headerToken;
     
-    console.log('DEBUG - Auth header:', authHeader);
-    console.log('DEBUG - Header token:', headerToken ? headerToken.substring(0, 20) + '...' : 'none');
     console.log('DEBUG - Cookie token:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'none');
+    console.log('DEBUG - Header token:', headerToken ? headerToken.substring(0, 20) + '...' : 'none');
     console.log('DEBUG - Using token:', token ? token.substring(0, 20) + '...' : 'none');
 
     if (!token) {
