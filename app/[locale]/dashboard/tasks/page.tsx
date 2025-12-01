@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -186,6 +187,14 @@ import { Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 >>>>>>> Stashed changes
+=======
+import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
+import RoleBasedTaskDashboard from "@/components/dashboard/RoleBasedTaskDashboard";
+import { Shield, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+
+>>>>>>> Stashed changes
 export default function TasksPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = useLocale();
 
@@ -221,6 +230,9 @@ export default function TasksPage({ params }: { params: Promise<{ locale: string
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -248,6 +260,9 @@ export default function TasksPage({ params }: { params: Promise<{ locale: string
     supportedFormats: "التنسيقات المدعومة: صور، فيديو، مستندات، ملفات PDF والمزيد",
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -275,7 +290,11 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+  
+>>>>>>> Stashed changes
 =======
   
 >>>>>>> Stashed changes
@@ -303,7 +322,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     relatedTo: [] as string[],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -328,9 +350,15 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+=======
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+>>>>>>> Stashed changes
 =======
       document.documentElement.classList.add('dark');
     } else {
@@ -364,7 +392,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["hope_bridge"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -387,7 +418,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["ummah", "one_nation"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -410,7 +444,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["dudley"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -425,6 +462,7 @@ const TaskManager = () => {
     ];
 
     const mockUsers: User[] = [
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -461,10 +499,16 @@ const TaskManager = () => {
       { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
       { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
 >>>>>>> Stashed changes
+=======
+      { id: "1", name: "John Doe", email: "john@example.com", role: "developer" },
+      { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
+      { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
+>>>>>>> Stashed changes
     ];
 
     setTasks(mockTasks);
     setUsers(mockUsers);
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -484,6 +528,9 @@ const TaskManager = () => {
 =======
     setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
 >>>>>>> Stashed changes
+=======
+    setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
+>>>>>>> Stashed changes
 
     // Mock notifications
     setNotifications([
@@ -493,10 +540,16 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         message:
           locale === "ar"
             ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
             : "You have been assigned to 'Complete project documentation'",
+=======
+        message: locale === "ar" 
+          ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
+          : "You have been assigned to 'Complete project documentation'",
+>>>>>>> Stashed changes
 =======
         message: locale === "ar" 
           ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
@@ -525,6 +578,7 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -537,12 +591,17 @@ const TaskManager = () => {
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === "all" || task.status === selectedStatus;
     const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -579,6 +638,7 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     if (editingTask) {
       // Update existing task
@@ -599,6 +659,8 @@ const TaskManager = () => {
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     
     if (editingTask) {
       // Update existing task
@@ -609,6 +671,9 @@ const TaskManager = () => {
       ));
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -636,7 +701,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       relatedTo: [],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -657,7 +725,11 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     setTasks(tasks.filter((task) => task.id !== taskId));
+=======
+    setTasks(tasks.filter(task => task.id !== taskId));
+>>>>>>> Stashed changes
 =======
     setTasks(tasks.filter(task => task.id !== taskId));
 >>>>>>> Stashed changes
@@ -681,7 +753,10 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       relatedTo: task.relatedTo || [],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -701,12 +776,15 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     const newFiles: TaskFile[] = [];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     Array.from(files).forEach((file) => {
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -718,6 +796,9 @@ const TaskManager = () => {
     Array.from(files).forEach(file => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -730,7 +811,11 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+      
+>>>>>>> Stashed changes
 =======
       
 >>>>>>> Stashed changes
@@ -750,11 +835,14 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
       newFiles.push(taskFile);
     });
 
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -765,6 +853,9 @@ const TaskManager = () => {
     
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -793,7 +884,11 @@ const TaskManager = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+    
+>>>>>>> Stashed changes
 =======
     
 >>>>>>> Stashed changes
@@ -809,6 +904,7 @@ const TaskManager = () => {
   };
 
   const removeFile = (fileId: string) => {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -839,6 +935,8 @@ const TaskManager = () => {
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     setAttachments(attachments.filter(file => file.id !== fileId));
   };
 
@@ -861,6 +959,9 @@ const TaskManager = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -871,6 +972,7 @@ const TaskManager = () => {
   // Calculate stats
   const stats = {
     total: tasks.length,
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -1241,6 +1343,15 @@ const TaskManager = () => {
 
   return (
 >>>>>>> Stashed changes
+=======
+    completed: tasks.filter(t => t.status === "completed").length,
+    pending: tasks.filter(t => t.status === "pending").length,
+    inProgress: tasks.filter(t => t.status === "in_progress").length,
+    urgent: tasks.filter(t => t.priority === "urgent").length,
+  };
+
+  return (
+>>>>>>> Stashed changes
     <div className={`min-h-screen bg-gradient-to-br ${isDarkMode ? 'dark:bg-gray-900' : 'from-primary/5 via-white to-primary/10'}`}>
       {/* Header */}
       <div className={`bg-white ${isDarkMode ? 'dark:bg-gray-800' : ''} shadow-sm border-b border-primary/20`}>
@@ -1483,6 +1594,7 @@ const TaskManager = () => {
                 >
                   <X className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
                 </button>
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
               </div>
@@ -2630,6 +2742,9 @@ const TaskManager = () => {
 =======
               </div>
 >>>>>>> Stashed changes
+=======
+              </div>
+>>>>>>> Stashed changes
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'md:grid-cols-2' : ''}`}>
@@ -2958,6 +3073,9 @@ const TaskManager = () => {
               ))
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

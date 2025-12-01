@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -15,6 +16,8 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@prisma/client'],
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   images: {
@@ -32,6 +35,9 @@ const nextConfig: NextConfig = {
     serverComponentsExternalPackages: ['@prisma/client'],
   },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
