@@ -5,8 +5,10 @@ import GazaCrisis from "@/app/[locale]/components/sections/GazaCrisis";
 import ImpactStories from "@/app/[locale]/components/sections/ImpactStories";
 import VolunteerSection from "@/app/[locale]/components/sections/VolunteerSection";
 import PartnersSection from "@/app/[locale]/components/sections/PartnersSection";
+import AlertButton from "@/components/AlertButton";
 import type { PageProps } from "@/types/next";
 import { lazy } from "react";
+
 export default async function HomePage({
   params,
 }: PageProps<{ locale: string }>) {
@@ -38,12 +40,13 @@ export default async function HomePage({
       <Overview params={{ locale }} />
       {/* <MissionVision params={{ locale }} /> */}
       <GazaCrisis params={{ locale }} />
-      <Projects params={{ locale }} />
+      {/* <Projects params={{ locale }} /> */}
       <ImpactStories params={{ locale }} />
       {/* <VolunteerSection params={{ locale }} /> */}
       <PartnersSection params={{ locale }} />
       <Map14 params={{ locale }} />
       <Newsteller params={{ locale }} />
+      <AlertButton locale={locale} />
     </>
   );
 }

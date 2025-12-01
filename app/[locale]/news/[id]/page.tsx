@@ -26,7 +26,7 @@ export default async function ProjectPage({
 }: PageProps<{ id: string; locale: string }>) {
   // ✅ Await the params Promise
   const { id, locale } = await params;
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   // ✅ Fix API path
@@ -119,7 +119,7 @@ export default async function ProjectPage({
             </Button>
           </Link>
         </div> */}
-          {!(!session || session.user.role !== "manager") && (
+          {!(!session || session.user.role !== "ADMIN") && (
             <div className="flex gap-3 px-5 items-center">
               <Link href={`/${locale}/dashboard/edit/${id}`}>
                 <PencilIcon className="w-5 h-5" />

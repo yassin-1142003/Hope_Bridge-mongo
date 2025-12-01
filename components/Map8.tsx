@@ -462,7 +462,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           dir="rtl"
           className={`${
             isMobile ? "w-full order-2" : "w-1/2"
-          } bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 shadow-lg`}
+          } bg-linear-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 shadow-lg`}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -506,7 +506,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           {/* Progress */}
           <div className="mt-5">
             <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-full">
-              <div className="h-2 rounded-full bg-gradient-to-r from-red-600 to-pink-500 w-3/4"></div>
+              <div className="h-2 rounded-full bg-linear-to-r from-red-600 to-pink-500 w-3/4"></div>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
               تقدم المشاريع: 75%

@@ -127,12 +127,12 @@ export default function Footer() {
               animationDuration: `${3 + Math.random() * 2}s`,
             }}
           >
-            <div className="absolute top-0 left-0 w-16 h-px bg-gradient-to-r from-transparent via-primary to-transparent dark:from-transparent dark:via-white dark:to-transparent opacity-70 -translate-x-full" />
+            <div className="absolute top-0 left-0 w-16 h-px bg-linear-to-r from-transparent via-primary to-transparent dark:from-transparent dark:via-white dark:to-transparent opacity-70 -translate-x-full" />
           </div>
         ))}
 
-        <div className="absolute top-10 left-10 w-64 h-64 bg-gradient-to-br from-[#ffadad]/20 to-[#ff7070]/10 rounded-full blur-3xl animate-pulse-glow" />
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-tl from-[#ffb6b6]/20 to-[#d23e3e]/10 rounded-full blur-3xl animate-pulse-glow delay-1000" />
+        <div className="absolute top-10 left-10 w-64 h-64 bg-linear-to-br from-[#ffadad]/20 to-[#ff7070]/10 rounded-full blur-3xl animate-pulse-glow" />
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-linear-to-tl from-[#ffb6b6]/20 to-[#d23e3e]/10 rounded-full blur-3xl animate-pulse-glow delay-1000" />
       </div>
 
       <div
@@ -143,7 +143,7 @@ export default function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {/* About Section */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-linear-to-r from-white to-white/70 bg-clip-text text-transparent">
                 {t("Hope Bridge", "جسر الأمل")}
               </h2>
               <p className="text-sm text-white/80 leading-relaxed">

@@ -9,7 +9,7 @@ import React from "react";
 const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
   const { locale } = await params;
   const isArabic = locale === "ar";
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   return (
     <div className="min-h-[60svh]  flex flex-col items-center  text-center justify-center gap-4">
@@ -23,7 +23,7 @@ const page = async ({ params }: { params: Promise<{ locale: string }> }) => {
             {session.user.email}
           </h1>
 
-          {session.user.role === "manager" && (
+          {session.user.role === "ADMIN" && (
             <>
               <div className="flex flex-col justify-center items-center gap-4">
                 <h1 className="text-green-600 text-lg md:text-2xl font-semibold">

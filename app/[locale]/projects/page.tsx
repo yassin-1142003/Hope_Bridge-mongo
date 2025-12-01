@@ -53,7 +53,7 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
   const p = await getTranslations({ locale, namespace: "projects" });
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3002";
 
-  const res = await fetch(`${baseUrl}/api/project`, {
+  const res = await fetch(`${baseUrl}/api/projects`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
@@ -61,18 +61,19 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
 
   if (!res.ok) throw new Error("Failed to fetch details");
 
-  // ✅ API should return { projects }
-  const { details } = await res.json();
-  console.log(details);
+  // ✅ API returns projects directly in response data
+  const responseData = await res.json();
+  const projects = responseData.data || responseData;
+  console.log('API Response:', projects);
   // 🔥 Re-map API response to match existing frontend structure
-  const mappedProjects = details.map((proj: any) => {
+  const mappedProjects = projects.map((proj: any) => {
     return {
-      id: proj.id,
-      images: proj.gallery || [], // array of images
+      id: proj._id,
+      images: proj.gallery || [], // array off images
       banner: proj.bannerPhotoUrl,
-      created_at: proj.created_at,
+      created_at: proj.createdAt,
       contents: proj.contents.map((c: any) => ({
-        id: proj.id,
+        id: proj._id,
         language_code: c.language_code,
         name: c.name,
         description: c.description,
@@ -133,7 +134,7 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
                   />
 
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
 
                 {/* Content Container with Triangle Bottom */}
@@ -142,16 +143,16 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
                   dir={isArabic ? "rtl" : "ltr"}
                 >
                   {/* Enhanced Triangle Container */}
-                  <div className="relative px-6  bg-gradient-to-b from-background to-gray-300 dark:from-gray-800 dark:to-gray-900 pt-6 pb-12 clip-bottom shadow-xl group-hover:shadow-2xl transition-all duration-500 border-t-4 border-primary/20 group-hover:border-primary/40">
+                  <div className="relative px-6  bg-linear-to-b from-background to-gray-300 dark:from-gray-800 dark:to-gray-900 pt-6 pb-12 clip-bottom shadow-xl group-hover:shadow-2xl transition-all duration-500 border-t-4 border-primary/20 group-hover:border-primary/40">
                     {/* Subtle Corner Accent */}
-                    <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-transparent rounded-br-full" />
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
+                    <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-primary/10 to-transparent rounded-br-full" />
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-linear-to-bl from-primary/10 to-transparent rounded-bl-full" />
 
                     {/* Title with Enhanced Bar */}
                     <div
                       className={`flex justify-end  transition-all duration-300  gap-2 mb-3`}
                     >
-                      <div className="w-1.5 h-9 bg-gradient-to-b from-primary to-primary group-hover:from-primary group-hover:to-primary/80 rounded-full  transition-all duration-300" />
+                      <div className="w-1.5 h-9 bg-linear-to-b from-primary to-primary group-hover:from-primary group-hover:to-primary/80 rounded-full  transition-all duration-300" />
                       <h1
                         className={`text-2xl flex-1 ${
                           isArabic ? "text-right" : "text-left"
@@ -188,21 +189,21 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
                     </p>
 
                     {/* Divider */}
-                    <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent mb-5" />
+                    <div className="w-full h-px bg-linear-to-r from-transparent via-primary/50 to-transparent mb-5" />
 
                     {/* Enhanced Donate Button with Better Effects */}
                     <Link href={`/${locale}/donate`}>
                       <div className="flex justify-center">
                         <button className="relative  bg-primary hover:bg-primary/90 text-white font-bold px-7 py-3 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 group/btn overflow-hidden">
                           {/* Background Animation */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-primary opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
 
                           <span className="relative z-10 flex items-center gap-2">
                             {p("singleproject.donate")}
                           </span>
 
                           {/* Shine Effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+                          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
                         </button>
                       </div>
                     </Link>

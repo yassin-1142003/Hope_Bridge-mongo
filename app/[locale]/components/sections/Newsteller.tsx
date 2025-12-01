@@ -12,7 +12,7 @@ const Newsteller = async ({
   return (
     <section data-aos="fade-up" className="py-32 relative overflow-hidden">
       {/* Background decoration */}
-      {/* <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
+      {/* <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-primary/5"></div>
       <div className="absolute top-10 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div> */}
 
@@ -89,7 +89,9 @@ const Newsteller = async ({
           <div className="flex items-center justify-center gap-6 mt-8 text-base text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="font-medium">{isArabic ? "مجاني تماماً" : "100% Free"}</span>
+              <span className="font-medium">
+                {isArabic ? "مجاني تماماً" : "100% Free"}
+              </span>
             </div>
             <div className="w-1 h-1 bg-muted-foreground/50 rounded-full"></div>
             <div className="flex items-center gap-2">

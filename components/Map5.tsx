@@ -403,7 +403,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
                 onClick={() => handleCountryClick(c)}
                 className={`px-3 py-2 cursor-pointer rounded-lg text-xs md:text-sm font-semibold transition-all ${
                   activeCountry === c
-                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white"
+                    ? "bg-linear-to-r from-red-600 to-red-500 text-white"
                     : theme === "dark"
                       ? "bg-gray-800 text-gray-200"
                       : "bg-gray-100 text-accent-foreground"
@@ -435,7 +435,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           key={activeCountry}
         >
           {/* Glowing border effect */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500/20 via-pink-500/20 to-orange-500/20 blur-2xl opacity-40 pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl bg-linear-to-r from-red-500/20 via-pink-500/20 to-orange-500/20 blur-2xl opacity-40 pointer-events-none" />
 
           {/* Header */}
           <div className="flex items-center justify-between mb-5 relative z-10">
@@ -446,7 +446,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
               </span>
             </div>
             <span
-              className="text-xs bg-gradient-to-r from-blue-600/10 to-blue-400/10 
+              className="text-xs bg-linear-to-r from-blue-600/10 to-blue-400/10 
        text-blue-600 dark:text-blue-300 px-3 py-1 rounded-full font-semibold shadow-sm"
             >
               {currentProject.year}
@@ -454,7 +454,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           </div>
 
           {/* Title */}
-          <h2 className="text-xl md:text-2xl font-extrabold bg-gradient-to-r from-red-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-4">
+          <h2 className="text-xl md:text-2xl font-extrabold bg-linear-to-r from-red-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-4">
             {currentProject.title}
           </h2>
 
@@ -467,7 +467,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="rounded-xl p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 text-center shadow"
+              className="rounded-xl p-4 bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 text-center shadow"
             >
               <div className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {currentProject.projects}
@@ -478,7 +478,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="rounded-xl p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 text-center shadow"
+              className="rounded-xl p-4 bg-linear-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 text-center shadow"
             >
               <div className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
                 {currentProject.beneficiaries.toLocaleString()}
@@ -495,7 +495,7 @@ const ArabicMap = ({ params }: { params: { locale: string } }) => {
               initial={{ width: 0 }}
               animate={{ width: "75%" }}
               transition={{ duration: 1, ease: "easeInOut" }}
-              className="h-full bg-gradient-to-r from-red-500 via-pink-500 to-orange-400 rounded-full shadow-inner"
+              className="h-full bg-linear-to-r from-red-500 via-pink-500 to-orange-400 rounded-full shadow-inner"
             />
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">

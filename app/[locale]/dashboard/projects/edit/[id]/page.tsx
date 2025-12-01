@@ -18,7 +18,7 @@ export default async function EditProjectPage({
   const { id } = await params;
   
   try {
-    const project = await projectService.getProjectById(id);
+    const project = await projectService.getById(id);
     
     if (!project) {
       notFound();

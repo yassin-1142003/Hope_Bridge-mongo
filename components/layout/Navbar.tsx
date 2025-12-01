@@ -8,6 +8,10 @@ import {
   Menu,
   Newspaper,
   Speech,
+  User,
+  LogOut,
+  Settings,
+  ChevronDown,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useMemo } from "react";
@@ -20,12 +24,17 @@ import Image from "next/image";
 import DonationModal from "../DonationModal";
 import { usePWA } from "@/components/PWAContext";
 import { Download } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type HeaderProps = {
-  session: { user?: { role?: string } } | null;
-};
-
-export default function Header({ session }: HeaderProps) {
+export default function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [donationopen, setdonationopen] = useState(false);
@@ -34,10 +43,19 @@ export default function Header({ session }: HeaderProps) {
   const isArabic = locale === "ar";
   const t = useTranslations("header");
   const pwa = usePWA();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const navLinks = useMemo(
     () =>
-      !session || session.user?.role === "user"
+      !user || user.role === "USER"
         ? [
             { label: t("home"), href: `/${locale}`, icon: Home },
             { label: t("about"), href: `/${locale}/about`, icon: Info },
@@ -65,7 +83,7 @@ export default function Header({ session }: HeaderProps) {
               icon: Newspaper,
             },
           ],
-    [session, t]
+    [user, t]
   );
 
   return (
@@ -140,27 +158,84 @@ export default function Header({ session }: HeaderProps) {
           >
             {theme === "dark" ? "🌙 " : "☀️ "}
           </Button> */}
-          <Link href={`/${locale}/signin`}>
-            <Button
-              className="
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-accent/50 transition-all duration-200 group"
+                >
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium hidden sm:block">
+                    {user.name}
+                  </span>
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex items-center gap-2 p-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/${locale}/dashboard`} className="flex items-center gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    <span>{isArabic ? "الملف الشخصي" : "Profile"}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/${locale}/settings`} className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="h-4 w-4" />
+                    <span>{isArabic ? "الإعدادات" : "Settings"}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>{isArabic ? "تسجيل الخروج" : "Logout"}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href={`/${locale}/signin`}>
+              <Button
+                className="
         group flex items-center gap-2 
         px-4 py-2 rounded-md
         bg-primary cursor-pointer
         hover:bg-primary/90 transition-all
         shadow-sm hover:shadow-md
       "
-            >
-              <LogIn
-                className="
+              >
+                <LogIn
+                  className="
           w-5 h-5 transition-transform 
           group-hover:-translate-x-1
         "
-              />
-              <span className="font-medium">
-                {isArabic ? "تسجيل الدخول" : "Login"}
-              </span>
-            </Button>
-          </Link>
+                />
+                <span className="font-medium">
+                  {isArabic ? "تسجيل الدخول" : "Login"}
+                </span>
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Actions */}
@@ -223,19 +298,34 @@ export default function Header({ session }: HeaderProps) {
                     </span>
                   </div>
                 </Link>
-                <Link href={`/${locale}/signin`}>
-                  <Button className="w-full bg-gradient-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-                    <LogIn
-                      className="
-          w-5 h-5 transition-transform 
-          group-hover:-translate-x-1
-        "
-                    />
-                    <span className="font-medium">
-                      {isArabic ? "تسجيل الدخول" : "Login"}
-                    </span>
-                  </Button>
-                </Link>
+                {user ? (
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="/avatar-placeholder.webp" alt={user.name} />
+                      <AvatarFallback className="bg-primary/20 text-primary font-medium">
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-sm font-medium truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <Link href={`/${locale}/signin`}>
+                    <Button className="w-full bg-gradient-to-r from-primary mb-2 to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-base font-bold py-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <LogIn
+                        className="
+            w-5 h-5 transition-transform 
+            group-hover:-translate-x-1
+          "
+                      />
+                      <span className="font-medium">
+                        {isArabic ? "تسجيل الدخول" : "Login"}
+                      </span>
+                    </Button>
+                  </Link>
+                )}
                 {pwa && !pwa.isStandalone && (
                   <Button
                     onClick={() =>
@@ -302,23 +392,61 @@ export default function Header({ session }: HeaderProps) {
                       <span className="text-sm font-bold">{t("donate")}</span>
                     </Button>
                   </Link>
-                  <Link
-                    href={`/${locale}/signin`}
-                    onClick={() => setOpen(false)}
-                  >
-                    <Button
-                      variant="outline"
-                      className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] group"
+                  {user ? (
+                    <>
+                      <Link
+                        href={`/${locale}/dashboard`}
+                        onClick={() => setOpen(false)}
+                      >
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] group"
+                        >
+                          <User
+                            size={16}
+                            className="mr-2 text-primary group-hover:scale-110 transition-transform duration-200"
+                          />
+                          <span className="font-medium">
+                            {isArabic ? "الملف الشخصي" : "Profile"}
+                          </span>
+                        </Button>
+                      </Link>
+                      <Button
+                        onClick={() => {
+                          logout();
+                          setOpen(false);
+                        }}
+                        variant="outline"
+                        className="w-full h-11 rounded-xl font-medium border-red-300 hover:border-red-400 hover:bg-red-50 transition-all duration-200 hover:scale-[1.02] group text-red-600"
+                      >
+                        <LogOut
+                          size={16}
+                          className="mr-2 text-red-600 group-hover:scale-110 transition-transform duration-200"
+                        />
+                        <span className="font-medium">
+                          {isArabic ? "تسجيل الخروج" : "Logout"}
+                        </span>
+                      </Button>
+                    </>
+                  ) : (
+                    <Link
+                      href={`/${locale}/signin`}
+                      onClick={() => setOpen(false)}
                     >
-                      <LogIn
-                        size={16}
-                        className="mr-2 text-primary group-hover:scale-110 transition-transform duration-200"
-                      />
-                      <span className="font-medium">
-                        {isArabic ? "دخول" : "Login"}
-                      </span>
-                    </Button>
-                  </Link>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 rounded-xl font-medium border-primary/30 hover:border-primary hover:bg-primary/5 transition-all duration-200 hover:scale-[1.02] group"
+                      >
+                        <LogIn
+                          size={16}
+                          className="mr-2 text-primary group-hover:scale-110 transition-transform duration-200"
+                        />
+                        <span className="font-medium">
+                          {isArabic ? "دخول" : "Login"}
+                        </span>
+                      </Button>
+                    </Link>
+                  )}
                   {pwa && !pwa.isStandalone && (
                     <Button
                       onClick={() => {

@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       rss_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/rss`,
       project_id: project_id,
       triggered_at: new Date().toISOString()
-    });
+    }, { status: 200 });
     
   } catch (error) {
     console.error('Trigger RSS Error:', error);
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       message: 'RSS Trigger API is working',
       usage: 'POST /api/trigger-rss with { project_id: "your-project-id" }'
-    });
+    }, { status: 200 });
   }
   
   // Test trigger via GET

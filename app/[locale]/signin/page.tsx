@@ -1,10 +1,12 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function SignInPage({
   params,
@@ -21,7 +23,9 @@ export default function SignInPage({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState({ email: false, password: false });
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -36,97 +40,87 @@ export default function SignInPage({
     setIsLoading(true);
 
     if (!formData.email || !formData.password) {
-      setError("Please fill in all fields");
+      setError(isArabic ? "يرجى ملء جميع الحقول" : "Please fill in all fields");
       setIsLoading(false);
       return;
     }
 
     try {
-      const result = await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      });
+      await login(formData.email, formData.password);
 
-      if (result?.error) {
-        setError("Invalid email or password");
-        setIsLoading(false);
-        return;
-      }
+      // ✅ If successful, redirect to dashboard
+      router.push(`/${locale}/dashboard`);
+      router.refresh();
 
-      if (result?.ok) {
-        // Refresh the session
-        await getSession();
-
-        // Redirect to dashboard
-        router.push("/dashboard");
-        router.refresh();
-      }
     } catch (err) {
       console.error("Sign in error:", err);
-      setError("Something went wrong. Please try again.");
+      setError(
+        isArabic
+          ? "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen  flex  justify-center  px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div
+      className={`min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-linear-to-br from-background via-background to-muted/20 ${isArabic ? "rtl" : "ltr"}`}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full space-y-8"
+      >
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto h-16 w-16 bg-primary rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
-            <svg
-              className="h-8 w-8 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="text-center"
+        >
+          <div className="mx-auto h-20 w-20 bg-linear-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 backdrop-blur-sm">
+            <User className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-3xl font-extrabold text-accent-foreground mb-2">
-            {isArabic ? "مرحبا بعودتك " : "Welcome back"}
-          </h2>
-          <p className="text-gray-600">
-            {" "}
+          <h1 className="text-4xl font-bold text-foreground mb-3 bg-linear-to-r from-primary to-primary/60 bg-clip-text">
+            {isArabic ? "مرحباً بعودتك" : "Welcome Back"}
+          </h1>
+          <p className="text-muted-foreground text-lg">
             {isArabic
-              ? " سجل دخول ببريدك الالكترونى للمتابعة "
-              : "Sign in to your account to continue"}{" "}
+              ? "سجل دخولك للوصول إلى حسابك"
+              : "Sign in to access your account"}
           </p>
-        </div>
+        </motion.div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-card/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-border/50 p-8"
+        >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-accent-foreground mb-2"
+                className="block text-sm font-semibold text-foreground mb-3"
               >
-                {isArabic ? "البريد الالكترونى" : "Email Address"}
+                {isArabic ? "البريد الإلكتروني" : "Email Address"}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                    />
-                  </svg>
+              <div className="relative group">
+                <div
+                  className={`absolute inset-y-0 ${isArabic ? "right-0 pr-3" : "left-0 pl-3"} flex items-center pointer-events-none transition-colors duration-200`}
+                >
+                  <Mail
+                    className={`h-5 w-5 ${isFocused.email ? "text-primary" : "text-muted-foreground"} transition-colors duration-200`}
+                  />
                 </div>
                 <input
                   id="email"
@@ -136,37 +130,39 @@ export default function SignInPage({
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-accent-foreground placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  onFocus={() =>
+                    setIsFocused((prev) => ({ ...prev, email: true }))
+                  }
+                  onBlur={() =>
+                    setIsFocused((prev) => ({ ...prev, email: false }))
+                  }
+                  className={`block w-full ${isArabic ? "pr-10 pl-3" : "pl-10 pr-3"} py-4 border-2 ${isFocused.email ? "border-primary ring-4 ring-primary/10" : "border-border"} rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none transition-all duration-200 bg-background hover:border-primary/50`}
                   placeholder={
-                    isArabic ? "ادخل بريدك الالكترونى" : "Enter your email"
+                    isArabic ? "أدخل بريدك الإلكتروني" : "Enter your email"
                   }
                 />
               </div>
-            </div>
+            </motion.div>
 
             {/* Password Field */}
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold text-accent-foreground mb-2"
+                className="block text-sm font-semibold text-foreground mb-3"
               >
                 {isArabic ? "كلمة المرور" : "Password"}
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+              <div className="relative group">
+                <div
+                  className={`absolute inset-y-0 ${isArabic ? "right-0 pr-3" : "left-0 pl-3"} flex items-center pointer-events-none transition-colors duration-200`}
+                >
+                  <Lock
+                    className={`h-5 w-5 ${isFocused.password ? "text-primary" : "text-muted-foreground"} transition-colors duration-200`}
+                  />
                 </div>
                 <input
                   id="password"
@@ -176,117 +172,72 @@ export default function SignInPage({
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl text-accent-foreground placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  onFocus={() =>
+                    setIsFocused((prev) => ({ ...prev, password: true }))
+                  }
+                  onBlur={() =>
+                    setIsFocused((prev) => ({ ...prev, password: false }))
+                  }
+                  className={`block w-full ${isArabic ? "pr-10 pl-12" : "pl-10 pr-12"} py-4 border-2 ${isFocused.password ? "border-primary ring-4 ring-primary/10" : "border-border"} rounded-2xl text-foreground placeholder-muted-foreground focus:outline-none transition-all duration-200 bg-background hover:border-primary/50`}
                   placeholder={
-                    isArabic ? "ادخل كلمة المرور" : "Enter your password"
+                    isArabic ? "أدخل كلمة المرور" : "Enter your password"
                   }
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className={`absolute inset-y-0 ${isArabic ? "left-0 pl-3" : "right-0 pr-3"} flex items-center transition-colors duration-200`}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <svg
-                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L5.64 5.64m4.242 4.242L15.12 15.12M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    <EyeOff className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors duration-200" />
                   ) : (
-                    <svg
-                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
+                    <Eye className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors duration-200" />
                   )}
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center space-x-2">
-                <svg
-                  className="h-5 w-5 text-red-500 flex-shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-2xl text-sm flex items-center gap-3"
+              >
+                <div className="w-5 h-5 bg-destructive/20 rounded-full flex items-center justify-center shrink-0">
+                  <span className="text-destructive text-xs font-bold">!</span>
+                </div>
                 <span>{error}</span>
-              </div>
+              </motion.div>
             )}
 
             {/* Sign In Button */}
-            <div className="flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="pt-2"
+            >
               <Button
                 type="submit"
                 disabled={isLoading}
-                className={`w-fit flex text-center rounded-md self-center cursor-pointer justify-center items-center py-3 px-4 border border-transparent  text-sm font-semibold text-white transition-all duration-200 ${
-                  isLoading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
-                }`}
+                className="w-full py-4 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-foreground font-bold rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 border-0"
               >
                 {isLoading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Signing In...
-                  </>
-                ) : isArabic ? (
-                  "تسجيل الدخول"
+                  <div className="flex  items-center justify-center gap-3">
+                    <div className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin"></div>
+                    <span>
+                      {isArabic ? "جاري تسجيل الدخول..." : "Signing In..."}
+                    </span>
+                  </div>
                 ) : (
-                  "Sign In"
+                  <span className="flex text-background items-center justify-center gap-2">
+                    {isArabic ? "تسجيل الدخول" : "Sign In"}
+                    <Lock className="h-4 w-4" />
+                  </span>
                 )}
               </Button>
-            </div>
+            </motion.div>
 
             {/* Forgot Password */}
             <div className="text-center">
@@ -298,22 +249,29 @@ export default function SignInPage({
               </Link> */}
             </div>
           </form>
-        </div>
+        </motion.div>
 
         {/* Sign Up Link */}
-        <div className="text-center mt-6">
-          <p className="text-gray-600 text-sm">
-            {isArabic ? "ليس لديك حساب؟ " : "Don't have an account ?"}
-
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="text-center"
+        >
+          <div className="bg-card/60 backdrop-blur-sm rounded-2xl p-6 border border-border/30">
+            <p className="text-muted-foreground text-sm mb-3">
+              {isArabic ? "ليس لديك حساب؟" : "Don't have an account?"}
+            </p>
             <Link
               href="/signup"
-              className="font-semibold text-primary/60 hover:text-primary/70 transition-colors duration-200 hover:underline"
+              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-semibold transition-colors duration-200 hover:gap-3"
             >
-              {isArabic ? "إنشاء حساب" : "Sign Up"}
+              {isArabic ? "إنشاء حساب جديد" : "Create a new account"}
+              <User className="h-4 w-4" />
             </Link>
-          </p>
-        </div>
-      </div>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

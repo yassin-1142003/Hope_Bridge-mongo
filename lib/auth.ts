@@ -1,22 +1,34 @@
 // lib/auth.ts - JWT-based authentication utilities
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jwt from 'jsonwebtoken';
 import { getCollection } from './mongodb';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { AuthOptions } from 'next-auth';
 
 interface User {
   _id: string;
+  id: string;
   name: string;
   email: string;
-  role: 'USER' | 'ADMIN';
+  role: 'ADMIN' | 'PROJECT_COORDINATOR' | 'FIELD_OFFICER' | 'HR' | 'VOLUNTEER' | 'USER';
   isActive: boolean;
-  emailVerified: boolean;
+  avatar?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLogin?: Date;
+  phone?: string;
+  department?: string;
+  emailVerified?: boolean;
 }
 
 // NextAuth configuration for compatibility
-export const authOptions = {
+export const authOptions: AuthOptions = {
   // Empty config since we're using JWT directly
   // This is just for compatibility with existing code
+  providers: [], // Empty providers array since we're not using NextAuth providers
+  session: {
+    strategy: 'jwt',
+  },
 };
 
 // Custom session function to replace getServerSession
@@ -51,7 +63,13 @@ export async function verifyToken(token: string): Promise<User | null> {
   try {
     if (!token) return null;
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return null;
+    }
+    
+    const decoded = jwt.verify(token, jwtSecret) as any;
     const usersCollection = await getCollection('users');
     const user = await usersCollection.findOne({ 
       email: decoded.email,
@@ -62,11 +80,17 @@ export async function verifyToken(token: string): Promise<User | null> {
     
     return {
       _id: user._id.toString(),
+      id: user.id || user._id.toString(), // Use user.id if available, otherwise use _id
       name: user.name,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
       isActive: user.isActive,
-      emailVerified: user.emailVerified
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      lastLogin: user.lastLogin,
+      phone: user.phone,
+      department: user.department
     };
   } catch (error) {
     console.error('Token verification failed:', error);
@@ -90,12 +114,17 @@ export async function verifyAdminToken(token: string): Promise<User | null> {
 
 // Generate JWT token
 export function generateToken(user: User): string {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  
   return jwt.sign(
     { 
       email: user.email, 
       role: user.role 
     },
-    process.env.JWT_SECRET!,
+    jwtSecret,
     { expiresIn: '7d' }
   );
 }

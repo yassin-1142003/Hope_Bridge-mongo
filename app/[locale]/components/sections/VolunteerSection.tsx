@@ -1,7 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { UsersIcon, ClockIcon, HeartIcon, AwardIcon, ArrowRightIcon } from "lucide-react";
+import {
+  UsersIcon,
+  ClockIcon,
+  HeartIcon,
+  AwardIcon,
+  ArrowRightIcon,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -13,8 +19,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
     {
       icon: HeartIcon,
       title: isArabic ? "المساعدة المباشرة" : "Direct Assistance",
-      description: isArabic 
-        ? "ساعد في توزيع المساعدات الغذائية والإمدادات الطبية" 
+      description: isArabic
+        ? "ساعد في توزيع المساعدات الغذائية والإمدادات الطبية"
         : "Help distribute food assistance and medical supplies",
       time: isArabic ? "مرن" : "Flexible",
       level: isArabic ? "مبتدئ" : "Beginner",
@@ -22,8 +28,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
     {
       icon: UsersIcon,
       title: isArabic ? "دعم المجتمع" : "Community Support",
-      description: isArabic 
-        ? "شارك في تنظيم الفعاليات المجتمعية والأنشطة التعليمية" 
+      description: isArabic
+        ? "شارك في تنظيم الفعاليات المجتمعية والأنشطة التعليمية"
         : "Participate in community events and educational activities",
       time: isArabic ? "عطلة نهاية الأسبوع" : "Weekends",
       level: isArabic ? "جميع المستويات" : "All Levels",
@@ -31,8 +37,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
     {
       icon: AwardIcon,
       title: isArabic ? "المهارات المتخصصة" : "Skilled Volunteering",
-      description: isArabic 
-        ? "قدم مهاراتك الطبية أو التعليمية أو التقنية" 
+      description: isArabic
+        ? "قدم مهاراتك الطبية أو التعليمية أو التقنية"
         : "Offer your medical, educational, or technical skills",
       time: isArabic ? "حسب الحاجة" : "As Needed",
       level: isArabic ? "متقدم" : "Advanced",
@@ -40,8 +46,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
     {
       icon: ClockIcon,
       title: isArabic ? "الدعم الإداري" : "Administrative Support",
-      description: isArabic 
-        ? "ساعد في تنظيم العمليات وتنسيق الفرق" 
+      description: isArabic
+        ? "ساعد في تنظيم العمليات وتنسيق الفرق"
         : "Help organize operations and coordinate teams",
       time: isArabic ? "ساعات عمل" : "Business Hours",
       level: isArabic ? "مبتدئ" : "Beginner",
@@ -52,25 +58,28 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
     {
       name: isArabic ? "سارة أحمد" : "Sarah Ahmed",
       role: isArabic ? "متطوعة منذ 3 سنوات" : "Volunteer for 3 years",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=faces",
-      testimonial: isArabic 
-        ? "التطوع مع جسر الأمل غير حياتي. الشعور بمساعدة الآخرين لا يقدر بثمن." 
+      image:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=faces",
+      testimonial: isArabic
+        ? "التطوع مع جسر الأمل غير حياتي. الشعور بمساعدة الآخرين لا يقدر بثمن."
         : "Volunteering with Hope Bridge changed my life. The feeling of helping others is priceless.",
     },
     {
       name: isArabic ? "محمد علي" : "Mohammed Ali",
       role: isArabic ? "متطوع منذ سنتين" : "Volunteer for 2 years",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces",
-      testimonial: isArabic 
-        ? "الفرق هنا مثل العائلة. نعمل معاً لتحقيق أهداف عظيمة." 
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces",
+      testimonial: isArabic
+        ? "الفرق هنا مثل العائلة. نعمل معاً لتحقيق أهداف عظيمة."
         : "The team here is like family. We work together to achieve great things.",
     },
     {
       name: isArabic ? "فاطمة حسن" : "Fatima Hassan",
       role: isArabic ? "متطوعة منذ 6 أشهر" : "Volunteer for 6 months",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=faces",
-      testimonial: isArabic 
-        ? "كل يوم أتعلم شيئاً جديداً وأساهم في إحداث فرق حقيقي." 
+      image:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=faces",
+      testimonial: isArabic
+        ? "كل يوم أتعلم شيئاً جديداً وأساهم في إحداث فرق حقيقي."
         : "Every day I learn something new and contribute to making a real difference.",
     },
   ];
@@ -89,8 +98,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
             {isArabic ? "انضم إلى فريقنا التطوعي" : "Join Our Volunteer Team"}
           </h2>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto">
-            {isArabic 
-              ? "وقتك ومهاراتك يمكن أن تحدث فرقاً حقيقياً في حياة الآخرين. انضم إلينا اليوم وكن جزءاً من التغيير." 
+            {isArabic
+              ? "وقتك ومهاراتك يمكن أن تحدث فرقاً حقيقياً في حياة الآخرين. انضم إلينا اليوم وكن جزءاً من التغيير."
               : "Your time and skills can make a real difference in people's lives. Join us today and be part of the change."}
           </p>
         </motion.div>
@@ -132,11 +141,15 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-2">
                             <ClockIcon className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-muted-foreground">{opportunity.time}</span>
+                            <span className="text-muted-foreground">
+                              {opportunity.time}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <AwardIcon className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-muted-foreground">{opportunity.level}</span>
+                            <span className="text-muted-foreground">
+                              {opportunity.level}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -162,13 +175,17 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
               <div className="absolute bottom-8 left-8 right-8">
                 <h4 className="text-2xl font-bold text-white mb-2">
-                  {isArabic ? "كن بطلاً في مجتمعك" : "Be a Hero in Your Community"}
+                  {isArabic
+                    ? "كن بطلاً في مجتمعك"
+                    : "Be a Hero in Your Community"}
                 </h4>
                 <p className="text-white/90">
-                  {isArabic ? "انضم إلى أكثر من 500 متطوع يحدثون فرقاً" : "Join over 500 volunteers making a difference"}
+                  {isArabic
+                    ? "انضم إلى أكثر من 500 متطوع يحدثون فرقاً"
+                    : "Join over 500 volunteers making a difference"}
                 </p>
               </div>
             </div>
@@ -179,8 +196,8 @@ const VolunteerSection = ({ params }: { params: { locale: string } }) => {
                 {isArabic ? "هل أنت مستعد للبدء؟" : "Ready to Get Started?"}
               </h4>
               <p className="mb-6 opacity-90">
-                {isArabic 
-                  ? "سجل اليوم وانضم إلى فريقنا التطوعي المذهل" 
+                {isArabic
+                  ? "سجل اليوم وانضم إلى فريقنا التطوعي المذهل"
                   : "Sign up today and join our amazing volunteer team"}
               </p>
               <Link

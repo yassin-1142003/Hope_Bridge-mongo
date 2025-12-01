@@ -37,7 +37,7 @@ export default function OfflinePage() {
   }, []);
 
   return (
-    <main className="min-h-[100svh] flex flex-col items-center justify-center text-center p-6 bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a] text-white animate-fade-in">
+    <main className="min-h-[100svh] flex flex-col items-center justify-center text-center p-6 bg-linear-to-br from-[#1a1a1a] to-[#2a2a2a] text-white animate-fade-in">
       <div id="lottie" className="w-[300px] h-[300px]" />
 
       <h2 className="text-2xl font-semibold mt-6">

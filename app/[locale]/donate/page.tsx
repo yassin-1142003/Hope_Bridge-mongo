@@ -167,7 +167,7 @@ export default function DonatePage() {
       </motion.div> */}
 
       {/* --- Enhanced Hero Section --- */}
-      <section className="relative mt-27 min-h-[85svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#d23e3e] via-[#b83232] to-[#a02828]">
+      <section className="relative mt-27 min-h-[85svh] flex items-center justify-center overflow-hidden bg-linear-to-br from-[#d23e3e] via-[#b83232] to-[#a02828]">
         {/* Animated Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div
@@ -222,7 +222,7 @@ export default function DonatePage() {
           })}
         </div>
         {/* Radial Glow */}
-        <div className="absolute inset-0 bg-gradient-radial from-white/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-radial from-white/10 via-transparent to-transparent" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -330,7 +330,7 @@ export default function DonatePage() {
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="p-3 bg-gradient-to-br from-red-500 to-primary rounded-2xl shadow-lg"
+                className="p-3 bg-linear-to-br from-red-500 to-primary rounded-2xl shadow-lg"
               >
                 <Heart className="w-8 h-8 text-white fill-white" />
               </motion.div>
@@ -340,7 +340,7 @@ export default function DonatePage() {
             </div>
 
             {/* Description */}
-            <div className="space-y-5 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+            <div className="space-y-5 bg-linear-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
               <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                 {t.donationParagraph1}
               </p>
@@ -375,12 +375,12 @@ export default function DonatePage() {
                   whileInView={{ width: "42%" }}
                   transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
                   viewport={{ once: true }}
-                  className="absolute h-full bg-gradient-to-r from-primary via-red-600 to-primary rounded-full shadow-lg"
+                  className="absolute h-full bg-linear-to-r from-primary via-red-600 to-primary rounded-full shadow-lg"
                 />
                 <motion.div
                   animate={{ x: [-20, 300] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="absolute h-full w-20 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  className="absolute h-full w-20 bg-linear-to-r from-transparent via-white/30 to-transparent"
                 />
               </div>
 
@@ -471,7 +471,7 @@ export default function DonatePage() {
                     <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg" />{" "}
                   </div>{" "}
                   {/* Button skeleton */}{" "}
-                  <div className="h-14 bg-gradient-to-r from-primary to-red-600 opacity-50 rounded-lg" />{" "}
+                  <div className="h-14 bg-linear-to-r from-primary to-red-600 opacity-50 rounded-lg" />{" "}
                   {/* Loading text */}{" "}
                   <div className="flex items-center justify-center gap-2 pt-4">
                     {" "}
@@ -514,7 +514,7 @@ export default function DonatePage() {
       </section>
 
       {/* --- Enhanced Where Donations Go --- */}
-      <section className="relative py-24 text-center px-6 overflow-hidden bg-gradient-to-b from-background to-gray-50 dark:to-gray-900/50">
+      <section className="relative py-24 text-center px-6 overflow-hidden bg-linear-to-b from-background to-gray-50 dark:to-gray-900/50">
         {/* Floating Icons */}
         {[...Array(8)].map((_, i) => (
           <motion.div
@@ -552,12 +552,12 @@ export default function DonatePage() {
             whileInView={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             viewport={{ once: true }}
-            className="inline-block mb-6 p-4 bg-gradient-to-br from-[#d84040] to-primary rounded-2xl shadow-xl"
+            className="inline-block mb-6 p-4 bg-linear-to-br from-[#d84040] to-primary rounded-2xl shadow-xl"
           >
             <Sparkles className="w-14 h-14 text-white" />
           </motion.div>
 
-          <h3 className="text-4xl md:text-5xl lg:text-6xl p-2 font-extrabold bg-gradient-to-r from-primary via-primary to-primary bg-clip-text text-transparent mb-6">
+          <h3 className="text-4xl md:text-5xl lg:text-6xl p-2 font-extrabold bg-linear-to-r from-primary via-primary to-primary bg-clip-text text-transparent mb-6">
             {t.sectionTitle}
           </h3>
 
@@ -566,7 +566,7 @@ export default function DonatePage() {
             whileInView={{ width: 150 }}
             transition={{ delay: 0.5, duration: 0.8 }}
             viewport={{ once: true }}
-            className="h-1.5 bg-gradient-to-r from-[#d84040] to-primary mx-auto rounded-full shadow-lg"
+            className="h-1.5 bg-linear-to-r from-[#d84040] to-primary mx-auto rounded-full shadow-lg"
           />
         </motion.div>
 
@@ -588,11 +588,11 @@ export default function DonatePage() {
                 />
 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
 
                 {/* Animated Shine Effect */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-40"
+                  className="absolute inset-0 bg-linear-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-40"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "100%" }}
                   transition={{ duration: 0.8 }}
@@ -619,10 +619,10 @@ export default function DonatePage() {
               </div>
 
               {/* Corner Decoration */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#d84040]/30 to-transparent rounded-bl-full" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-[#d84040]/30 to-transparent rounded-bl-full" />
 
               {/* Bottom Accent */}
-              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#d84040] via-[#ff6b6b] to-[#d84040] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-linear-to-r from-[#d84040] via-[#ff6b6b] to-[#d84040] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
             </motion.div>
           ))}
         </div>
@@ -654,12 +654,12 @@ export default function DonatePage() {
                 scale: [1, 1.1, 1],
               }}
               transition={{ duration: 3, repeat: Infinity }}
-              className="inline-block mb-6 p-5 bg-gradient-to-br from-[#d84040] to-primary rounded-3xl shadow-2xl"
+              className="inline-block mb-6 p-5 bg-linear-to-br from-[#d84040] to-primary rounded-3xl shadow-2xl"
             >
               <Award className="w-16 h-16 text-white" />
             </motion.div>
 
-            <h2 className="text-5xl md:text-6xl p-5 font-black mb-6 bg-gradient-to-r from-primary to-[#d84040] bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-6xl p-5 font-black mb-6 bg-linear-to-r from-primary to-[#d84040] bg-clip-text text-transparent">
               {t.donorsTitle}
             </h2>
 
@@ -668,7 +668,7 @@ export default function DonatePage() {
               whileInView={{ scale: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
               viewport={{ once: true }}
-              className="mt-8 inline-flex items-center gap-3 bg-gradient-to-r from-[#d84040]/10 to-[#ff6b6b]/10 dark:from-[#d84040]/20 dark:to-[#ff6b6b]/20 px-8 py-4 rounded-full border-2 border-[#d84040]/20 shadow-lg"
+              className="mt-8 inline-flex items-center gap-3 bg-linear-to-r from-[#d84040]/10 to-[#ff6b6b]/10 dark:from-[#d84040]/20 dark:to-[#ff6b6b]/20 px-8 py-4 rounded-full border-2 border-[#d84040]/20 shadow-lg"
             >
               <Star className="w-6 h-6 text-[#d84040] fill-[#d84040]" />
               <span className="text-[#d84040] dark:text-[#ff6b6b] font-bold text-lg">
@@ -691,7 +691,7 @@ export default function DonatePage() {
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   <div
-                    className={`w-14 h-14 rounded-full bg-gradient-to-br ${getBadgeColor(
+                    className={`w-14 h-14 rounded-full bg-linear-to-br ${getBadgeColor(
                       donor.badge
                     )} flex items-center justify-center text-white text-xl font-bold shadow-md`}
                   >
@@ -719,7 +719,7 @@ export default function DonatePage() {
                 {/* Amount Badge */}
                 <div className="flex-shrink-0">
                   <div
-                    className={`bg-gradient-to-br ${getBadgeColor(
+                    className={`bg-linear-to-br ${getBadgeColor(
                       donor.badge
                     )} text-white font-bold text-sm px-4 py-2 rounded-full shadow-md`}
                   >
@@ -736,7 +736,7 @@ export default function DonatePage() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-[#d84040]/5 via-[#d84040]/10 to-[#ff6b6b]/5 dark:from-[#d84040]/10 dark:via-[#d84040]/20 dark:to-[#ff6b6b]/10 rounded-3xl p-10 border-2 border-[#d84040]/20 shadow-xl"
+            className="bg-linear-to-br from-[#d84040]/5 via-[#d84040]/10 to-[#ff6b6b]/5 dark:from-[#d84040]/10 dark:via-[#d84040]/20 dark:to-[#ff6b6b]/10 rounded-3xl p-10 border-2 border-[#d84040]/20 shadow-xl"
           >
             <p
               className={`text-gray-700 dark:text-gray-300 text-lg max-w-3xl mx-auto leading-relaxed mb-8 ${
@@ -788,7 +788,7 @@ export default function DonatePage() {
     </main>
   );
 }
-/* <section className="relative flex flex-col items-center justify-center text-center h-[750px]  overflow-hidden bg-gradient-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white ">
+/* <section className="relative flex flex-col items-center justify-center text-center h-[750px]  overflow-hidden bg-linear-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white ">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(20)].map((_, i) => (
             <motion.div
@@ -907,7 +907,7 @@ export default function DonatePage() {
         </motion.svg>
       </section> */
 
-/* <section className="relative flex flex-col items-center justify-center text-center h-[650px] overflow-hidden bg-gradient-to-br from-[#5a1a1a] via-[#b93e3e] to-[#e96b4c] text-white">
+/* <section className="relative flex flex-col items-center justify-center text-center h-[650px] overflow-hidden bg-linear-to-br from-[#5a1a1a] via-[#b93e3e] to-[#e96b4c] text-white">
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
@@ -968,7 +968,7 @@ export default function DonatePage() {
         </motion.div>
       </section> */
 
-/* <section className="relative flex flex-col  items-center justify-center text-center h-[600px] overflow-hidden bg-gradient-to-b from-primary to-primary/80 text-white ">
+/* <section className="relative flex flex-col  items-center justify-center text-center h-[600px] overflow-hidden bg-linear-to-b from-primary to-primary/80 text-white ">
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(15)].map((_, i) => (
             <motion.div
@@ -1051,7 +1051,7 @@ export default function DonatePage() {
 
 /* <section
         key="geometric"
-        className="relative flex flex-col items-center justify-center text-center overflow-hidden bg-gradient-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white min-h-screen"
+        className="relative flex flex-col items-center justify-center text-center overflow-hidden bg-linear-to-br from-[#d84040] via-[#e05555] to-[#d84040] text-white min-h-screen"
       >
         <div className="absolute inset-0 opacity-10">
           {[...Array(15)].map((_, i) => (
@@ -1165,7 +1165,7 @@ export default function DonatePage() {
         </svg>
       </section> */
 
-/* <section className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#d23e3e] via-[#e05555] to-[#c93535]">
+/* <section className="relative h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-[#d23e3e] via-[#e05555] to-[#c93535]">
         <div className="absolute inset-0 bg-black/5"></div>
 
         <motion.div

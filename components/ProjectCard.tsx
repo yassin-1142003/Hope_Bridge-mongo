@@ -43,24 +43,36 @@ type ProjectCardProps = {
   showFullGallery?: boolean;
 };
 
-export default function ProjectCard({ project, locale, showFullGallery = true }: ProjectCardProps) {
-  const [projectWithMedia, setProjectWithMedia] = useState<Project | null>(null);
+export default function ProjectCard({
+  project,
+  locale,
+  showFullGallery = true,
+}: ProjectCardProps) {
+  const [projectWithMedia, setProjectWithMedia] = useState<Project | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const isArabic = locale === "ar";
-  
+
   // Get localized content
-  const localized = project.contents?.find(
-    (c) => c.language_code === locale
-  ) || project.contents?.find((c) => c.language_code === "en");
+  const localized =
+    project.contents?.find((c) => c.language_code === locale) ||
+    project.contents?.find((c) => c.language_code === "en");
 
   useEffect(() => {
     const fetchProjectMedia = async () => {
-      if (!project.id || (project.bannerPhotoId && project.gallery.length === 0)) return;
-      
+      if (
+        !project.id ||
+        (project.bannerPhotoId && project.gallery.length === 0)
+      )
+        return;
+
       setIsLoading(true);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002')}/api/projects/${project.id}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3002")}/api/projects/${project.id}`
+        );
         if (response.ok) {
           const data = await response.json();
           setProjectWithMedia(data.data);
@@ -77,17 +89,17 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
 
   // Convert Google Drive URLs to proper display URLs
   const getDisplayUrl = (url: string) => {
-    if (!url || !url.includes('drive.google.com')) return url;
-    
+    if (!url || !url.includes("drive.google.com")) return url;
+
     // Extract file ID from Google Drive URL (handle both formats)
     let fileId = null;
-    
+
     // Handle /d/FILE_ID format
     const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match1 && match1[1]) {
       fileId = match1[1];
     }
-    
+
     // Handle id=FILE_ID format (your current format)
     if (!fileId) {
       const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
@@ -95,10 +107,10 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
         fileId = match2[1];
       }
     }
-    
+
     if (fileId) {
       // For images, use thumbnail URL for faster loading
-      if (url.includes('export=download')) {
+      if (url.includes("export=download")) {
         return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
       }
       // For existing view URLs, convert to thumbnail
@@ -114,19 +126,21 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-")
+        .replace(/^-+/, "")
+        .replace(/-+$/, "");
     };
-    
+
     const titleSlug = slugify(projectName);
     return `${titleSlug}-${projectId}`;
   };
 
   const currentProject = projectWithMedia || project;
-  const bannerUrl = getDisplayUrl(currentProject.bannerPhoto?.url || currentProject.bannerPhotoUrl);
+  const bannerUrl = getDisplayUrl(
+    currentProject.bannerPhoto?.url || currentProject.bannerPhotoUrl
+  );
   const galleryFiles = currentProject.galleryFiles || [];
 
   const galleryFileUrls = galleryFiles
@@ -146,7 +160,9 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
     (url): url is string => typeof url === "string" && url.length > 0
   );
 
-  const imageUrls = Array.from(new Set([...galleryFileUrls, ...legacyGalleryUrls, ...localizedImages]));
+  const imageUrls = Array.from(
+    new Set([...galleryFileUrls, ...legacyGalleryUrls, ...localizedImages])
+  );
   const videoUrls = Array.from(new Set(localizedVideos));
   const hasMedia = imageUrls.length > 0 || videoUrls.length > 0;
 
@@ -189,7 +205,9 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
   if (!localized) return null;
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${isArabic ? "rtl" : "ltr"}`}>
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${isArabic ? "rtl" : "ltr"}`}
+    >
       {/* Banner Image */}
       <div className="relative h-64 md:h-72 overflow-hidden group">
         {bannerUrl ? (
@@ -207,7 +225,7 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
               onError={(e) => {
                 console.warn("Failed to load banner image:", bannerUrl);
                 const img = e.target as HTMLImageElement;
-                if (img.src.includes('thumbnail')) {
+                if (img.src.includes("thumbnail")) {
                   // Fallback to even smaller thumbnail
                   const fileId = img.src.match(/id=([^&]+)/)?.[1];
                   if (fileId) {
@@ -217,18 +235,20 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
               }}
             />
             {/* Overlay for video indicator */}
-            {allMedia.some(m => m.mimeType.startsWith('video/')) && (
+            {allMedia.some((m) => m.mimeType.startsWith("video/")) && (
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Play className="w-16 h-16 text-white" />
               </div>
             )}
           </>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
-            <span className="text-gray-500 dark:text-gray-400 text-lg">No Image</span>
+          <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
+            <span className="text-gray-500 dark:text-gray-400 text-lg">
+              No Image
+            </span>
           </div>
         )}
-        
+
         {/* Date badge */}
         <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 px-3 py-1 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300">
           <Calendar className="inline w-4 h-4 mr-1" />
@@ -256,7 +276,7 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
                   key={`${media.id}-${index}`}
                   className="relative flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700"
                 >
-                  {media.mimeType.startsWith('video/') ? (
+                  {media.mimeType.startsWith("video/") ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-600">
                       <Play className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                     </div>
@@ -272,7 +292,9 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
               ))}
               {allMedia.length > 4 && (
                 <div className="flex-shrink-0 w-20 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">+{allMedia.length - 4}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    +{allMedia.length - 4}
+                  </span>
                 </div>
               )}
             </div>
@@ -281,7 +303,7 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
 
         {/* Action Button */}
         <Link
-          href={`/${locale}/projects/${generateProjectSlug(currentProject.id || '', localized.name || '')}`}
+          href={`/${locale}/projects/${generateProjectSlug(currentProject.id || "", localized.name || "")}`}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           {isArabic ? "عرض التفاصيل" : "View Details"}
@@ -292,7 +314,11 @@ export default function ProjectCard({ project, locale, showFullGallery = true }:
       {/* Full Gallery Modal */}
       {showFullGallery && hasMedia && (
         <div className="mt-4">
-          <MediaGallery imageUrls={imageUrls} videoUrls={videoUrls} className="w-full" />
+          <MediaGallery
+            imageUrls={imageUrls}
+            videoUrls={videoUrls}
+            className="w-full"
+          />
         </div>
       )}
     </div>

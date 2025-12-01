@@ -243,7 +243,7 @@ const AboutUsPage = async ({
                       delay: i * 0.2,
                     }}
                   >
-                    <div className="mb-6 p-4 bg-gradient-to-br from-[#d23e3e] to-[#a83232] rounded-2xl inline-block group-hover:scale-110 transition-transform duration-300">
+                    <div className="mb-6 p-4 bg-linear-to-br from-[#d23e3e] to-[#a83232] rounded-2xl inline-block group-hover:scale-110 transition-transform duration-300">
                       <Icon size={48} className="text-white" />
                     </div>
                   </motion.div>
@@ -304,7 +304,7 @@ const AboutUsPage = async ({
                       delay: i * 0.2,
                     }}
                   >
-                    <div className="mb-6 p-4 bg-gradient-to-br from-[#d23e3e]/10 to-[#a83232]/10 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="mb-6 p-4 bg-linear-to-br from-[#d23e3e]/10 to-[#a83232]/10 rounded-2xl group-hover:scale-110 transition-transform duration-300">
                       <Icon
                         size={64}
                         className="text-[#d23e3e] dark:text-[#f5f5f5]"
@@ -367,7 +367,7 @@ const AboutUsPage = async ({
                       delay: i * 0.5,
                     }}
                   >
-                    <div className="flex-shrink-0 p-4 bg-gradient-to-br from-[#d23e3e] to-[#a83232] rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex-shrink-0 p-4 bg-linear-to-br from-[#d23e3e] to-[#a83232] rounded-2xl group-hover:scale-110 transition-transform duration-300">
                       <Icon className="text-white" size={48} />
                     </div>
                   </motion.div>
@@ -437,21 +437,21 @@ const AboutUsPage = async ({
           <div className="flex justify-center gap-4 mt-8">
             <a
               href="https://www.facebook.com/HopeCharityBridge"
-              className="group p-4 rounded-full bg-gradient-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
+              className="group p-4 rounded-full bg-linear-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
             >
               <Facebook className="w-6 h-6 text-white" />
             </a>
 
             <a
               href="https://www.instagram.com/hope_bridge_hba"
-              className="group p-4 rounded-full bg-gradient-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
+              className="group p-4 rounded-full bg-linear-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
             >
               <Instagram className="w-6 h-6 text-white" />
             </a>
 
             <a
               href="https://www.tiktok.com/@hopebridgecharity"
-              className="group p-4 rounded-full bg-gradient-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
+              className="group p-4 rounded-full bg-linear-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -465,7 +465,7 @@ const AboutUsPage = async ({
 
             <a
               href="https://x.com/HopeBridge_HBA"
-              className="group p-4 rounded-full bg-gradient-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
+              className="group p-4 rounded-full bg-linear-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
             >
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -474,7 +474,7 @@ const AboutUsPage = async ({
 
             <a
               href="https://www.linkedin.com/company/hopebridge-association"
-              className="group p-4 rounded-full bg-gradient-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
+              className="group p-4 rounded-full bg-linear-to-br from-[#d23e3e] to-[#a83232] hover:shadow-lg hover:shadow-[#d23e3e]/50 transition-all duration-300 hover:scale-110"
             >
               <Linkedin className="w-6 h-6 text-white" />
             </a>
