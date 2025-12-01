@@ -58,7 +58,7 @@ export default async function ProjectPage({
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const projectId = extractIdFromSlug(id);
-  const res = await fetch(`${baseUrl}/api/project/${id}`, {
+  const res = await fetch(`${baseUrl}/api/projects/${id}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",

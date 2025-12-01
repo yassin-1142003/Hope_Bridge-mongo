@@ -137,8 +137,10 @@ const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
         `}
         aria-haspopup="listbox"
-        aria-expanded={isOpen ? 'true' : 'false'}
-        aria-disabled={disabled ? 'true' : 'false'}
+        aria-expanded={isOpen} // Edge Tools may show false positive - this is correct boolean usage
+        aria-disabled={disabled}
+        title="Select task status"
+        aria-label="Select task status"
       >
         {selectedStatus && (
           <>
@@ -188,7 +190,7 @@ const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
                     ${focusedIndex === index ? 'ring-inset ring-2 ring-blue-500 ring-offset-0' : ''}
                   `}
                   role="option"
-                  aria-selected={value === status.value ? 'true' : 'false'}
+                  aria-selected={value === status.value} // Edge Tools may show false positive - this is correct boolean usage
                 >
                   <span className={status.color}>
                     {status.icon}

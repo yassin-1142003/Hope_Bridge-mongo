@@ -328,9 +328,9 @@ const TaskAlertDashboard: React.FC<TaskAlertDashboardProps> = ({
                   <div 
                     className={`progress-bar-fill progress-bar-pending ${getProgressClass(stats.totalTasks > 0 ? (stats.pendingTasks / stats.totalTasks) * 100 : 0)}`}
                     role="progressbar"
-                    aria-valuenow={pendingValueNow as unknown as number}
-                    aria-valuemin={pendingValueMin as unknown as number}
-                    aria-valuemax={pendingValueMax as unknown as number}
+                    aria-valuenow={pendingValueNow} // Edge Tools may show false positive - this is correct number usage
+                    aria-valuemin={pendingValueMin}
+                    aria-valuemax={pendingValueMax}
                     aria-label={`Pending tasks: ${stats.pendingTasks} of ${stats.totalTasks}`}
                   ></div>
                 </div>
@@ -348,9 +348,9 @@ const TaskAlertDashboard: React.FC<TaskAlertDashboardProps> = ({
                   <div 
                     className={`progress-bar-fill progress-bar-in-progress ${getProgressClass(stats.totalTasks > 0 ? (stats.inProgressTasks / stats.totalTasks) * 100 : 0)}`}
                     role="progressbar"
-                    aria-valuenow={inProgressValueNow as unknown as number}
-                    aria-valuemin={inProgressValueMin as unknown as number}
-                    aria-valuemax={inProgressValueMax as unknown as number}
+                    aria-valuenow={inProgressValueNow}
+                    aria-valuemin={inProgressValueMin}
+                    aria-valuemax={inProgressValueMax}
                     aria-label={`In progress tasks: ${stats.inProgressTasks} of ${stats.totalTasks}`}
                   ></div>
                 </div>

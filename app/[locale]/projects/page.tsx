@@ -53,7 +53,7 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
   const p = await getTranslations({ locale, namespace: "projects" });
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3002";
 
-  const res = await fetch(`${baseUrl}/api/project`, {
+  const res = await fetch(`${baseUrl}/api/projects`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
@@ -61,18 +61,19 @@ const Page = async ({ params }: PageProps<{ locale: string }>) => {
 
   if (!res.ok) throw new Error("Failed to fetch details");
 
-  // ✅ API should return { projects }
-  const { details } = await res.json();
-  console.log(details);
+  // ✅ API returns projects directly in response data
+  const responseData = await res.json();
+  const projects = responseData.data || responseData;
+  console.log('API Response:', projects);
   // 🔥 Re-map API response to match existing frontend structure
-  const mappedProjects = details.map((proj: any) => {
+  const mappedProjects = projects.map((proj: any) => {
     return {
-      id: proj.id,
+      id: proj._id,
       images: proj.gallery || [], // array off images
       banner: proj.bannerPhotoUrl,
-      created_at: proj.created_at,
+      created_at: proj.createdAt,
       contents: proj.contents.map((c: any) => ({
-        id: proj.id,
+        id: proj._id,
         language_code: c.language_code,
         name: c.name,
         description: c.description,

@@ -84,7 +84,6 @@ export const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButton
           (loading || success || error) && "cursor-not-allowed",
           className
         )}
-        ref={ref}
         disabled={disabled || loading}
         onClick={createRipple}
         whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
@@ -284,7 +283,6 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={handleChange}
-            ref={ref}
             {...props}
           />
           

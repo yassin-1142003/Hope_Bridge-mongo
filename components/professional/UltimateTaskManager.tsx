@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AwesomeDashboardForm from '@/components/ui/AwesomeDashboardForm';
+import '../styles/awesome-dashboard.css';
 import { 
   Calendar, 
   Clock, 
@@ -463,52 +465,7 @@ const UltimateTaskManager: React.FC = () => {
     setTimeout(generateMockData, 1000);
   }, []);
 
-  // Advanced filtering and sorting
-  const filteredAndSortedTasks = useMemo(() => {
-    let filtered = tasks.filter(task => {
-      const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          task.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesStatus = filters.status.length === 0 || filters.status.includes(task.status);
-      const matchesPriority = filters.priority.length === 0 || filters.priority.includes(task.priority);
-      const matchesCategory = filters.category.length === 0 || filters.category.includes(task.category);
-      const matchesAssignedTo = filters.assignedTo.length === 0 || filters.assignedTo.includes(task.assignedTo.id);
-      const matchesTags = filters.tags.length === 0 || task.tags.some(tag => filters.tags.includes(tag));
-      
-      const matchesDateRange = (!filters.dateRange.start || task.dueDate >= filters.dateRange.start) &&
-                              (!filters.dateRange.end || task.dueDate <= filters.dateRange.end);
-
-      return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesAssignedTo && matchesTags && matchesDateRange;
-    });
-
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'priority':
-          const priorityOrder = { critical: 4, urgent: 3, high: 2, medium: 1, low: 0 };
-          comparison = priorityOrder[b.priority] - priorityOrder[a.priority];
-          break;
-        case 'dueDate':
-          comparison = a.dueDate.getTime() - b.dueDate.getTime();
-          break;
-        case 'progress':
-          comparison = b.progress - a.progress;
-          break;
-        case 'created':
-          comparison = b.createdAt.getTime() - a.createdAt.getTime();
-          break;
-        case 'updated':
-          comparison = b.updatedAt.getTime() - a.updatedAt.getTime();
-          break;
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    return filtered;
-  }, [tasks, searchTerm, filters, sortBy, sortOrder]);
+  // Helper functions...
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -605,6 +562,93 @@ const UltimateTaskManager: React.FC = () => {
     return `progress-${rounded}`;
   };
 
+  // Computed filtered and sorted tasks
+  const filteredAndSortedTasks = useMemo(() => {
+    let filtered = tasks.filter(task => {
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        if (!task.title.toLowerCase().includes(searchLower) &&
+            !task.description.toLowerCase().includes(searchLower) &&
+            !task.tags.some(tag => tag.toLowerCase().includes(searchLower))) {
+          return false;
+        }
+      }
+      
+      // Status filter
+      if (filters.status.length > 0 && !filters.status.includes(task.status)) {
+        return false;
+      }
+      
+      // Priority filter
+      if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) {
+        return false;
+      }
+      
+      // Category filter
+      if (filters.category.length > 0 && !filters.category.includes(task.category)) {
+        return false;
+      }
+      
+      // Assigned to filter
+      if (filters.assignedTo.length > 0 && !filters.assignedTo.includes(task.assignedTo.id)) {
+        return false;
+      }
+      
+      // Date range filter
+      if (filters.dateRange.start && task.dueDate < filters.dateRange.start) {
+        return false;
+      }
+      if (filters.dateRange.end && task.dueDate > filters.dateRange.end) {
+        return false;
+      }
+      
+      // Tags filter
+      if (filters.tags.length > 0 && !filters.tags.some(tag => task.tags.includes(tag))) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Sort tasks
+    return filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+        case 'priority':
+          const priorityOrder = { critical: 5, urgent: 4, high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority as keyof typeof priorityOrder];
+          bValue = priorityOrder[b.priority as keyof typeof priorityOrder];
+          break;
+        case 'dueDate':
+          aValue = a.dueDate ? a.dueDate.getTime() : 0;
+          bValue = b.dueDate ? b.dueDate.getTime() : 0;
+          break;
+        case 'progress':
+          aValue = a.progress;
+          bValue = b.progress;
+          break;
+        case 'created':
+          aValue = a.createdAt.getTime();
+          bValue = b.createdAt.getTime();
+          break;
+        case 'updated':
+          aValue = a.updatedAt.getTime();
+          bValue = b.updatedAt.getTime();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+  }, [tasks, searchTerm, filters, sortBy, sortOrder]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -681,33 +725,34 @@ const UltimateTaskManager: React.FC = () => {
         </div>
       </header>
 
-      {/* Advanced Search and Filters */}
+      {/* Awesome Search and Filters */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <AwesomeDashboardForm
+          onSearch={(query) => setSearchTerm(query)}
+          onFilter={(filters) => {
+            // Handle filter updates
+            console.log('Filters updated:', filters);
+          }}
+          onCreateTask={() => {
+            // Handle task creation
+            console.log('Create new task');
+          }}
+        />
+      </div>
+
+      {/* View Mode and Sort Controls */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            {/* Search */}
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search tasks, tags, descriptions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
             {/* View Mode */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">View:</span>
+              <span className="text-sm font-medium text-gray-700">View:</span>
               <div className="flex bg-gray-100 rounded-lg p-1">
                 {(['kanban', 'list', 'calendar', 'gantt', 'timeline'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 ${
                       viewMode === mode
                         ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
@@ -721,11 +766,11 @@ const UltimateTaskManager: React.FC = () => {
 
             {/* Sort */}
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Sort:</span>
+              <span className="text-sm font-medium text-gray-700">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 rounded-md px-3 py-1 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 title="Sort tasks by"
                 aria-label="Sort tasks by"
               >
@@ -737,154 +782,14 @@ const UltimateTaskManager: React.FC = () => {
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-1 text-gray-600 hover:text-gray-900"
+                className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
                 title={`Sort order: ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
                 aria-label={`Sort order: ${sortOrder === 'asc' ? 'ascending' : 'descending'}`}
               >
                 {sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                title="Toggle advanced filters"
-                aria-label="Toggle advanced filters"
-              >
-                <Filter className="w-4 h-4" />
-                <span>Filters</span>
-                <ChevronDown className={`w-4 h-4 transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-              </button>
-              
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                title="Create new task"
-                aria-label="Create new task"
-              >
-                <Plus className="w-4 h-4" />
-                <span>New Task</span>
-              </button>
-            </div>
           </div>
-
-          {/* Advanced Filters */}
-          <AnimatePresence>
-            {showAdvanced && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="pt-4 border-t border-gray-200"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Status Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <div className="space-y-2">
-                      {['draft', 'active', 'in_progress', 'review', 'completed', 'cancelled', 'archived'].map((status) => (
-                        <label key={status} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.status.includes(status)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFilters(prev => ({ ...prev, status: [...prev.status, status] }));
-                              } else {
-                                setFilters(prev => ({ ...prev, status: prev.status.filter(s => s !== status) }));
-                              }
-                            }}
-                            className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Priority Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <div className="space-y-2">
-                      {['low', 'medium', 'high', 'urgent', 'critical'].map((priority) => (
-                        <label key={priority} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.priority.includes(priority)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFilters(prev => ({ ...prev, priority: [...prev.priority, priority] }));
-                              } else {
-                                setFilters(prev => ({ ...prev, priority: prev.priority.filter(p => p !== priority) }));
-                              }
-                            }}
-                            className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Category Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                    <div className="space-y-2">
-                      {['Development', 'Design', 'Marketing', 'Analytics', 'Operations', 'HR'].map((category) => (
-                        <label key={category} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.category.includes(category)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFilters(prev => ({ ...prev, category: [...prev.category, category] }));
-                              } else {
-                                setFilters(prev => ({ ...prev, category: prev.category.filter(c => c !== category) }));
-                              }
-                            }}
-                            className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{category}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Date Range Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Range</label>
-                    <div className="space-y-2">
-                      <input
-                        type="date"
-                        value={filters.dateRange.start ? filters.dateRange.start.toISOString().split('T')[0] : ''}
-                        onChange={(e) => setFilters(prev => ({ 
-                          ...prev, 
-                          dateRange: { ...prev.dateRange, start: e.target.value ? new Date(e.target.value) : null }
-                        }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        title="Start date filter"
-                        aria-label="Start date filter"
-                        placeholder="Select start date"
-                      />
-                      <input
-                        type="date"
-                        value={filters.dateRange.end ? filters.dateRange.end.toISOString().split('T')[0] : ''}
-                        onChange={(e) => setFilters(prev => ({ 
-                          ...prev, 
-                          dateRange: { ...prev.dateRange, end: e.target.value ? new Date(e.target.value) : null }
-                        }))}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        title="End date filter"
-                        aria-label="End date filter"
-                        placeholder="Select end date"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
