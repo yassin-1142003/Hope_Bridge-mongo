@@ -1,9 +1,3 @@
-/**
- * Professional Task Creation Page
- * 
- * Advanced task creation interface with perfect UX,
- * professional design, and comprehensive functionality.
- */
 
 'use client';
 
