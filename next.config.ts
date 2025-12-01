@@ -86,6 +86,12 @@ const withPWA = withPWAInit({
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+    typescript: {
+    ignoreBuildErrors: true, // 🚀 Allow deploy even with TS errors
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // 🚀 Ignore ESLint errors/warnings
+  },
   // Performance optimizations
   poweredByHeader: false,
   generateEtags: true,
@@ -150,12 +156,7 @@ const nextConfig: NextConfig = {
 
   reactStrictMode:false,
   output: 'standalone',
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  
   async rewrites() {
     return [
       {
