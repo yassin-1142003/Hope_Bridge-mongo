@@ -514,6 +514,8 @@ const TaskManager = () => {
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className={`p-2 rounded-lg ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+                aria-label="Toggle dark mode"
+                title="Toggle dark mode"
               >
                 {isDarkMode ? (
                   <Sun className="w-5 h-5 text-yellow-400" />
@@ -527,6 +529,8 @@ const TaskManager = () => {
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
                   className={`relative p-2 rounded-lg ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+                  aria-label="Toggle notifications"
+                  title="Toggle notifications"
                 >
                   <Bell
                     className={`w-5 h-5 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
@@ -579,12 +583,16 @@ const TaskManager = () => {
               <button
                 onClick={() => setShowStats(!showStats)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  showStats
+                  isDarkMode
+                    ? showStats
+                      ? "bg-primary text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : showStats
                     ? "bg-primary text-white"
-                    : isDarkMode
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
+                aria-label="Toggle statistics"
+                title="Toggle statistics"
               >
                 <BarChart3 className="w-4 h-4 inline mr-2" />
                 {t.stats}
@@ -593,6 +601,8 @@ const TaskManager = () => {
               {/* Refresh */}
               <button
                 className={`p-2 rounded-lg ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+                aria-label="Refresh tasks"
+                title="Refresh tasks"
               >
                 <RefreshCw
                   className={`w-5 h-5 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
@@ -744,6 +754,8 @@ const TaskManager = () => {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+              aria-label="Filter by status"
+              title="Filter by status"
             >
               <option value="all">{t.allStatus}</option>
               <option value="pending">{t.pendingStatus}</option>
@@ -757,6 +769,8 @@ const TaskManager = () => {
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
               className={`px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+              aria-label="Filter by priority"
+              title="Filter by priority"
             >
               <option value="all">{t.allPriority}</option>
               <option value="low">{t.lowPriority}</option>
@@ -769,6 +783,8 @@ const TaskManager = () => {
             <button
               onClick={() => setShowCreateForm(true)}
               className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
+              aria-label="Create new task"
+              title="Create new task"
             >
               <Plus className="w-5 h-5" />
               {t.newTask}
@@ -808,6 +824,8 @@ const TaskManager = () => {
                     setUploadError(null);
                   }}
                   className={`p-2 rounded-lg ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+                  aria-label="Close task form"
+                  title="Close task form"
                 >
                   <X
                     className={`w-5 h-5 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
@@ -850,6 +868,8 @@ const TaskManager = () => {
                         setFormData({ ...formData, assignedTo: e.target.value })
                       }
                       className={`w-full px-4 py-3   border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+                      aria-label="Assign task to"
+                      title="Assign task to"
                     >
                       <option value="">{t.selectUser}</option>
                       {users.map((user) => (
@@ -897,6 +917,8 @@ const TaskManager = () => {
                         })
                       }
                       className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+                      aria-label="Task status"
+                      title="Task status"
                     >
                       <option value="pending">{t.pendingStatus}</option>
                       <option value="in_progress">{t.inProgressStatus}</option>
@@ -920,6 +942,8 @@ const TaskManager = () => {
                         })
                       }
                       className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+                      aria-label="Task priority"
+                      title="Task priority"
                     >
                       <option value="low">{t.lowPriority}</option>
                       <option value="medium">{t.mediumPriority}</option>
@@ -942,6 +966,8 @@ const TaskManager = () => {
                         setFormData({ ...formData, startDate: e.target.value })
                       }
                       className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+                      aria-label="Start date"
+                      title="Start date"
                     />
                   </div>
 
@@ -959,6 +985,8 @@ const TaskManager = () => {
                         setFormData({ ...formData, endDate: e.target.value })
                       }
                       className={`w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${isDarkMode ? "dark:bg-gray-700 dark:border-gray-600 dark:text-white" : ""}`}
+                      aria-label="End date"
+                      title="End date"
                     />
                   </div>
                 </div>
@@ -1057,6 +1085,8 @@ const TaskManager = () => {
                             type="button"
                             onClick={() => removeFile(file.id)}
                             className={`p-1 rounded ${isDarkMode ? "hover:bg-gray-600" : "hover:bg-gray-200"} transition-colors`}
+                            aria-label={`Remove file: ${file.name}`}
+                            title={`Remove file: ${file.name}`}
                           >
                             <X
                               className={`w-4 h-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
@@ -1089,12 +1119,16 @@ const TaskManager = () => {
                       setUploadError(null);
                     }}
                     className={`px-6 py-3 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors ${isDarkMode ? "border-gray-600 text-gray-300 hover:bg-gray-700" : "text-gray-700"}`}
+                    aria-label="Cancel task creation"
+                    title="Cancel task creation"
                   >
                     {t.cancel}
                   </button>
                   <button
                     type="submit"
                     className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                    aria-label={editingTask ? "Update task" : "Create new task"}
+                    title={editingTask ? "Update task" : "Create new task"}
                   >
                     {editingTask ? t.updateTask : t.createTask}
                   </button>
@@ -1143,6 +1177,8 @@ const TaskManager = () => {
                 <button
                   onClick={() => setShowCreateForm(true)}
                   className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+                  aria-label="Create your first task"
+                  title="Create your first task"
                 >
                   <Plus className="w-5 h-5 inline mr-2" />
                   {t.createTask}
@@ -1258,6 +1294,8 @@ const TaskManager = () => {
                       <button
                         onClick={() => handleEdit(task)}
                         className={`p-2 rounded-lg ${isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"} transition-colors`}
+                        aria-label="Edit task"
+                        title="Edit task"
                       >
                         <Edit2
                           className={`w-4 h-4 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
@@ -1266,6 +1304,8 @@ const TaskManager = () => {
                       <button
                         onClick={() => handleDelete(task.id)}
                         className={`p-2 rounded-lg ${isDarkMode ? "bg-red-900/50 hover:bg-red-900" : "bg-red-100 hover:bg-red-200"} transition-colors`}
+                        aria-label="Delete task"
+                        title="Delete task"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>

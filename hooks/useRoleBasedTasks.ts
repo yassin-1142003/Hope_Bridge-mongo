@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from './useAuth';
 
 interface Task {
   id: string;
@@ -34,17 +36,17 @@ interface UseRoleBasedTasksReturn {
 }
 
 export const useRoleBasedTasks = (): UseRoleBasedTasksReturn => {
-  const { data: session } = useSession();
+  const { user, token } = useAuth();
   const [userTasks, setUserTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const getUserRole = (): string | null => {
-    return session?.user?.role || null;
+    return user?.role || null;
   };
 
   const fetchUserTasks = async () => {
-    if (!session?.user?.id) {
+    if (!user?.id || !token) {
       setLoading(false);
       return;
     }
@@ -52,8 +54,17 @@ export const useRoleBasedTasks = (): UseRoleBasedTasksReturn => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('DEBUG - useRoleBasedTasks token:', token ? token.substring(0, 20) + '...' : 'none');
+      console.log('DEBUG - useRoleBasedTasks user.id:', user.id);
 
-      const response = await fetch(`/api/tasks/user/${session.user.id}`);
+      const response = await fetch(`/api/tasks/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch tasks');
@@ -101,7 +112,7 @@ export const useRoleBasedTasks = (): UseRoleBasedTasksReturn => {
 
   useEffect(() => {
     fetchUserTasks();
-  }, [session?.user?.id]);
+  }, [user?.id, token]);
 
   return {
     userTasks,

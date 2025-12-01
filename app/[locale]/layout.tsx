@@ -9,9 +9,6 @@ import Navbar from "@/components/layout/Navbar";
 import Footer4Col from "@/components/layout/Footer";
 import AOSWrapper from "@/components/AOSWrapper";
 import { Toaster } from "sonner";
-import { getServerSession } from "@/lib/auth";
-import { authOptions } from "@/lib/auth";
-import { ThemeProvider } from "next-themes";
 import ClientWrapper from "@/components/ClientWrapper";
 import AddToHomePrompt from "@/components/AddToHomePrompt";
 import ServiceworkerWrapper from "@/components/ServiceworkerWrapper";
@@ -20,7 +17,7 @@ import AddToHomeIOS from "@/components/AddToHomeIOS";
 import TurnstileWrapper from "@/components/TurnstileWrapper";
 import VisitorTracker from "@/components/VisitorTracker";
 import ChatWidget from "@/components/chat/ChatWidget";
-import { AuthProvider } from "@/hooks/useAuth";
+import Providers from "@/components/Providers";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -118,27 +115,31 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await getServerSession();
 
   if (!hasLocale(routing.locales, locale)) notFound();
 
   return (
     <html lang={locale}>
       <head>
+        {/* Icons and touch icons - MUST be first for proper PWA support */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
+        
         {/* iOS-specific meta tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
         <meta name="apple-mobile-web-app-title" content="Hope Bridge" />
 
-        <link rel="apple-touch-startup-image" href="/apple-touch-icon.png" />
-
-        {/* Additional PWA meta tags */}
+        {/* PWA and theme meta tags */}
         <meta name="mobile-web-app-capable" content="yes" />
+        {/* Theme color for Chrome/Edge/Safari - Firefox uses CSS below instead */}
         <meta name="theme-color" content="#d23e3e" />
+        {/* MS application tile color for Windows */}
         <meta name="msapplication-TileColor" content="#d23e3e" />
+        
+        {/* Firefox and other browsers - use meta theme-color with fallback */}
+        <meta name="msapplication-navbutton-color" content="#d23e3e" />
+        {/* iOS Safari status bar - consolidated from duplicate */}
+        <meta name="apple-mobile-web-app-status-bar-style" content="#d23e3e" />
         <link rel="preconnect" href="https://donorbox.org" />
         <link rel="dns-prefetch" href="https://donorbox.org" />
         <script
@@ -161,22 +162,20 @@ export default async function LocaleLayout({
         className={`${almarai.variable} font-almarai bg-background antialiased`}
       >
         <NextIntlClientProvider>
-          <ThemeProvider attribute="class" defaultTheme="light">
-            <AuthProvider>
-              <VisitorTracker locale={locale} />
-              <PWAProvider>
-              <Navbar />
-              <AOSWrapper>
-                <main className="main-pattern pt-18">{children}</main>
-                <AddToHomeIOS />
-                {/* <AddToHomePrompt /> */}
-                <Toaster richColors position="bottom-right" />
-              </AOSWrapper>
-              <Footer4Col />
-              <ChatWidget />
+          <Providers>
+            <VisitorTracker locale={locale} />
+            <PWAProvider>
+            <Navbar />
+            <AOSWrapper>
+              <main className="main-pattern pt-18">{children}</main>
+              <AddToHomeIOS />
+              {/* <AddToHomePrompt /> */}
+              <Toaster richColors position="bottom-right" />
+            </AOSWrapper>
+            <Footer4Col />
+            <ChatWidget />
             </PWAProvider>
-            </AuthProvider>
-          </ThemeProvider>
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

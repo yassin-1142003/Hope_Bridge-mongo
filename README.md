@@ -1,48 +1,117 @@
-# Task Management System
+# HopeBridge Charity Management System
 
-A complete full-stack task management application built with Node.js, Express, MongoDB, and React. Features real-time notifications, user authentication, and comprehensive task management capabilities.
+A comprehensive charity management platform built with Next.js 13+, MongoDB, and modern web technologies. Features role-based task management, project tracking, multilingual support, and real-time chat system.
 
-## Features
+## 🌟 Key Features
 
-- 🔐 **User Authentication** - JWT-based secure login/registration system
-- 📋 **Task Management** - Create, update, and track tasks with priorities and due dates
-- 🔄 **Real-time Updates** - Socket.IO integration for instant notifications
-- 📊 **Dashboard** - View sent and received tasks with filtering options
-- 💬 **Comments & Activity** - Add comments and track task history
-- 🔔 **Alerts System** - Get notified about overdue tasks and new assignments
-- 🔗 **Related Tasks** - Find related tasks by project, tags, or due dates
-- 📱 **Responsive Design** - Modern UI built with Tailwind CSS
+### 🎯 Role-Based Access Control
 
-## Tech Stack
+- **13 User Roles** with granular permissions
+- **Admin, General Manager, Program Manager, Project Coordinators, HR, Finance, Procurement, Storekeeper, M&E, Field Officer, Accountant**
+- **Chat Widget** - Available only for authorized roles
+- **Task Visibility** - Role-based task assignment and viewing
 
-### Backend
+### 💬 Real-Time Chat System
 
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database with Mongoose ODM
-- **Socket.IO** - Real-time communication
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
+- **Role-Based Access** - Only for specified roles
+- **WCAG Compliant** - Full accessibility support
+- **Cross-Browser Compatible** - Works on all modern browsers
+- **Real-Time Messaging** - Live chat with online status indicators
+- **Unread Notifications** - Message badges and alerts
+
+### 📋 Advanced Task Management
+
+- **Role-Based Task Dashboard** - Personalized task views
+- **Project Integration** - Tasks linked to charity projects
+- **PDF Attachments** - Document management with viewer
+- **Status Tracking** - Complete task lifecycle management
+- **Priority Levels** - Urgent, High, Medium, Low priority
+
+### 🌐 Multilingual Support
+
+- **English & Arabic** - Complete localization
+- **RTL/LTR Support** - Automatic text direction
+- **Dynamic Translations** - Real-time language switching
+- **Localized UI** - Culture-appropriate interfaces
+
+### 🏢 Project Management
+
+- **Multilingual Projects** - Content in multiple languages
+- **Media Galleries** - Image and video management
+- **Error Handling** - Graceful fallbacks when database unavailable
+- **Task Integration** - Projects linked to tasks
+
+### 🎨 Modern UI/UX
+
+- **Glass Morphism Design** - Beautiful modern interface
+- **Dark Mode Support** - Complete theme switching
+- **Responsive Design** - Mobile-first approach
+- **Smooth Animations** - Framer Motion powered
+- **Accessibility** - WCAG 2.1 AA compliant
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- **React** - UI framework
-- **React Router** - Navigation
-- **Tailwind CSS** - Styling
-- **Heroicons** - Icons
-- **Socket.IO Client** - Real-time updates
-- **Axios** - HTTP client
+- **Next.js 13+** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Animations and transitions
+- **next-intl** - Internationalization
+- **Lucide React** - Icon system
+
+### Backend & Database
+
+- **MongoDB Atlas** - Cloud database
+- **Next.js API Routes** - Serverless API
+- **JWT Authentication** - Secure user sessions
+- **Role-Based Permissions** - Granular access control
+
+### Development Tools
+
+- **ESLint** - Code quality
+- **TypeScript** - Static typing
+- **Hot Reload** - Fast development
+- **API Testing** - Comprehensive test suite
 
 ## Project Structure
 
 ```text
-├── backend/
-│   ├── models/          # MongoDB models (User, Task, Comment, Activity)
-│   ├── routes/          # API routes
-│   ├── controllers/     # Route controllers
-│   ├── middleware/      # Authentication and validation
-│   ├── scripts/         # Seed script
-│   └── server.js        # Main server file
+hopebridge/
+├── app/                          # Next.js 13+ app directory
+│   ├── [locale]/                 # Internationalized routes
+│   │   ├── dashboard/           # Dashboard pages
+│   │   │   ├── page.tsx         # Main dashboard with task overview
+│   │   │   ├── tasks/           # Task management system
+│   │   │   └── admin/           # Admin panels
+│   │   ├── projects/            # Projects page
+│   │   └── layout.tsx          # Main layout with chat widget
+│   ├── api/                     # API routes
+│   │   ├── projects/           # Project management API
+│   │   ├── tasks/              # Task management API
+│   │   ├── analytics/           # Analytics API
+│   │   └── test-db/            # Database testing endpoint
+│   └── globals.css             # Global styles with Tailwind
+├── components/                  # React components
+│   ├── chat/                   # Chat widget system
+│   │   └── ChatWidget.tsx      # Role-based chat component
+│   ├── dashboard/              # Dashboard components
+│   │   └── RoleBasedTaskDashboard.tsx
+│   └── ui/                     # Reusable UI components
+├── hooks/                      # Custom React hooks
+│   ├── useAuth.tsx            # Authentication hook
+│   └── useRoleBasedTasks.ts   # Task management hook
+├── lib/                        # Utility libraries
+│   ├── mongodb.ts              # Database connection
+│   ├── roles.ts                # Role definitions
+│   └── services/               # Business logic services
+├── scripts/                    # Development scripts
+│   ├── setup-database.js       # Database setup with sample data
+│   └── test-all-apis.mjs      # API testing suite
+├── messages/                   # Translation files
+│   ├── en.json                 # English translations
+│   └── ar.json                 # Arabic translations
+└── public/                     # Static assets
 ├── frontend/
 │   ├── src/
 │   │   ├── components/  # React components

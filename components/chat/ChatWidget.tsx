@@ -46,6 +46,19 @@ const ChatWidget: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isOpen) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   // Check if user has permission to access chat
   const canAccessChat = user && hasPermission(user.role as any, 'canSendMessages');
@@ -192,16 +205,19 @@ const ChatWidget: React.FC = () => {
       {/* Chat Button */}
       {!isOpen && (
         <motion.button
+          ref={chatButtonRef}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
           className="relative bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+          aria-label={`Open chat ${totalUnreadCount > 0 ? `(${totalUnreadCount} unread messages)` : ''}`}
+          title={`Open chat ${totalUnreadCount > 0 ? `(${totalUnreadCount} unread messages)` : ''}`}
         >
           <MessageCircle className="w-6 h-6" />
           {totalUnreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" aria-label={`${totalUnreadCount} unread messages`}>
               {totalUnreadCount}
             </span>
           )}
@@ -226,6 +242,8 @@ const ChatWidget: React.FC = () => {
               <button
                 onClick={() => setIsOpen(false)}
                 className="hover:bg-white/20 p-1 rounded transition-colors"
+                aria-label="Close chat"
+                title="Close chat"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -299,6 +317,8 @@ const ChatWidget: React.FC = () => {
                       <button
                         onClick={() => setSelectedUser(null)}
                         className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        aria-label="Back to user list"
+                        title="Back to user list"
                       >
                         ←
                       </button>
@@ -359,6 +379,8 @@ const ChatWidget: React.FC = () => {
                         onClick={sendMessage}
                         disabled={!newMessage.trim()}
                         className="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Send message"
+                        title="Send message"
                       >
                         <Send className="w-5 h-5" />
                       </button>

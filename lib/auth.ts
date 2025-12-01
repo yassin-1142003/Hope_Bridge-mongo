@@ -59,9 +59,14 @@ export async function getServerSession() {
 }
 
 // Verify JWT token and return user
-export async function verifyToken(token: string): Promise<User | null> {
+export async function verifyToken(token: string): Promise<any> {
   try {
-    if (!token) return null;
+    console.log('DEBUG - verifyToken received:', token ? token.substring(0, 20) + '...' : 'none');
+    
+    if (!token) {
+      console.log('DEBUG - verifyToken: no token provided');
+      return null;
+    }
     
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
@@ -69,7 +74,9 @@ export async function verifyToken(token: string): Promise<User | null> {
       return null;
     }
     
+    console.log('DEBUG - verifyToken: attempting to decode token...');
     const decoded = jwt.verify(token, jwtSecret) as any;
+    console.log('DEBUG - verifyToken: token decoded successfully', decoded.email);
     const usersCollection = await getCollection('users');
     const user = await usersCollection.findOne({ 
       email: decoded.email,

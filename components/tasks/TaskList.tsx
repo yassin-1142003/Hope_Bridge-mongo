@@ -421,7 +421,7 @@ const TaskList: React.FC<TaskListProps> = ({
               }`}
               title="Toggle advanced filters"
               aria-label="Toggle advanced filters"
-              aria-expanded={showFilters} // Edge Tools may show false positive - this is correct boolean usage
+              aria-expanded={showFilters ? "true" : "false"}
             >
               <Filter className="w-4 h-4" />
               Filters
