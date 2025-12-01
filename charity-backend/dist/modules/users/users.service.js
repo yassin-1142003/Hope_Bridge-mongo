@@ -61,14 +61,6 @@ let UsersService = class UsersService {
         await this.ensureExists(id);
         return this.usersRepo.updateById(id, { isActive });
     }
-    async setEmailVerified(id, emailVerified) {
-        await this.ensureExists(id);
-        return this.usersRepo.updateById(id, { emailVerified });
-    }
-    async updatePassword(id, passwordHash) {
-        await this.ensureExists(id);
-        return this.usersRepo.updateById(id, { passwordHash });
-    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

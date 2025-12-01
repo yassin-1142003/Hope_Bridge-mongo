@@ -1,23 +1,25 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { EnhancedProject } from "../../db/schemas/enhanced-project.schema";
-import { CreateProjectDto } from "./dto/create-project.dto";
-import { UpdateProjectDto } from "./dto/update-project.dto";
+import { Project, ProjectDocument } from "../../db/schemas/project.schema";
+import {
+  CreateProjectDto,
+  UpdateProjectDto,
+} from "./projects.zod";
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    @InjectModel(EnhancedProject.name)
-    private readonly projectModel: Model<EnhancedProject>,
+    @InjectModel(Project.name)
+    private readonly projectModel: Model<ProjectDocument>,
   ) {}
 
-  async create(data: CreateProjectDto): Promise<EnhancedProject> {
+  async create(data: CreateProjectDto): Promise<Project> {
     const doc = new this.projectModel(data);
     return doc.save();
   }
 
-  async findAll(): Promise<EnhancedProject[]> {
+  async findAll(): Promise<Project[]> {
     return this.projectModel
       .find()
       .sort({ createdAt: -1, _id: -1 })
@@ -25,15 +27,15 @@ export class ProjectsService {
       .exec();
   }
 
-  async findOne(id: string): Promise<EnhancedProject> {
+  async findOne(id: string): Promise<Project> {
     const doc = await this.projectModel.findById(id).lean().exec();
     if (!doc) {
       throw new NotFoundException("Project not found");
     }
-    return doc as EnhancedProject;
+    return doc as any;
   }
 
-  async update(id: string, data: UpdateProjectDto): Promise<EnhancedProject> {
+  async update(id: string, data: UpdateProjectDto): Promise<Project> {
     const doc = await this.projectModel
       .findByIdAndUpdate(id, data, { new: true })
       .lean()
@@ -41,7 +43,7 @@ export class ProjectsService {
     if (!doc) {
       throw new NotFoundException("Project not found");
     }
-    return doc as EnhancedProject;
+    return doc as any;
   }
 
   async remove(id: string): Promise<void> {
