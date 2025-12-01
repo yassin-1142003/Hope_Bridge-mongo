@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -168,6 +169,14 @@ import { Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 >>>>>>> Stashed changes
+=======
+import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
+import RoleBasedTaskDashboard from "@/components/dashboard/RoleBasedTaskDashboard";
+import { Shield, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+
+>>>>>>> Stashed changes
 export default function TasksPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = useLocale();
 
@@ -201,6 +210,9 @@ export default function TasksPage({ params }: { params: Promise<{ locale: string
                   {locale === 'ar' ? 'نظام إدارة المهام المستند إلى الأدوار' : 'Role-based task management system'}
                 </p>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
               </div>
             </div>
           </div>
@@ -222,6 +234,9 @@ export default function TasksPage({ params }: { params: Promise<{ locale: string
 }
     dropFiles: "اسقط الملفات هنا أو انقر للاختيار",
     supportedFormats: "التنسيقات المدعومة: صور، فيديو، مستندات، ملفات PDF والمزيد",
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     maxFileSize: "أقصى حجم للملف: 10 ميجابايت",
     removeFile: "إزالة الملف",
@@ -243,7 +258,11 @@ const TaskManager = () => {
   const isRTL = locale === "ar";
   const [isDarkMode, setIsDarkMode] = useState(false);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+  
+>>>>>>> Stashed changes
 =======
   
 >>>>>>> Stashed changes
@@ -263,7 +282,10 @@ const TaskManager = () => {
     priority: "medium" as Task["priority"],
     assignedTo: "",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     relatedTo: [] as string[],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     startDate: "",
@@ -282,9 +304,15 @@ const TaskManager = () => {
   useEffect(() => {
     if (isDarkMode) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
+=======
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+>>>>>>> Stashed changes
 =======
       document.documentElement.classList.add('dark');
     } else {
@@ -306,7 +334,10 @@ const TaskManager = () => {
         assignedTo: "john@example.com",
         assignedToName: "John Doe",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["hope_bridge"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         startDate: "2024-12-01",
@@ -323,7 +354,10 @@ const TaskManager = () => {
         assignedTo: "jane@example.com",
         assignedToName: "Jane Smith",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["ummah", "one_nation"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         startDate: "2024-12-01",
@@ -340,7 +374,10 @@ const TaskManager = () => {
         assignedTo: "bob@example.com",
         assignedToName: "Bob Johnson",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         relatedTo: ["dudley"],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         startDate: "2024-12-01",
@@ -351,6 +388,7 @@ const TaskManager = () => {
     ];
 
     const mockUsers: User[] = [
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
       {
         id: "1",
@@ -375,10 +413,16 @@ const TaskManager = () => {
       { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
       { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
 >>>>>>> Stashed changes
+=======
+      { id: "1", name: "John Doe", email: "john@example.com", role: "developer" },
+      { id: "2", name: "Jane Smith", email: "jane@example.com", role: "designer" },
+      { id: "3", name: "Bob Johnson", email: "bob@example.com", role: "manager" },
+>>>>>>> Stashed changes
     ];
 
     setTasks(mockTasks);
     setUsers(mockUsers);
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     setSession({
       user: {
@@ -390,6 +434,9 @@ const TaskManager = () => {
 =======
     setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
 >>>>>>> Stashed changes
+=======
+    setSession({ user: { name: locale === "ar" ? "مدير النظام" : "Admin User", email: "admin@example.com", role: "admin" } });
+>>>>>>> Stashed changes
 
     // Mock notifications
     setNotifications([
@@ -397,10 +444,16 @@ const TaskManager = () => {
         id: "1",
         title: locale === "ar" ? "مهمة جديدة معينة" : "New task assigned",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         message:
           locale === "ar"
             ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
             : "You have been assigned to 'Complete project documentation'",
+=======
+        message: locale === "ar" 
+          ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
+          : "You have been assigned to 'Complete project documentation'",
+>>>>>>> Stashed changes
 =======
         message: locale === "ar" 
           ? "لقد تم تعيينك لـ 'إكمال وثائق المشروع'"
@@ -417,6 +470,7 @@ const TaskManager = () => {
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter((task) => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -425,10 +479,15 @@ const TaskManager = () => {
     const matchesPriority =
       selectedPriority === "all" || task.priority === selectedPriority;
 =======
+=======
+>>>>>>> Stashed changes
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === "all" || task.status === selectedStatus;
     const matchesPriority = selectedPriority === "all" || task.priority === selectedPriority;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -459,6 +518,7 @@ const TaskManager = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     if (editingTask) {
       // Update existing task
@@ -475,6 +535,8 @@ const TaskManager = () => {
         )
       );
 =======
+=======
+>>>>>>> Stashed changes
     
     if (editingTask) {
       // Update existing task
@@ -483,6 +545,9 @@ const TaskManager = () => {
           ? { ...task, ...formData, attachments, updatedAt: new Date().toISOString() }
           : task
       ));
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     } else {
       // Create new task
@@ -504,7 +569,10 @@ const TaskManager = () => {
       priority: "medium",
       assignedTo: "",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       relatedTo: [],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
       startDate: "",
@@ -519,7 +587,11 @@ const TaskManager = () => {
   // Handle task deletion
   const handleDelete = (taskId: string) => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     setTasks(tasks.filter((task) => task.id !== taskId));
+=======
+    setTasks(tasks.filter(task => task.id !== taskId));
+>>>>>>> Stashed changes
 =======
     setTasks(tasks.filter(task => task.id !== taskId));
 >>>>>>> Stashed changes
@@ -535,7 +607,10 @@ const TaskManager = () => {
       priority: task.priority,
       assignedTo: task.assignedTo,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       relatedTo: task.relatedTo || [],
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
       startDate: task.startDate,
@@ -549,24 +624,34 @@ const TaskManager = () => {
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
     const newFiles: TaskFile[] = [];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     Array.from(files).forEach((file) => {
 =======
+=======
+>>>>>>> Stashed changes
     
     const newFiles: TaskFile[] = [];
     const maxSize = 10 * 1024 * 1024; // 10MB
     
     Array.from(files).forEach(file => {
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       if (file.size > maxSize) {
         setUploadError(t.fileTooBig);
         return;
       }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+      
+>>>>>>> Stashed changes
 =======
       
 >>>>>>> Stashed changes
@@ -578,15 +663,21 @@ const TaskManager = () => {
         file: file,
       };
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
       newFiles.push(taskFile);
     });
 
 =======
+=======
+>>>>>>> Stashed changes
       
       newFiles.push(taskFile);
     });
     
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     if (newFiles.length > 0) {
       setAttachments([...attachments, ...newFiles]);
@@ -609,7 +700,11 @@ const TaskManager = () => {
     e.stopPropagation();
     setDragActive(false);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+    
+>>>>>>> Stashed changes
 =======
     
 >>>>>>> Stashed changes
@@ -619,6 +714,7 @@ const TaskManager = () => {
   };
 
   const removeFile = (fileId: string) => {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     setAttachments(attachments.filter((file) => file.id !== fileId));
   };
@@ -643,6 +739,8 @@ const TaskManager = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 =======
+=======
+>>>>>>> Stashed changes
     setAttachments(attachments.filter(file => file.id !== fileId));
   };
 
@@ -663,12 +761,16 @@ const TaskManager = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   };
 
   // Calculate stats
   const stats = {
     total: tasks.length,
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     completed: tasks.filter((t) => t.status === "completed").length,
     pending: tasks.filter((t) => t.status === "pending").length,
@@ -1019,6 +1121,15 @@ const TaskManager = () => {
   };
 
   return (
+=======
+    completed: tasks.filter(t => t.status === "completed").length,
+    pending: tasks.filter(t => t.status === "pending").length,
+    inProgress: tasks.filter(t => t.status === "in_progress").length,
+    urgent: tasks.filter(t => t.priority === "urgent").length,
+  };
+
+  return (
+>>>>>>> Stashed changes
     <div className={`min-h-screen bg-gradient-to-br ${isDarkMode ? 'dark:bg-gray-900' : 'from-primary/5 via-white to-primary/10'}`}>
       {/* Header */}
       <div className={`bg-white ${isDarkMode ? 'dark:bg-gray-800' : ''} shadow-sm border-b border-primary/20`}>
@@ -1261,6 +1372,7 @@ const TaskManager = () => {
                 >
                   <X className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
                 </button>
+<<<<<<< Updated upstream
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -2400,6 +2512,9 @@ const TaskManager = () => {
                   <X className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
                 </button>
               </div>
+=======
+              </div>
+>>>>>>> Stashed changes
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${isRTL ? 'md:grid-cols-2' : ''}`}>
@@ -2726,6 +2841,9 @@ const TaskManager = () => {
                   </div>
                 </motion.div>
               ))
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             )}
           </AnimatePresence>
